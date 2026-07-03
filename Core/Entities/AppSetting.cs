@@ -32,4 +32,10 @@ public class AppSetting
     public bool IsEncrypted { get; set; }
 
     public int SortOrder { get; set; }
+
+    /// <summary>
+    /// When true (company-scoped rows only), the effective value resolves to the global
+    /// (CompanyId == null) row for this key instead of this row's own Value.
+    /// </summary>
+    public bool IsUsingGlobal { get; set; }
 }

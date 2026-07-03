@@ -11,4 +11,7 @@ public class AjaxAppSettingModel
     public string DataType { get; set; } = "text";
     public bool IsEncrypted { get; set; }
     public int SortOrder { get; set; }
+    public bool IsUsingGlobal { get; set; }
+    public string? GlobalValue { get; set; }
+    public bool HasGlobalOverrideAvailable { get; set; }
 }

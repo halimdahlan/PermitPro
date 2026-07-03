@@ -78,6 +78,13 @@ public class SettingsController : AppControllerBase
 		if (duplicate)
 			return Conflict($"A category with slug \"{normalizedName}\" already exists for this company.");
 
+		// The merged list can surface a global category as a stand-in when this company has no
+		// override yet. Unlike settings, a category can't be safely "forked" to a new company-
+		// scoped Id — its child settings still reference the original CategoryId and would be
+		// orphaned from the copy. Global categories can only be edited from /admin/settings.
+		if (model.Id != Guid.Empty && await _dbContext.AppSettingCategories.AsNoTracking().AnyAsync(c => c.Id == model.Id && c.CompanyId == null))
+			return Conflict("This is a global category and can only be edited from Global Settings.");
+
 		var category = new AppSettingCategory
 		{
 			Id = model.Id == Guid.Empty ? Guid.NewGuid() : model.Id,
@@ -96,6 +103,11 @@ public class SettingsController : AppControllerBase
 	[HttpDelete]
 	public async Task<IActionResult> DeleteCategory(Guid id)
 	{
+		var category = await _dbContext.AppSettingCategories.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id);
+		if (category == null) return NotFound();
+		if (category.CompanyId != CompanyID)
+			return BadRequest("This is a global (or another company's) category and cannot be deleted from here.");
+
 		await _appSettings.DeleteCategoryAsync(id);
 		return Ok();
 	}
@@ -109,19 +121,32 @@ public class SettingsController : AppControllerBase
 	public async Task<JsonResult> GetSettings(Guid categoryId)
 	{
 		var settings = await _appSettings.GetSettingsAsync(CompanyID, categoryId);
-		var result = settings.Select(s => new AjaxAppSettingModel
+		var globalSettings = await _appSettings.GetGlobalSettingsAsync(categoryId);
+		var globalByKey = globalSettings.ToDictionary(g => g.Key, g => g, StringComparer.OrdinalIgnoreCase);
+
+		var result = settings.Select(s =>
 		{
-			Id = s.Id,
-			CategoryId = s.CategoryId,
-			CompanyId = s.CompanyId,
-			Key = s.Key,
-			DisplayName = s.DisplayName,
-			Value = s.IsEncrypted ? null : s.Value,
-			DataType = s.DataType,
-			IsEncrypted = s.IsEncrypted,
-			SortOrder = s.SortOrder
+			globalByKey.TryGetValue(s.Key, out var globalMatch);
+			return new AjaxAppSettingModel
+			{
+				Id = s.Id,
+				// Pin to the category being viewed, not the entity's own CategoryId — a row
+				// inherited from global carries the global category's Id, but must be saved
+				// back under this company's category so it's recognized as an override later.
+				CategoryId = categoryId,
+				CompanyId = s.CompanyId,
+				Key = s.Key,
+				DisplayName = s.DisplayName,
+				Value = s.IsEncrypted ? null : s.Value,
+				DataType = s.DataType,
+				IsEncrypted = s.IsEncrypted,
+				SortOrder = s.SortOrder,
+				IsUsingGlobal = s.CompanyId != null && s.IsUsingGlobal,
+				GlobalValue = globalMatch is null ? null : (globalMatch.IsEncrypted ? "(encrypted)" : globalMatch.Value),
+				HasGlobalOverrideAvailable = globalMatch != null,
+			};
 		});
-		
+
 		return new JsonResult(result, new JsonSerializerOptions
 		{
 			PropertyNamingPolicy = null,
@@ -140,9 +165,16 @@ public class SettingsController : AppControllerBase
 		if (duplicate)
 			return Conflict($"A setting with key \"{normalizedKey}\" already exists in this category.");
 
+		// The merged list can surface a global row (CompanyId == null) as a stand-in when this
+		// company has no override yet. Saving it must create a new company-scoped row rather
+		// than reuse its Id, or it would silently convert the shared global row into this
+		// company's private one.
+		var targetsGlobalRow = model.Id != Guid.Empty &&
+			await _dbContext.AppSettings.AsNoTracking().AnyAsync(s => s.Id == model.Id && s.CompanyId == null);
+
 		var setting = new AppSetting
 		{
-			Id = model.Id == Guid.Empty ? Guid.NewGuid() : model.Id,
+			Id = (model.Id == Guid.Empty || targetsGlobalRow) ? Guid.NewGuid() : model.Id,
 			CategoryId = model.CategoryId,
 			CompanyId = CompanyID,
 			Key = normalizedKey,
@@ -150,7 +182,8 @@ public class SettingsController : AppControllerBase
 			Value = model.Value,
 			DataType = model.DataType,
 			IsEncrypted = model.IsEncrypted,
-			SortOrder = model.SortOrder
+			SortOrder = model.SortOrder,
+			IsUsingGlobal = model.IsUsingGlobal,
 		};
 
 		await _appSettings.UpsertSettingAsync(setting);
@@ -160,6 +193,11 @@ public class SettingsController : AppControllerBase
 	[HttpDelete]
 	public async Task<IActionResult> DeleteSetting(Guid id)
 	{
+		var setting = await _dbContext.AppSettings.AsNoTracking().FirstOrDefaultAsync(s => s.Id == id);
+		if (setting == null) return NotFound();
+		if (setting.CompanyId != CompanyID)
+			return BadRequest("This is a global (or another company's) setting and cannot be deleted from here.");
+
 		await _appSettings.DeleteSettingAsync(id);
 		return Ok();
 	}

@@ -290,6 +290,9 @@ namespace PermitPro.Core.Migrations
                     b.Property<bool>("IsEncrypted")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsUsingGlobal")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Key")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -302,7 +305,13 @@ namespace PermitPro.Core.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CategoryId");
+                    b.HasIndex("CategoryId")
+                        .HasDatabaseName("IX_AppSettings_CategoryId");
+
+                    b.HasIndex("CategoryId", "Key")
+                        .IsUnique()
+                        .HasDatabaseName("IX_AppSettings_CategoryId_Key_Global")
+                        .HasFilter("[CompanyId] IS NULL");
 
                     b.HasIndex("CompanyId", "CategoryId", "Key")
                         .IsUnique()
@@ -338,6 +347,11 @@ namespace PermitPro.Core.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasDatabaseName("IX_AppSettingCategories_Name_Global")
+                        .HasFilter("[CompanyId] IS NULL");
 
                     b.HasIndex("CompanyId", "Name")
                         .IsUnique()

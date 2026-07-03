@@ -334,7 +334,8 @@ public class AdminController : Controller
             CompanyId = id,
             CompanyName = company.Name,
             CompanyLogoFileName = company.LogoFileName,
-            Categories = categories
+            Categories = categories,
+            Companies = await GetSettingsCompanyOptionsAsync(),
         });
     }
 
@@ -350,6 +351,13 @@ public class AdminController : Controller
             .AnyAsync(c => c.CompanyId == id && c.Name == normalizedName && c.Id != model.Id);
         if (duplicate)
             return Conflict($"A category with slug \"{normalizedName}\" already exists for this company.");
+
+        // The merged list can surface a global category as a stand-in when this company has no
+        // override yet. Unlike settings, a category can't be safely "forked" to a new company-
+        // scoped Id — its child settings still reference the original CategoryId and would be
+        // orphaned from the copy. Global categories can only be edited from /admin/settings.
+        if (model.Id != Guid.Empty && await _db.AppSettingCategories.AsNoTracking().AnyAsync(c => c.Id == model.Id && c.CompanyId == null))
+            return Conflict("This is a global category and can only be edited from Global Settings.");
 
         var category = new AppSettingCategory
         {
@@ -371,6 +379,12 @@ public class AdminController : Controller
     public async Task<IActionResult> DeleteCompanyCategory(Guid id, Guid catId)
     {
         if (!IsSuperUser()) return Forbid();
+
+        var category = await _db.AppSettingCategories.AsNoTracking().FirstOrDefaultAsync(c => c.Id == catId);
+        if (category == null) return NotFound();
+        if (category.CompanyId != id)
+            return BadRequest("This category does not belong to the selected company — edit it from Global Settings or the owning company instead.");
+
         await _appSettings.DeleteCategoryAsync(catId);
         return Ok();
     }
@@ -382,17 +396,30 @@ public class AdminController : Controller
         if (!IsSuperUser()) return new JsonResult(Forbid());
 
         var settings = await _appSettings.GetSettingsAsync(id, categoryId);
-        var result = settings.Select(s => new AjaxAppSettingModel
+        var globalSettings = await _appSettings.GetGlobalSettingsAsync(categoryId);
+        var globalByKey = globalSettings.ToDictionary(g => g.Key, g => g, StringComparer.OrdinalIgnoreCase);
+
+        var result = settings.Select(s =>
         {
-            Id = s.Id,
-            CategoryId = s.CategoryId,
-            CompanyId = s.CompanyId,
-            Key = s.Key,
-            DisplayName = s.DisplayName,
-            Value = s.IsEncrypted ? null : s.Value,
-            DataType = s.DataType,
-            IsEncrypted = s.IsEncrypted,
-            SortOrder = s.SortOrder
+            globalByKey.TryGetValue(s.Key, out var globalMatch);
+            return new AjaxAppSettingModel
+            {
+                Id = s.Id,
+                // Pin to the category being viewed, not the entity's own CategoryId — a row
+                // inherited from global carries the global category's Id, but must be saved
+                // back under this company's category so it's recognized as an override later.
+                CategoryId = categoryId,
+                CompanyId = s.CompanyId,
+                Key = s.Key,
+                DisplayName = s.DisplayName,
+                Value = s.IsEncrypted ? null : s.Value,
+                DataType = s.DataType,
+                IsEncrypted = s.IsEncrypted,
+                SortOrder = s.SortOrder,
+                IsUsingGlobal = s.CompanyId != null && s.IsUsingGlobal,
+                GlobalValue = globalMatch is null ? null : (globalMatch.IsEncrypted ? "(encrypted)" : globalMatch.Value),
+                HasGlobalOverrideAvailable = globalMatch != null,
+            };
         });
 
         return new JsonResult(result, new System.Text.Json.JsonSerializerOptions
@@ -414,9 +441,16 @@ public class AdminController : Controller
         if (duplicate)
             return Conflict($"A setting with key \"{normalizedKey}\" already exists in this category.");
 
+        // The merged list can surface a global row (CompanyId == null) as a stand-in when this
+        // company has no override yet. Saving it must create a new company-scoped row rather
+        // than reuse its Id, or it would silently convert the shared global row into this
+        // company's private one.
+        var targetsGlobalRow = model.Id != Guid.Empty &&
+            await _db.AppSettings.AsNoTracking().AnyAsync(s => s.Id == model.Id && s.CompanyId == null);
+
         var setting = new AppSetting
         {
-            Id = model.Id == Guid.Empty ? Guid.NewGuid() : model.Id,
+            Id = (model.Id == Guid.Empty || targetsGlobalRow) ? Guid.NewGuid() : model.Id,
             CategoryId = model.CategoryId,
             CompanyId = id,
             Key = normalizedKey,
@@ -424,7 +458,8 @@ public class AdminController : Controller
             Value = model.Value,
             DataType = model.DataType,
             IsEncrypted = model.IsEncrypted,
-            SortOrder = model.SortOrder
+            SortOrder = model.SortOrder,
+            IsUsingGlobal = model.IsUsingGlobal,
         };
 
         await _appSettings.UpsertSettingAsync(setting);
@@ -436,8 +471,142 @@ public class AdminController : Controller
     public async Task<IActionResult> DeleteCompanySetting(Guid id, Guid settingId)
     {
         if (!IsSuperUser()) return Forbid();
+
+        var setting = await _db.AppSettings.AsNoTracking().FirstOrDefaultAsync(s => s.Id == settingId);
+        if (setting == null) return NotFound();
+        if (setting.CompanyId != id)
+            return BadRequest("This setting does not belong to the selected company — edit it from Global Settings or the owning company instead.");
+
         await _appSettings.DeleteSettingAsync(settingId);
         return Ok();
+    }
+
+
+    // ── Global settings ───────────────────────────────────────────────────────
+
+    [Authorize]
+    [HttpGet("/admin/settings")]
+    public async Task<IActionResult> GlobalSettings()
+    {
+        if (!IsSuperUser()) return Forbid();
+
+        var categories = await _appSettings.GetGlobalCategoriesAsync();
+        return View(new AdminGlobalSettingsViewModel
+        {
+            Categories = categories,
+            Companies = await GetSettingsCompanyOptionsAsync(),
+        });
+    }
+
+    [Authorize]
+    [HttpPost("/admin/settings/categories")]
+    public async Task<IActionResult> SaveGlobalCategory([FromBody] AjaxAppSettingCategoryModel model)
+    {
+        if (!IsSuperUser()) return Forbid();
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+
+        var normalizedName = model.Name.Trim().ToLowerInvariant();
+        var duplicate = await _db.AppSettingCategories
+            .AnyAsync(c => c.CompanyId == null && c.Name == normalizedName && c.Id != model.Id);
+        if (duplicate)
+            return Conflict($"A global category with slug \"{normalizedName}\" already exists.");
+
+        var category = new AppSettingCategory
+        {
+            Id = model.Id == Guid.Empty ? Guid.NewGuid() : model.Id,
+            CompanyId = null,
+            Name = normalizedName,
+            DisplayName = model.DisplayName.Trim(),
+            Description = model.Description,
+            Icon = model.Icon,
+            SortOrder = model.SortOrder
+        };
+
+        await _appSettings.UpsertCategoryAsync(category);
+        return Ok(new { id = category.Id });
+    }
+
+    [Authorize]
+    [HttpDelete("/admin/settings/categories/{catId:guid}")]
+    public async Task<IActionResult> DeleteGlobalCategory(Guid catId)
+    {
+        if (!IsSuperUser()) return Forbid();
+        await _appSettings.DeleteCategoryAsync(catId);
+        return Ok();
+    }
+
+    [Authorize]
+    [HttpGet("/admin/settings/items")]
+    public async Task<JsonResult> GetGlobalSettings(Guid categoryId)
+    {
+        if (!IsSuperUser()) return new JsonResult(Forbid());
+
+        var settings = await _appSettings.GetGlobalSettingsAsync(categoryId);
+        var result = settings.Select(s => new AjaxAppSettingModel
+        {
+            Id = s.Id,
+            CategoryId = s.CategoryId,
+            CompanyId = s.CompanyId,
+            Key = s.Key,
+            DisplayName = s.DisplayName,
+            Value = s.IsEncrypted ? null : s.Value,
+            DataType = s.DataType,
+            IsEncrypted = s.IsEncrypted,
+            SortOrder = s.SortOrder
+        });
+
+        return new JsonResult(result, new System.Text.Json.JsonSerializerOptions
+        {
+            PropertyNamingPolicy = null
+        });
+    }
+
+    [Authorize]
+    [HttpPost("/admin/settings/items")]
+    public async Task<IActionResult> SaveGlobalSetting([FromBody] AjaxAppSettingModel model)
+    {
+        if (!IsSuperUser()) return Forbid();
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+
+        var normalizedKey = model.Key.Trim().ToLowerInvariant();
+        var duplicate = await _db.AppSettings
+            .AnyAsync(s => s.CompanyId == null && s.CategoryId == model.CategoryId && s.Key == normalizedKey && s.Id != model.Id);
+        if (duplicate)
+            return Conflict($"A global setting with key \"{normalizedKey}\" already exists in this category.");
+
+        var setting = new AppSetting
+        {
+            Id = model.Id == Guid.Empty ? Guid.NewGuid() : model.Id,
+            CategoryId = model.CategoryId,
+            CompanyId = null,
+            Key = normalizedKey,
+            DisplayName = model.DisplayName.Trim(),
+            Value = model.Value,
+            DataType = model.DataType,
+            IsEncrypted = model.IsEncrypted,
+            SortOrder = model.SortOrder,
+        };
+
+        await _appSettings.UpsertSettingAsync(setting);
+        return Ok(new { id = setting.Id });
+    }
+
+    [Authorize]
+    [HttpDelete("/admin/settings/items/{settingId:guid}")]
+    public async Task<IActionResult> DeleteGlobalSetting(Guid settingId)
+    {
+        if (!IsSuperUser()) return Forbid();
+        await _appSettings.DeleteSettingAsync(settingId);
+        return Ok();
+    }
+
+    private async Task<List<AdminSettingsCompanyOption>> GetSettingsCompanyOptionsAsync()
+    {
+        return await _db.Companies
+            .IgnoreQueryFilters()
+            .OrderBy(c => c.Name)
+            .Select(c => new AdminSettingsCompanyOption { Id = c.Id, Name = c.Name })
+            .ToListAsync();
     }
 
 

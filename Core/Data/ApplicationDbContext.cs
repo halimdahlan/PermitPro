@@ -215,6 +215,12 @@ public class ApplicationDbContext
 		builder.Entity<AppSettingCategory>(options =>
 		{
 			options.HasIndex(x => new { x.CompanyId, x.Name }).IsUnique();
+			// EF's auto-generated filter for the index above excludes CompanyId IS NULL rows
+			// (nullable-column convention), so global categories need their own uniqueness guard.
+			options.HasIndex(x => x.Name)
+				   .IsUnique()
+				   .HasFilter("[CompanyId] IS NULL")
+				   .HasDatabaseName("IX_AppSettingCategories_Name_Global");
 			options.HasMany(x => x.Settings)
 				   .WithOne(x => x.Category)
 				   .HasForeignKey(x => x.CategoryId)
@@ -224,6 +230,16 @@ public class ApplicationDbContext
 		builder.Entity<AppSetting>(options =>
 		{
 			options.HasIndex(x => new { x.CompanyId, x.CategoryId, x.Key }).IsUnique();
+			// Same gap as above: global settings need a dedicated filtered unique index.
+			options.HasIndex(x => new { x.CategoryId, x.Key })
+				   .IsUnique()
+				   .HasFilter("[CompanyId] IS NULL")
+				   .HasDatabaseName("IX_AppSettings_CategoryId_Key_Global");
+			// Preserve the plain (unfiltered) FK lookup index — EF's convention-generated
+			// index would otherwise be dropped as "redundant" with the filtered index above,
+			// but that one only covers global rows, not a CategoryId scan across all companies.
+			options.HasIndex(x => x.CategoryId)
+				   .HasDatabaseName("IX_AppSettings_CategoryId");
 		});
 
 		// UserRole is the required dependent end of UserInfo; it must share the same IsDeleted

@@ -16,6 +16,12 @@ public class AppSettingsService : IAppSettingsService
 
 	private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(30);
 
+	// IMemoryCache has no key-enumeration/wildcard removal, so when a global (CompanyId == null)
+	// row changes we need to know every company whose per-company cache entry might now be stale
+	// (since those entries merge in global rows). Tracks every companyId seen by the cache reads
+	// below; this service is Scoped, so the set must be static to survive across requests.
+	private static readonly System.Collections.Concurrent.ConcurrentDictionary<Guid, byte> _knownCompanyIds = new();
+
 	public AppSettingsService(ApplicationDbContext dbContext, IDataProtectionProvider dataProtectionProvider, IMemoryCache cache)
 	{
 		_dbContext = dbContext;
@@ -30,6 +36,8 @@ public class AppSettingsService : IAppSettingsService
 
 	public async Task<IEnumerable<AppSettingCategory>> GetCategoriesAsync(Guid companyId)
 	{
+		_knownCompanyIds.TryAdd(companyId, 0);
+
 		var cacheKey = CatsCacheKey(companyId);
 		if (_cache.TryGetValue(cacheKey, out IEnumerable<AppSettingCategory>? cached))
 			return cached!;
@@ -50,6 +58,15 @@ public class AppSettingsService : IAppSettingsService
 
 		_cache.Set(cacheKey, (IEnumerable<AppSettingCategory>)result, CacheDuration);
 		return result;
+	}
+
+	public async Task<IEnumerable<AppSettingCategory>> GetGlobalCategoriesAsync()
+	{
+		return await _dbContext.AppSettingCategories
+			 .Where(c => c.CompanyId == null)
+			 .OrderBy(c => c.SortOrder)
+			 .ThenBy(c => c.DisplayName)
+			 .ToListAsync();
 	}
 
 	public async Task UpsertCategoryAsync(AppSettingCategory category)
@@ -95,15 +112,7 @@ public class AppSettingsService : IAppSettingsService
 	public async Task<string?> GetValueAsync(Guid companyId, string categoryName, string key)
 	{
 		var settings = await GetAllSettingsFlatAsync(companyId);
-
-		var match = settings.FirstOrDefault(s =>
-			 string.Equals(s.Category?.Name, categoryName, StringComparison.OrdinalIgnoreCase) &&
-			 string.Equals(s.Key, key, StringComparison.OrdinalIgnoreCase) &&
-			 s.CompanyId == companyId)
-			 ?? settings.FirstOrDefault(s =>
-			 string.Equals(s.Category?.Name, categoryName, StringComparison.OrdinalIgnoreCase) &&
-			 string.Equals(s.Key, key, StringComparison.OrdinalIgnoreCase) &&
-			 s.CompanyId == null);
+		var match = ResolveEffectiveMatch(settings, categoryName, key, companyId);
 
 		if (match is null) return null;
 		return Decrypt(match);
@@ -112,15 +121,7 @@ public class AppSettingsService : IAppSettingsService
 	public async Task<int> GetIntAsync(Guid companyId, string categoryName, string key)
 	{
 		var settings = await GetAllSettingsFlatAsync(companyId);
-
-		var match = settings.FirstOrDefault(s =>
-			 string.Equals(s.Category?.Name, categoryName, StringComparison.OrdinalIgnoreCase) &&
-			 string.Equals(s.Key, key, StringComparison.OrdinalIgnoreCase) &&
-			 s.CompanyId == companyId)
-			 ?? settings.FirstOrDefault(s =>
-			 string.Equals(s.Category?.Name, categoryName, StringComparison.OrdinalIgnoreCase) &&
-			 string.Equals(s.Key, key, StringComparison.OrdinalIgnoreCase) &&
-			 s.CompanyId == null);
+		var match = ResolveEffectiveMatch(settings, categoryName, key, companyId);
 
 		if (match is null) return 0;
 		var decrypt = Decrypt(match);
@@ -130,10 +131,17 @@ public class AppSettingsService : IAppSettingsService
 
 	public async Task<IEnumerable<AppSetting>> GetSettingsAsync(Guid companyId, Guid categoryId)
 	{
+		var category = await _dbContext.AppSettingCategories.AsNoTracking().FirstOrDefaultAsync(c => c.Id == categoryId);
+		if (category is null) return [];
+
+		var globalCategoryId = await ResolveGlobalCategoryIdAsync(category);
+
 		var all = await GetAllSettingsFlatAsync(companyId);
 
 		var companyRows = all.Where(s => s.CategoryId == categoryId && s.CompanyId == companyId).ToList();
-		var globalRows = all.Where(s => s.CategoryId == categoryId && s.CompanyId == null).ToList();
+		var globalRows = globalCategoryId is null
+			 ? []
+			 : all.Where(s => s.CategoryId == globalCategoryId && s.CompanyId == null).ToList();
 
 		// Merge: company-specific row wins over global for the same Key
 		var merged = globalRows
@@ -145,6 +153,44 @@ public class AppSettingsService : IAppSettingsService
 			 .ToList();
 
 		return merged;
+	}
+
+	public async Task<IEnumerable<AppSetting>> GetGlobalSettingsAsync(Guid categoryId)
+	{
+		// categoryId may be a company-owned category or the raw global category (when the
+		// merge in GetCategoriesAsync has nothing to override it with) — either way, resolve
+		// the actual global category by Name, since company and global categories with the
+		// same Name are separate rows with different Ids.
+		var category = await _dbContext.AppSettingCategories
+			 .AsNoTracking()
+			 .FirstOrDefaultAsync(c => c.Id == categoryId);
+		if (category is null) return [];
+
+		var globalCategoryId = await ResolveGlobalCategoryIdAsync(category);
+		if (globalCategoryId is null) return [];
+
+		var rows = await _dbContext.AppSettings
+			 .Where(s => s.CompanyId == null && s.CategoryId == globalCategoryId)
+			 .OrderBy(s => s.SortOrder)
+			 .ThenBy(s => s.DisplayName)
+			 .ToListAsync();
+
+		return rows.Select(DecryptForDisplay).ToList();
+	}
+
+	/// <summary>
+	/// Company and global categories that represent "the same" category share a Name but are
+	/// separate rows with different Ids. Resolves the global sibling's Id for a given category.
+	/// </summary>
+	private async Task<Guid?> ResolveGlobalCategoryIdAsync(AppSettingCategory category)
+	{
+		if (category.CompanyId is null) return category.Id;
+
+		var globalCategory = await _dbContext.AppSettingCategories
+			 .AsNoTracking()
+			 .FirstOrDefaultAsync(c => c.CompanyId == null && c.Name == category.Name);
+
+		return globalCategory?.Id;
 	}
 
 	public async Task UpsertSettingAsync(AppSetting setting)
@@ -169,11 +215,23 @@ public class AppSettingsService : IAppSettingsService
 			existing.SortOrder = setting.SortOrder;
 			existing.CompanyId = setting.CompanyId;
 			existing.CategoryId = setting.CategoryId;
+			existing.IsUsingGlobal = setting.IsUsingGlobal;
 
-			if (setting.IsEncrypted && !string.IsNullOrEmpty(setting.Value))
-				existing.Value = _protector.Protect(setting.Value);
-			else
-				existing.Value = setting.Value;
+			// While deferring to global, the (disabled) Value field submits blank/stale data —
+			// leave the row's own last-known value untouched so unchecking restores it.
+			if (!setting.IsUsingGlobal)
+			{
+				if (setting.IsEncrypted)
+				{
+					// Blank means "keep the existing encrypted value unchanged" (the UI hint).
+					if (!string.IsNullOrEmpty(setting.Value))
+						existing.Value = _protector.Protect(setting.Value);
+				}
+				else
+				{
+					existing.Value = setting.Value;
+				}
+			}
 		}
 
 		await _dbContext.SaveChangesAsync();
@@ -197,6 +255,8 @@ public class AppSettingsService : IAppSettingsService
 
 	private async Task<List<AppSetting>> GetAllSettingsFlatAsync(Guid companyId)
 	{
+		_knownCompanyIds.TryAdd(companyId, 0);
+
 		var cacheKey = ValsCacheKey(companyId);
 		if (_cache.TryGetValue(cacheKey, out List<AppSetting>? cached))
 			return cached!;
@@ -208,6 +268,32 @@ public class AppSettingsService : IAppSettingsService
 
 		_cache.Set(cacheKey, rows, CacheDuration);
 		return rows;
+	}
+
+	/// <summary>
+	/// Resolves the effective row for a (category, key) pair: the company row unless it's
+	/// explicitly deferring to global (<see cref="AppSetting.IsUsingGlobal"/>), in which case
+	/// the global row is used (falling back to the company row if no global row exists).
+	/// </summary>
+	private static AppSetting? ResolveEffectiveMatch(List<AppSetting> settings, string categoryName, string key, Guid companyId)
+	{
+		AppSetting? companyMatch = null;
+		AppSetting? globalMatch = null;
+
+		foreach (var s in settings)
+		{
+			if (!string.Equals(s.Category?.Name, categoryName, StringComparison.OrdinalIgnoreCase) ||
+				 !string.Equals(s.Key, key, StringComparison.OrdinalIgnoreCase))
+				continue;
+
+			if (s.CompanyId == companyId) companyMatch = s;
+			else if (s.CompanyId == null) globalMatch = s;
+		}
+
+		if (companyMatch != null && !companyMatch.IsUsingGlobal)
+			return companyMatch;
+
+		return globalMatch ?? companyMatch;
 	}
 
 	private string? Decrypt(AppSetting setting)
@@ -235,6 +321,7 @@ public class AppSettingsService : IAppSettingsService
 			DataType = setting.DataType,
 			IsEncrypted = setting.IsEncrypted,
 			SortOrder = setting.SortOrder,
+			IsUsingGlobal = setting.IsUsingGlobal,
 			Value = Decrypt(setting)
 		};
 	}
@@ -243,12 +330,26 @@ public class AppSettingsService : IAppSettingsService
 	{
 		_cache.Remove(CatsCacheKey(companyId ?? Guid.Empty));
 		_cache.Remove(CatsCacheKey(Guid.Empty));
+
+		// A global category change can affect every company's merged view.
+		if (companyId is null)
+		{
+			foreach (var knownCompanyId in _knownCompanyIds.Keys)
+				_cache.Remove(CatsCacheKey(knownCompanyId));
+		}
 	}
 
 	private void InvalidateSettingsCache(Guid? companyId, Guid categoryId)
 	{
 		_cache.Remove(ValsCacheKey(companyId ?? Guid.Empty));
 		_cache.Remove(ValsCacheKey(Guid.Empty));
+
+		// A global setting change can affect every company's merged/effective value.
+		if (companyId is null)
+		{
+			foreach (var knownCompanyId in _knownCompanyIds.Keys)
+				_cache.Remove(ValsCacheKey(knownCompanyId));
+		}
 	}
 
 	private static string CatsCacheKey(Guid companyId) => $"appsettings:cats:{companyId}";

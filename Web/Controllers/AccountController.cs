@@ -279,12 +279,12 @@ public class AccountController : Controller
 		var bodyBuilder = new BodyBuilder();
 		bodyBuilder.HtmlBody = renderedHtml;
 
-		var smtpServer = await _appSettings.GetValueAsync(Guid.Empty, "email", "server");
-		var smtpPort = int.TryParse(await _appSettings.GetValueAsync(Guid.Empty, "email", "port"), out var p) ? p : 25;
-		var senderName = await _appSettings.GetValueAsync(Guid.Empty, "email", "senderName");
-		var senderEmail = await _appSettings.GetValueAsync(Guid.Empty, "email", "senderEmail");
-		var smtpUser = await _appSettings.GetValueAsync(Guid.Empty, "email", "userName");
-		var smtpPass = await _appSettings.GetValueAsync(Guid.Empty, "email", "password");
+		var smtpServer = await _appSettings.GetValueAsync(Guid.Empty, "email", "smtp_server");
+		var smtpPort = int.TryParse(await _appSettings.GetValueAsync(Guid.Empty, "email", "smtp_port"), out var p) ? p : 25;
+		var senderName = await _appSettings.GetValueAsync(Guid.Empty, "email", "sender_name");
+		var senderEmail = await _appSettings.GetValueAsync(Guid.Empty, "email", "sender_email");
+		var smtpUser = await _appSettings.GetValueAsync(Guid.Empty, "email", "email_username");
+		var smtpPass = await _appSettings.GetValueAsync(Guid.Empty, "email", "email_password");
 
 		var message = new MimeMessage();
 		message.From.Add(new MailboxAddress(senderName, senderEmail));

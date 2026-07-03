@@ -81,6 +81,7 @@ PermitPro-1.2/
 - Company logo is displayed in the tenant sidebar; falls back to a helmet-safety icon if none is set
 - Dedicated `_LayoutAdmin` layout with a minimal dark navigation bar
 - Super admins have no assigned `UserCompany`; all service calls that need a company ID resolve it automatically from the `{company}` route segment instead
+- Global and per-company app settings management (`/admin/settings`, `/admin/companies/{id}/settings`) — see **App Settings** below
 
 ### Permit Management
 - Create and manage safety permits across 8 certificate types:
@@ -129,15 +130,35 @@ PermitPro-1.2/
 - Cascade restore recovers children deleted within the same cascade operation (10-second window)
 
 ### App Settings
-- Per-company key-value configuration stored in `AppSettingCategory` / `AppSetting` entities
-- Settings are grouped by category and scoped by `CompanyId`
-- Seeded with 3 default categories and 13 keys per company:
+- Key-value configuration stored in `AppSettingCategory` / `AppSetting` entities, both with a nullable `CompanyId`
+- Two tiers, merged at read time:
+  - **Global** (`CompanyId == null`) — defaults inherited by every company
+  - **Company** (`CompanyId == <company>`) — overrides the global value for that company only
+- Default categories/keys:
 
 | Category | Keys |
 |---|---|
 | **General** | `application_domain`, `user_create_limit`, `upload_max_file_size`, `upload_max_file_count`, `upload_allowed_file_types` |
 | **Email** | `smtp_server`, `smtp_port`, `sender_name`, `sender_email`, `email_username`, `email_password` (encrypted) |
 | **Workflow** | `suspended_autoresume_days` |
+
+**Global settings with per-company override**
+- Managed by super admins at `/admin/settings` (Global Settings) and `/admin/companies/{id}/settings` (per-company) — both pages share a **Global / Company** context-switcher dropdown in the header to jump between tiers without leaving the settings screen
+- Tenant admins manage their own company's settings at `/{company}/settings` (unchanged route)
+- Each company-scoped setting has a **"Use global settings value"** checkbox (`AppSetting.IsUsingGlobal`). When checked:
+  - The effective value read by the app resolves to the current global value for that key, not the company row's stored `Value`
+  - The company's last custom value is preserved (not wiped) so unchecking restores it instead of requiring re-entry
+  - The checkbox only appears when a global row exists for that key (`HasGlobalOverrideAvailable`) — there's nothing to defer to otherwise
+- `IAppSettingsService.GetValueAsync`/`GetIntAsync`/`GetSettingsAsync` resolve the effective value: company row wins unless it's deferring to global, in which case the global row is used (falling back to the company row if no global row exists)
+- Global-row uniqueness (per category `Name`, per setting `CategoryId`+`Key`) is enforced via dedicated filtered unique indexes (`WHERE CompanyId IS NULL`) — EF Core's default nullable-column unique index auto-excludes `NULL` rows, so global rows needed their own index to prevent duplicates
+- Cache invalidation on a global-row write clears every known company's cached settings (`AppSettingsService` tracks companies it has served via a static `ConcurrentDictionary`, since `IMemoryCache` has no key-enumeration API) — otherwise tenants would see a stale global value for up to the 30-minute cache TTL
+- Settings are **not** auto-seeded for new companies today — `AppSettingsSeed.SeedDefaultsAsync` is dead code (call commented out in `Program.cs`, and it only ever targeted one hardcoded company). Use the Global/Company Settings UI to configure values manually until this is revisited.
+
+**Category identity across tiers** — a company category and a global category with the same `Name` (e.g. `general`) are separate rows with different `Id`s; only `Name` links them. This has a few consequences handled in `AppSettingsService`:
+- `GetSettingsAsync`/`GetGlobalSettingsAsync` resolve the sibling category by `Name` (`ResolveGlobalCategoryIdAsync`), not by raw `Id` — otherwise a company with a pre-existing category would never see any global values merge in at all
+- The settings list returned to the UI pins `CategoryId` to whichever category is currently being viewed, even for rows inherited from global (which carry the global category's own `Id`) — so editing and saving an inherited row files the new override under the right category instead of silently vanishing
+- Editing/deleting a row that turns out to belong to the global tier is guarded server-side (`SaveSetting`, `SaveCompanySetting`, and the `Delete*` actions in both `SettingsController` and `AdminController`): saving forks a fresh company-scoped row rather than overwriting the shared global one; deleting is rejected outright if the row isn't owned by the current company. Categories specifically can't be "forked" (their `Id` is the FK every setting under them points to), so editing/deleting a global category is only permitted from `/admin/settings`
+- The delete/authorization checks also close a pre-existing gap where any tenant could delete an arbitrary category/setting row by `Id`, regardless of which company owned it
 
 ### Reporting & Export
 - Kendo UI grid-based permit report with date range, location, certificate type, permit holder, and status filters
@@ -363,6 +384,7 @@ All core entities support soft-delete via `ISoftDeletable`. Hard deletes are not
 | `AddAppSettings` | `AppSettingCategory` and `AppSetting` tables |
 | `AddCompanyLogo` | `LogoFileName` on `Company` |
 | `AddRoleIsUnlimitedUsers` | `IsUnlimitedUsers` flag on `Role` |
+| `AddGlobalSettingsSupport` | `IsUsingGlobal` flag on `AppSetting` + filtered unique indexes for global (`CompanyId IS NULL`) categories/settings |
 
 Run migrations:
 ```bash

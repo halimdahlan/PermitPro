@@ -1,0 +1,498 @@
+@using PermitPro.Core.Entities
+@using PermitPro.App.ViewModels
+
+@{
+	Layout = "_LayoutAdmin";
+	ViewData["Title"] = "Global Settings";
+}
+
+@model AdminGlobalSettingsViewModel
+
+@Html.AntiForgeryToken()
+
+@* ── Breadcrumb / header ─────────────────────────────────────────────── *@
+<div class="page-header">
+	<div class="d-flex align-items-center gap-3">
+		<div
+			style="height:36px;width:36px;border:1px solid #e2e8f0;border-radius:6px;background:#f8fafc;display:flex;align-items:center;justify-content:center;">
+			<i class="fa-solid fa-earth-americas text-primary" style="font-size:.9rem;"></i>
+		</div>
+		<div>
+			<h4 class="mb-0"><i class="fa-solid fa-gear me-2 text-primary"></i> Settings</h4>
+			<small class="text-muted">Global defaults — inherited by every company unless overridden</small>
+		</div>
+	</div>
+	<div class="d-flex align-items-center gap-2">
+		<label class="small text-muted mb-0 me-1">View:</label>
+		<select id="settingsContextSwitcher" class="form-select form-select-sm" style="width:auto;min-width:220px;"
+				  onchange="onContextSwitch(this.value)">
+			<option value="global" selected>🌐 Global Settings</option>
+			<optgroup label="Companies">
+				@foreach (var c in Model.Companies)
+				{
+					<option value="@c.Id">@c.Name</option>
+				}
+			</optgroup>
+		</select>
+		<a href="/admin/companies" class="btn btn-sm btn-outline-secondary">
+			<i class="fa-solid fa-arrow-left me-1"></i> Back to Companies
+		</a>
+		<button class="btn btn-sm btn-primary" onclick="addCategory()">
+			<i class="fa-solid fa-plus me-1"></i> New Category
+		</button>
+	</div>
+</div>
+
+@* ── Categories ──────────────────────────────────────────────────────── *@
+@if (!Model.Categories.Any())
+{
+	<div class="text-center text-muted py-5">
+		<i class="fa-regular fa-gear fa-2x mb-2 d-block"></i>
+		<p>No global categories yet. Click <strong>New Category</strong> to get started.</p>
+	</div>
+}
+else
+{
+	foreach (var cat in Model.Categories.OrderBy(c => c.SortOrder).ThenBy(c => c.DisplayName))
+	{
+		var escapedName = cat.DisplayName.Replace("'", "\\'");
+		var escapedSlug = cat.Name.Replace("'", "\\'");
+		var escapedDesc = (cat.Description ?? "").Replace("'", "\\'");
+		var escapedIcon = (cat.Icon ?? "").Replace("'", "\\'");
+
+		<div class="mb-4">
+			<div class="d-flex align-items-center justify-content-between border-bottom mb-2 bg-dark p-2">
+				<div class="d-flex align-items-center gap-2 ms-2">
+					@if (!string.IsNullOrEmpty(cat.Icon))
+					{
+						<i class="fa-regular @cat.Icon text-white"></i>
+					}
+					<span class="fw-semibold text-uppercase text-white">@cat.DisplayName</span>
+					@if (!string.IsNullOrEmpty(cat.Description))
+					{
+						<small class="text-white-50"><em>@cat.Description</em></small>
+					}
+				</div>
+				<div class="d-flex align-items-center gap-2">
+					<button class="btn btn-sm btn-outline-secondary" title="Edit category"
+							  onclick="editCategory('@cat.Id', '@escapedSlug', '@escapedName', '@escapedDesc', '@escapedIcon', @cat.SortOrder)">
+						<i class="fa-regular fa-pen-to-square"></i>
+					</button>
+					<button class="btn btn-sm btn-danger" title="Delete category"
+							  onclick="deleteCategory('@cat.Id', '@escapedName')">
+						<i class="fa-regular fa-trash"></i>
+					</button>
+				</div>
+			</div>
+
+			<div>
+				<div class="d-flex flex-column align-items-end mb-2">
+					<button class="btn btn-sm btn-outline-primary" onclick="addSetting('@cat.Id')">
+						<i class="fa-solid fa-plus me-1"></i> Add Setting
+					</button>
+				</div>
+				<div id="stg-panel-@cat.Id">
+					<div class="text-muted small py-2 ps-1">
+						<i class="fa-regular fa-spinner fa-spin me-1"></i> Loading...
+					</div>
+				</div>
+			</div>
+		</div>
+	}
+}
+
+
+@* ── Category modal ─────────────────────────────────────────────────── *@
+<div class="modal fade" id="categoryModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+	  aria-labelledby="categoryModalLabel" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header bg-dark text-white">
+				<h6 class="modal-title fw-semibold w-100" id="categoryModalLabel">Category</h6>
+				<button type="button" class="btn btn-sm btn-clear" data-bs-dismiss="modal" aria-label="Close">
+					<i class="fa-regular fa-close fa-xl"></i>
+				</button>
+			</div>
+			<div class="modal-body">
+				<input type="hidden" id="catId" />
+				<div class="mb-3">
+					<label class="form-label">Display Name <span class="text-danger">*</span></label>
+					<input type="text" class="form-control" id="catDisplayName" />
+				</div>
+				<div class="mb-3">
+					<label class="form-label">Name / Slug <span class="text-danger">*</span></label>
+					<input type="text" class="form-control" id="catName" placeholder="e.g. email, notifications" />
+					<div class="form-text">Lowercase, no spaces. Used as the lookup key in code.</div>
+				</div>
+				<div class="mb-3">
+					<label class="form-label">Description</label>
+					<input type="text" class="form-control" id="catDescription" />
+				</div>
+				<div class="row">
+					<div class="col-md-8 mb-3">
+						<label class="form-label">Icon <span class="text-muted small">(Font Awesome class)</span></label>
+						<input type="text" class="form-control" id="catIcon" placeholder="fa-envelope" />
+					</div>
+					<div class="col-md-4 mb-3">
+						<label class="form-label">Sort Order</label>
+						<input type="number" class="form-control" id="catSortOrder" value="0" />
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+				<button type="button" class="btn btn-sm btn-primary" onclick="saveCategory()">Save</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+@* ── Setting modal ──────────────────────────────────────────────────── *@
+<div class="modal fade" id="settingModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+	  aria-labelledby="settingModalLabel" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header bg-dark text-white">
+				<h6 class="modal-title fw-semibold w-100" id="settingModalLabel">Setting</h6>
+				<button type="button" class="btn btn-sm btn-clear" data-bs-dismiss="modal" aria-label="Close">
+					<i class="fa-regular fa-close fa-xl"></i>
+				</button>
+			</div>
+			<div class="modal-body">
+				<input type="hidden" id="stgId" />
+				<input type="hidden" id="stgCategoryId" />
+				<div class="mb-3">
+					<label class="form-label">Display Name <span class="text-danger">*</span></label>
+					<input type="text" class="form-control" id="stgDisplayName" />
+				</div>
+				<div class="mb-3">
+					<label class="form-label">Key <span class="text-danger">*</span></label>
+					<input type="text" class="form-control" id="stgKey" placeholder="e.g. server, port, password" />
+					<div class="form-text">Lowercase, no spaces.</div>
+				</div>
+				<div class="row">
+					<div class="col-md-6 mb-3">
+						<label class="form-label">Data Type</label>
+						<select class="form-select" id="stgDataType" onchange="onDataTypeChange()">
+							<option value="text">text</option>
+							<option value="password">password</option>
+							<option value="number">number</option>
+							<option value="email">email</option>
+							<option value="boolean">boolean</option>
+						</select>
+					</div>
+					<div class="col-md-6 mb-3 d-flex align-items-end">
+						<div class="form-check mb-2">
+							<input class="form-check-input" type="checkbox" id="stgIsEncrypted" />
+							<label class="form-check-label" for="stgIsEncrypted">Store encrypted</label>
+						</div>
+					</div>
+				</div>
+				<div class="mb-3">
+					<label class="form-label">Value</label>
+					<input type="text" class="form-control" id="stgValue" />
+					<div class="form-text text-muted" id="stgValueHint" style="display:none">
+						Leave blank to keep the existing encrypted value unchanged.
+					</div>
+				</div>
+				<div class="mb-3">
+					<label class="form-label">Sort Order</label>
+					<input type="number" class="form-control" id="stgSortOrder" value="0" />
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+				<button type="button" class="btn btn-sm btn-primary" onclick="saveSetting()">Save</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+@* ── Alert modal ─────────────────────────────────────────────────────── *@
+<div class="modal fade" id="dlgAlert" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+	  aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header bg-warning">
+				<h6 class="modal-title fw-semibold w-100" id="dlgAlertTitle">Notice</h6>
+				<button type="button" class="btn btn-sm btn-clear" data-bs-dismiss="modal">
+					<i class="fa-regular fa-close fa-xl"></i>
+				</button>
+			</div>
+			<div class="modal-body" id="dlgAlertBody"></div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-sm btn-primary" data-bs-dismiss="modal">OK</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+@* ── Confirm modal ────────────────────────────────────────────────────── *@
+<div class="modal fade" id="dlgConfirm" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+	  aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header bg-dark text-white">
+				<h6 class="modal-title fw-semibold w-100">Confirm</h6>
+				<button type="button" class="btn btn-sm btn-clear" data-bs-dismiss="modal">
+					<i class="fa-regular fa-close fa-xl"></i>
+				</button>
+			</div>
+			<div class="modal-body" id="dlgConfirmBody"></div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+				<button type="button" class="btn btn-sm btn-danger" id="dlgConfirmBtn">Confirm</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+@section CustomCss {
+	<link rel="stylesheet" href="~/css/settings.css" />
+}
+
+@section Scripts {
+	<script>
+		const baseUrl = '/admin/settings';
+		const antiForgeryToken = $('input[name="__RequestVerificationToken"]').val();
+
+		const onContextSwitch = (value) => {
+			window.location.href = value === 'global' ? '/admin/settings' : `/admin/companies/${value}/settings`;
+		};
+
+		$(() => {
+			$('[id^="stg-panel-"]').each(function () {
+				loadSettings(this.id.replace('stg-panel-', ''));
+			});
+			$('#dlgConfirmBtn').on('click', function () {
+				$('#dlgConfirm').modal('hide');
+				if (_confirmCallback) { _confirmCallback(); _confirmCallback = null; }
+			});
+		});
+
+		// -------------------------------------------------------------------------
+		// Modal helpers
+		// -------------------------------------------------------------------------
+		const showAlert = (message, title = 'Notice') => {
+			$('#dlgAlertTitle').text(title);
+			$('#dlgAlertBody').text(message);
+			$('#dlgAlert').modal('show');
+		};
+
+		let _confirmCallback = null;
+		const showConfirm = (message, onConfirm, btnText = 'Confirm') => {
+			$('#dlgConfirmBody').text(message);
+			$('#dlgConfirmBtn').text(btnText);
+			_confirmCallback = onConfirm;
+			$('#dlgConfirm').modal('show');
+		};
+
+		// -------------------------------------------------------------------------
+		// Settings table
+		// -------------------------------------------------------------------------
+		const loadSettings = (categoryId) => {
+			$.get(`${baseUrl}/items?categoryId=${categoryId}`, function (data) {
+				renderSettingsTable(categoryId, data);
+			}).fail(() => {
+				$(`#stg-panel-${categoryId}`).html('<p class="text-danger small mb-0">Failed to load settings.</p>');
+			});
+		};
+
+		const renderSettingsTable = (categoryId, settings) => {
+			const panel = $(`#stg-panel-${categoryId}`);
+			if (!settings || settings.length === 0) {
+				panel.html('<p class="text-muted small mb-0 ps-1">No settings defined for this category.</p>');
+				return;
+			}
+
+			const rows = settings.map(s => {
+				const valueDisplay = s.IsEncrypted
+					? '<span class="text-muted fst-italic">encrypted</span>'
+					: (s.Value ? escapeHtml(s.Value) : '<span class="text-muted">—</span>');
+				const encoded = encodeURIComponent(JSON.stringify(s));
+				return `<tr>
+						<td>${escapeHtml(s.DisplayName)}</td>
+						<td><code>${escapeHtml(s.Key)}</code></td>
+						<td>${valueDisplay}</td>
+						<td><span class="badge bg-light text-dark border">${escapeHtml(s.DataType)}</span></td>
+						<td class="text-end text-nowrap">
+							<button class="btn btn-sm btn-outline-secondary me-1" onclick='editSetting("${encoded}")'>
+								<i class="fa-regular fa-pen-to-square"></i>
+							</button>
+							<button class="btn btn-sm btn-outline-danger" onclick="deleteSetting('${s.Id}','${categoryId}')">
+								<i class="fa-regular fa-trash"></i>
+							</button>
+						</td>
+					</tr>`;
+			}).join('');
+
+			panel.html(`
+					<table class="table table-sm table-hover mb-0">
+						<thead class="table-light">
+							<tr>
+								<th style="width:350px;">Setting</th>
+								<th style="width:350px;">Key</th>
+								<th>Value</th>
+								<th style="width:100px">Type</th>
+								<th style="width:115px"></th>
+							</tr>
+						</thead>
+						<tbody>${rows}</tbody>
+					</table>
+				`);
+		};
+
+		const escapeHtml = (str) => {
+			if (str == null) return '';
+			return String(str)
+				.replace(/&/g, '&amp;')
+				.replace(/</g, '&lt;')
+				.replace(/>/g, '&gt;')
+				.replace(/"/g, '&quot;')
+				.replace(/'/g, '&#039;');
+		};
+
+		// -------------------------------------------------------------------------
+		// Category CRUD
+		// -------------------------------------------------------------------------
+		const addCategory = () => {
+			$('#categoryModalLabel').text('New Category');
+			$('#catId,#catDisplayName,#catName,#catDescription,#catIcon').val('');
+			$('#catSortOrder').val('0');
+			$('#categoryModal').modal('show');
+		};
+
+		const editCategory = (id, name, displayName, description, icon, sortOrder) => {
+			$('#categoryModalLabel').text('Edit Category');
+			$('#catId').val(id);
+			$('#catName').val(name);
+			$('#catDisplayName').val(displayName);
+			$('#catDescription').val(description);
+			$('#catIcon').val(icon);
+			$('#catSortOrder').val(sortOrder);
+			$('#categoryModal').modal('show');
+		};
+
+		const saveCategory = () => {
+			const payload = {
+				id: $('#catId').val() || '00000000-0000-0000-0000-000000000000',
+				name: $('#catName').val().trim(),
+				displayName: $('#catDisplayName').val().trim(),
+				description: $('#catDescription').val().trim(),
+				icon: $('#catIcon').val().trim(),
+				sortOrder: parseInt($('#catSortOrder').val()) || 0
+			};
+			if (!payload.name || !payload.displayName) {
+				showAlert('Name and Display Name are required.', 'Validation');
+				return;
+			}
+
+			$.ajax({
+				url: `${baseUrl}/categories`,
+				type: 'POST',
+				contentType: 'application/json',
+				data: JSON.stringify(payload),
+				headers: { 'RequestVerificationToken': antiForgeryToken },
+				success: () => { $('#categoryModal').modal('hide'); location.reload(); },
+				error: xhr => showAlert(xhr.responseText || 'An error occurred. Please try again.', 'Error')
+			});
+		};
+
+		const deleteCategory = (id, name) => {
+			showConfirm(
+				`Delete category "${name}" and all its settings? This cannot be undone.`,
+				() => {
+					$.ajax({
+						url: `${baseUrl}/categories/${id}`,
+						type: 'DELETE',
+						headers: { 'RequestVerificationToken': antiForgeryToken },
+						success: () => location.reload(),
+						error: xhr => showAlert(xhr.responseText || 'An error occurred. Please try again.', 'Error')
+					});
+				},
+				'Delete'
+			);
+		};
+
+		// -------------------------------------------------------------------------
+		// Setting CRUD
+		// -------------------------------------------------------------------------
+		const addSetting = (categoryId) => {
+			$('#settingModalLabel').text('New Setting');
+			$('#stgId').val('');
+			$('#stgCategoryId').val(categoryId);
+			$('#stgDisplayName,#stgKey,#stgValue').val('');
+			$('#stgDataType').val('text');
+			$('#stgIsEncrypted').prop('checked', false);
+			$('#stgSortOrder').val('0');
+			$('#stgValue').attr('type', 'text');
+			$('#stgValueHint').hide();
+			$('#settingModal').modal('show');
+		};
+
+		const editSetting = (encoded) => {
+			const s = JSON.parse(decodeURIComponent(encoded));
+			$('#settingModalLabel').text('Edit Setting');
+			$('#stgId').val(s.Id);
+			$('#stgCategoryId').val(s.CategoryId);
+			$('#stgDisplayName').val(s.DisplayName);
+			$('#stgKey').val(s.Key);
+			$('#stgDataType').val(s.DataType);
+			$('#stgIsEncrypted').prop('checked', s.IsEncrypted);
+			$('#stgValue').val(s.IsEncrypted ? '' : (s.Value || ''))
+				.attr('type', s.DataType === 'password' ? 'password' : 'text');
+			$('#stgSortOrder').val(s.SortOrder);
+			$('#stgValueHint').toggle(s.IsEncrypted);
+			$('#settingModal').modal('show');
+		};
+
+		const onDataTypeChange = () => {
+			$('#stgValue').attr('type', $('#stgDataType').val() === 'password' ? 'password' : 'text');
+		};
+
+		const saveSetting = () => {
+			const categoryId = $('#stgCategoryId').val();
+			const payload = {
+				id: $('#stgId').val() || '00000000-0000-0000-0000-000000000000',
+				categoryId,
+				key: $('#stgKey').val().trim(),
+				displayName: $('#stgDisplayName').val().trim(),
+				value: $('#stgValue').val(),
+				dataType: $('#stgDataType').val(),
+				isEncrypted: $('#stgIsEncrypted').prop('checked'),
+				sortOrder: parseInt($('#stgSortOrder').val()) || 0
+			};
+			if (!payload.key || !payload.displayName) {
+				showAlert('Key and Display Name are required.', 'Validation');
+				return;
+			}
+
+			$.ajax({
+				url: `${baseUrl}/items`,
+				type: 'POST',
+				contentType: 'application/json',
+				data: JSON.stringify(payload),
+				headers: { 'RequestVerificationToken': antiForgeryToken },
+				success: () => { $('#settingModal').modal('hide'); loadSettings(categoryId); },
+				error: xhr => showAlert(xhr.responseText || 'An error occurred. Please try again.', 'Error')
+			});
+		};
+
+		const deleteSetting = (id, categoryId) => {
+			showConfirm(
+				'Delete this setting permanently?',
+				() => {
+					$.ajax({
+						url: `${baseUrl}/items/${id}`,
+						type: 'DELETE',
+						headers: { 'RequestVerificationToken': antiForgeryToken },
+						success: () => loadSettings(categoryId),
+						error: xhr => showAlert(xhr.responseText || 'An error occurred. Please try again.', 'Error')
+					});
+				},
+				'Delete'
+			);
+		};
+	</script>
+}

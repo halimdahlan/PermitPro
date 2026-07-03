@@ -96,6 +96,9 @@
             <a href="/admin/companies" class="@(ViewContext.RouteData.Values["action"]?.ToString()?.StartsWith("Compan") == true ? "active" : "")">
                 <i class="fa-solid fa-building me-1"></i> Companies
             </a>
+            <a href="/admin/settings" class="@(ViewContext.RouteData.Values["action"]?.ToString() == "GlobalSettings" ? "active" : "")">
+                <i class="fa-solid fa-earth-americas me-1"></i> Global Settings
+            </a>
             <a href="/admin/logout">
                 <i class="fa-solid fa-arrow-right-from-bracket me-1"></i> Sign Out
             </a>
