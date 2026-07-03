@@ -263,18 +263,7 @@ Roles support soft-delete via `ISoftDeletable` and carry audit fields (`CreatedW
    }
    ```
 
-3. Set required environment variables (via `launchSettings.json` or shell):
-   ```
-   HANGFIRE_DB_CONNECTION    - Hangfire scheduler database connection string
-   SUSPEND_AUTORESUME_DAYS   - Days before suspended permits auto-resume (default: 10)
-   UPLOAD_MAX_FILE_SIZE      - Max attachment size in bytes (default: 3 MB)
-   UPLOAD_MAX_FILE_COUNT     - Max attachments per permit (default: 5)
-   UPLOAD_ALLOWED_FILE_TYPES - Comma-separated allowed types (default: pdf,docx,jpg,jpeg,png)
-   USER_CREATE_LIMIT         - Max users per company (default: 15)
-   RESERVED_ROLES            - Roles restricted from assignment (e.g. SUPERUSER,PORTALADMIN)
-   ```
-
-4. Configure `appsettings.json` sections:
+3. Configure `appsettings.json` sections:
    ```json
    {
      "JwtSettings": {
@@ -287,12 +276,12 @@ Roles support soft-delete via `ISoftDeletable` and carry audit fields (`CreatedW
    }
    ```
 
-5. Apply database migrations:
+4. Apply database migrations:
    ```bash
    dotnet ef database update --project Core --startup-project Web
    ```
 
-6. Run the application:
+5. Run the application:
    ```bash
    dotnet run --project Web
    ```
@@ -417,8 +406,8 @@ Deployment user: `[YOUR_WEB_DEPLOY_USERNAME]`
 ## Security Notes
 
 - Do not commit credentials, API keys, or connection strings to source control
-- Use environment variables or secrets management for sensitive configuration
-- The `RESERVED_ROLES` environment variable restricts certain role assignments (SUPERUSER, PORTALADMIN)
+- Use secrets management (not source-controlled files) for sensitive configuration
+- The `reserved_roles` app setting (General category) restricts certain role assignments (SUPERUSER, PORTALADMIN)
 - All audit events are written to `AuditLog` and are non-deletable by application users
 - JWT `SecretKey` must be stored securely and never committed to source control
 - The Super Admin portal (`/admin/*`) is protected by the `SUPERUSER` role check on every action — regular tenant users are rejected at login, not just redirected
