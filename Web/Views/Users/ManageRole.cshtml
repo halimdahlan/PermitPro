@@ -17,8 +17,8 @@
 					@if (Model.IsEdit && Model.IsSystemRole)
 					{
 						<div class="alert alert-warning d-flex align-items-center mb-3" role="alert">
-							<i class="fa-solid fa-lock me-2"></i>
-							This is a <strong class="ms-1 me-1">system role</strong>. It can be edited but cannot be deleted.
+							<i class="fa-solid fa-lock me-2"></i>This is a <strong>system role</strong>. 
+							It can be edited but cannot be deleted.
 						</div>
 					}
 
@@ -42,7 +42,9 @@
 								<input asp-for="NormalizedName" class="form-control" placeholder="i.e. SUPERVISOR" maxlength="256" />
 							}
 							<span asp-validation-for="NormalizedName" class="text-danger small"></span>
-							<div class="form-text text-muted">Uppercase letters only, no spaces, numbers, or special characters. Cannot be changed after the role is created.</div>
+							<div class="form-text text-muted">Uppercase letters only, no spaces, numbers, or special characters. 
+								Cannot be changed after the role is created.
+							</div>
 						</div>
 					</div>
 
