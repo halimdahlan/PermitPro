@@ -1,134 +1,151 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="PermitPro Admin" />
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta name="description" content="PermitPro Admin" />
 
-    <link rel="icon" type="image/png" sizes="32x32" href="~/img/icons/favicon-32x32.png">
-    <link rel="shortcut icon" href="~/img/icons/favicon.ico" type="image/x-icon" />
+	<link rel="icon" type="image/png" sizes="32x32" href="~/img/icons/favicon-32x32.png">
+	<link rel="shortcut icon" href="~/img/icons/favicon.ico" type="image/x-icon" />
 
-    <!-- FontAwesome -->
-    <link href="~/lib/fontawesome/css/all.min.css" rel="stylesheet">
+	<!-- FontAwesome -->
+	<link href="~/lib/fontawesome/css/all.min.css" rel="stylesheet">
 
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="~/lib/bootstrap/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" />
+	<!-- Bootstrap CSS -->
+	<link rel="stylesheet" href="~/lib/bootstrap/css/bootstrap.min.css" />
+	<link rel="stylesheet" href="~/css/site.css" />
 
-    <script src="~/lib/jquery/jquery.min.js"></script>
+	<!-- Web Awesome -->
+	<link rel="stylesheet" href="https://ka-f.webawesome.com/webawesome@3.8.0/styles/webawesome.css" />
+	<script type="module" src="https://ka-f.webawesome.com/webawesome@3.8.0/webawesome.loader.js"></script>
 
-    <title>PermitPro Admin / @ViewData["Title"]</title>
+	<script src="~/lib/jquery/jquery.min.js"></script>
 
-    <style>
-        .admin-navbar {
-            background: #1e293b;
-            padding: .75rem 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-        .admin-navbar .brand {
-            display: flex;
-            align-items: center;
-            gap: .6rem;
-            color: #fff;
-            font-weight: 700;
-            font-size: 1rem;
-            text-decoration: none;
-        }
-        .admin-navbar .brand .badge-sa {
-            background: #f59e0b;
-            color: #1e293b;
-            font-size: .6rem;
-            font-weight: 800;
-            padding: 2px 6px;
-            border-radius: 4px;
-            letter-spacing: .05em;
-            text-transform: uppercase;
-        }
-        .admin-navbar .nav-links a {
-            color: #94a3b8;
-            text-decoration: none;
-            margin-left: 1.25rem;
-            font-size: .85rem;
-            font-weight: 500;
-            transition: color .15s;
-        }
-        .admin-navbar .nav-links a:hover,
-        .admin-navbar .nav-links a.active {
-            color: #fff;
-        }
-        .admin-content {
-            padding: 2rem 2.5rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        .page-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 1.75rem;
-        }
-        .page-header h4 {
-            font-weight: 700;
-            margin: 0;
-            color: #1e293b;
-        }
-        .alert-flash {
-            margin-bottom: 1.25rem;
-        }
-    </style>
+	<title>PermitPro Admin / @ViewData["Title"]</title>
 
-    @await RenderSectionAsync("CustomCss", required: false)
+	<style>
+		.admin-navbar {
+			background: #1e293b;
+			padding: .75rem 1.5rem;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			position: sticky;
+			top: 0;
+			z-index: 1000;
+		}
+
+		.admin-navbar .brand {
+			display: flex;
+			align-items: center;
+			gap: .6rem;
+			color: #fff;
+			font-weight: 700;
+			font-size: 1rem;
+			text-decoration: none;
+		}
+
+		.admin-navbar .brand .badge-sa {
+			background: #f59e0b;
+			color: #1e293b;
+			font-size: .6rem;
+			font-weight: 800;
+			padding: 2px 6px;
+			border-radius: 4px;
+			letter-spacing: .05em;
+			text-transform: uppercase;
+		}
+
+		.admin-navbar .nav-links a {
+			color: #94a3b8;
+			text-decoration: none;
+			margin-left: 1.25rem;
+			font-size: .85rem;
+			font-weight: 500;
+			transition: color .15s;
+		}
+
+		.admin-navbar .nav-links a:hover,
+		.admin-navbar .nav-links a.active {
+			color: #fff;
+		}
+
+		.admin-content {
+			padding: 2rem 2.5rem;
+			max-width: 1200px;
+			margin: 0 auto;
+		}
+
+		.page-header {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			margin-bottom: 1.75rem;
+		}
+
+		.page-header h4 {
+			font-weight: 700;
+			margin: 0;
+			color: #1e293b;
+		}
+
+		.alert-flash {
+			margin-bottom: 1.25rem;
+		}
+	</style>
+
+	@await RenderSectionAsync("CustomCss", required: false)
 </head>
+
 <body class="bg-light">
 
-    <nav class="admin-navbar">
-        <a class="brand" href="/admin/companies">
-            <i class="fa-solid fa-helmet-safety"></i>
-            PermitPro
-            <span class="badge-sa">Super Admin</span>
-        </a>
-        <div class="nav-links">
-            <a href="/admin/companies" class="@(ViewContext.RouteData.Values["action"]?.ToString()?.StartsWith("Compan") == true ? "active" : "")">
-                <i class="fa-solid fa-building me-1"></i> Companies
-            </a>
-            <a href="/admin/settings" class="@(ViewContext.RouteData.Values["action"]?.ToString() == "GlobalSettings" ? "active" : "")">
-                <i class="fa-solid fa-earth-americas me-1"></i> Global Settings
-            </a>
-            <a href="/admin/logout">
-                <i class="fa-solid fa-arrow-right-from-bracket me-1"></i> Sign Out
-            </a>
-        </div>
-    </nav>
+	<nav class="admin-navbar">
+		<a class="brand" href="/admin/companies">
+			<i class="fa-solid fa-helmet-safety"></i>
+			PermitPro
+			<span class="badge-sa">Super Admin</span>
+		</a>
+		<div class="nav-links">
+			<a href="/admin/companies"
+				class="@(ViewContext.RouteData.Values["action"]?.ToString()?.StartsWith("Compan") == true ? "active" : "")">
+				<i class="fa-solid fa-building me-1"></i> Companies
+			</a>
+			<a href="/admin/settings"
+				class="@(ViewContext.RouteData.Values["action"]?.ToString() == "GlobalSettings" ? "active" : "")">
+				<i class="fa-solid fa-earth-americas me-1"></i> Global Settings
+			</a>
+			<a href="/admin/logout">
+				<i class="fa-solid fa-arrow-right-from-bracket me-1"></i> Sign Out
+			</a>
+		</div>
+	</nav>
 
-    <div class="admin-content">
+	<div class="admin-content">
 
-        @if (TempData["SuccessMessage"] != null)
-        {
-            <div class="alert alert-success alert-dismissible fade show alert-flash" role="alert">
-                <i class="fa-solid fa-circle-check me-2"></i> @TempData["SuccessMessage"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        }
-        @if (TempData["ErrorMessage"] != null)
-        {
-            <div class="alert alert-danger alert-dismissible fade show alert-flash" role="alert">
-                <i class="fa-solid fa-circle-exclamation me-2"></i> @TempData["ErrorMessage"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        }
+		@if (TempData["SuccessMessage"] != null)
+		{
+			<div class="alert alert-success alert-dismissible fade show alert-flash" role="alert">
+				<i class="fa-solid fa-circle-check me-2"></i> @TempData["SuccessMessage"]
+				<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+			</div>
+		}
+		@if (TempData["ErrorMessage"] != null)
+		{
+			<div class="alert alert-danger alert-dismissible fade show alert-flash" role="alert">
+				<i class="fa-solid fa-circle-exclamation me-2"></i> @TempData["ErrorMessage"]
+				<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+			</div>
+		}
 
-        @RenderBody()
-    </div>
+		@RenderBody()
+	</div>
 
-    <script src="~/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
-    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+	<script src="~/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+	<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+	<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
 
-    @await RenderSectionAsync("Scripts", required: false)
+	@await RenderSectionAsync("Scripts", required: false)
 </body>
+
 </html>
