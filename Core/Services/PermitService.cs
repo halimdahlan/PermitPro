@@ -327,7 +327,7 @@ public class PermitService : IPermitService
 				await _dbContext.SaveChangesAsync();
 
 				// Add audit log to database
-				var currentDate = GeneralHelper.GetDateInTimeZone(permit.CreatedWhen);
+				var currentDate = GeneralHelper.GetDateInTimeZone(permit.UpdatedWhen.Value);
 				var currentUser = _currentUserService.GetCurrentUser();
 				var fullName = $"{currentUser.FirstName} {currentUser.LastName}";
 				var logMessage = $"Permit [PTW{permit.PermitNo}] has been updated by {fullName.Trim()} ({currentUser.Email}) ";
@@ -493,15 +493,17 @@ public class PermitService : IPermitService
 
 		var permit = _dbContext.Permits.SingleOrDefault(f => f.Id == permitId);
 
+		var updatedDate = DateTime.UtcNow.ToUniversalTime();
+
 		permit.PermitForm = permitForm;
-		permit.UpdatedWhen = DateTime.UtcNow.ToUniversalTime();
+		permit.UpdatedWhen = updatedDate;
 		permit.UpdatedBy = Guid.Parse(_currentUserService.GetCurrentUser().Id);
 
 		_dbContext.Permits.Update(permit);
 		await _dbContext.SaveChangesAsync();
 
 		// Add audit log to database
-		var currentDate = GeneralHelper.GetDateInTimeZone(permit.CreatedWhen);
+		var currentDate = GeneralHelper.GetDateInTimeZone(updatedDate);
 		var currentUser = _currentUserService.GetCurrentUser();
 		var fullName = $"{currentUser.FirstName} {currentUser.LastName}";
 		var logMessage = $"Permit [PTW{permit.PermitNo}] has been updated by {fullName.Trim()} ({currentUser.Email}) ";
@@ -707,7 +709,7 @@ public class PermitService : IPermitService
 				}
 			}
 
-			logMessage = $"Permit [PTW{permit.PermitNo}] has been approved by {fullName.Trim()} ({currentUser.Email}) on {dateApproved:dd/MM/yyy hh:mm tt}.";
+			logMessage = $"Permit [PTW{permit.PermitNo}] has been approved by {fullName.Trim()} ({currentUser.Email}) on {GeneralHelper.GetDateInTimeZone(dateApproved):dd/MM/yyy hh:mm tt}.";
 		}
 		else
 		{
