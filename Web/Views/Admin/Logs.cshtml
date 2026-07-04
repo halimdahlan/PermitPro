@@ -1,0 +1,205 @@
+@using PermitPro.App.ViewModels
+
+@{
+	Layout = "_LayoutAdmin";
+	ViewData["Title"] = "Logs";
+}
+
+@model AdminLogsViewModel
+
+<div class="page-header">
+	<h4><i class="fa-solid fa-file-lines me-2 text-primary"></i> Logs</h4>
+</div>
+
+<div class="card shadow-sm border-0 mb-3">
+	<div class="card-body">
+		<form method="get" class="row g-2 align-items-end">
+			<div class="col-auto">
+				<label class="form-label small text-muted mb-1">Type</label>
+				<select name="logType" class="form-select form-select-sm" style="min-width:160px;">
+					<option value="" selected="@(string.IsNullOrEmpty(Model.LogTypeFilter))">All types</option>
+					<option value="Information" selected="@(Model.LogTypeFilter == "Information")">Information</option>
+					<option value="Warning" selected="@(Model.LogTypeFilter == "Warning")">Warning</option>
+					<option value="Error" selected="@(Model.LogTypeFilter == "Error")">Error</option>
+				</select>
+			</div>
+			<div class="col-auto flex-grow-1">
+				<label class="form-label small text-muted mb-1">Search</label>
+				<input type="text" name="search" value="@Model.SearchTerm" class="form-control form-control-sm" placeholder="Category, entity, or description..." style="min-width:260px;" />
+			</div>
+			<div class="col-auto">
+				<button type="submit" class="btn btn-sm btn-primary">
+					<i class="fa-solid fa-magnifying-glass me-1"></i> Filter
+				</button>
+				<a href="/admin/logs" class="btn btn-sm btn-outline-secondary">Reset</a>
+			</div>
+		</form>
+	</div>
+</div>
+
+<div class="card shadow-sm border-0">
+	<div class="card-body p-0">
+		@if (!Model.Logs.Any())
+		{
+			<div class="text-center py-5 text-muted">
+				<i class="fa-solid fa-file-lines fa-2x mb-3 d-block"></i>
+				No log entries found.
+			</div>
+		}
+		else
+		{
+			<table class="table table-hover mb-0 align-middle">
+				<thead class="table-light">
+					<tr>
+						<th style="padding-left:1.25rem;">Date/Time</th>
+						<th>Type</th>
+						<th>Category</th>
+						<th>Entity</th>
+						<th>Description</th>
+						<th>User</th>
+						<th class="text-end" style="padding-right:1.25rem;">Actions</th>
+					</tr>
+				</thead>
+				<tbody>
+					@foreach (var log in Model.Logs)
+					{
+						var badgeClass = log.LogType switch
+						{
+							"Error" => "bg-danger-subtle text-danger-emphasis border border-danger-subtle",
+							"Warning" => "bg-warning-subtle text-warning-emphasis border border-warning-subtle",
+							_ => "bg-info-subtle text-info-emphasis border border-info-subtle",
+						};
+						var shortDescription = (log.Description ?? string.Empty).Length > 90
+							? log.Description!.Substring(0, 90) + "…"
+							: log.Description;
+
+						<tr>
+							<td style="padding-left:1.25rem;white-space:nowrap;">
+								<small class="text-muted">@log.CreatedWhen.ToLocalTime().ToString("dd MMM yyyy, HH:mm:ss")</small>
+							</td>
+							<td><span class="badge @badgeClass">@log.LogType</span></td>
+							<td>@log.Category</td>
+							<td>@log.EntityName</td>
+							<td>@shortDescription</td>
+							<td>
+								@if (!string.IsNullOrEmpty(log.UserName))
+								{
+									@log.UserName
+								}
+								else
+								{
+									<span class="text-muted">—</span>
+								}
+							</td>
+							<td class="text-end" style="padding-right:1.25rem;">
+								<button type="button" class="btn btn-sm btn-outline-secondary" title="View details" onclick="viewLogDetail('@log.Id')">
+									<i class="fa-solid fa-eye"></i>
+								</button>
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		}
+	</div>
+</div>
+
+@if (Model.TotalPages > 1)
+{
+	<nav class="mt-3">
+		<ul class="pagination pagination-sm justify-content-center mb-0">
+			<li class="page-item @(Model.Page <= 1 ? "disabled" : "")">
+				<a class="page-link" href="@Url.Action("Logs", new { page = Model.Page - 1, pageSize = Model.PageSize, logType = Model.LogTypeFilter, search = Model.SearchTerm })">Previous</a>
+			</li>
+			<li class="page-item disabled">
+				<span class="page-link">Page @Model.Page of @Model.TotalPages (@Model.TotalCount total)</span>
+			</li>
+			<li class="page-item @(Model.Page >= Model.TotalPages ? "disabled" : "")">
+				<a class="page-link" href="@Url.Action("Logs", new { page = Model.Page + 1, pageSize = Model.PageSize, logType = Model.LogTypeFilter, search = Model.SearchTerm })">Next</a>
+			</li>
+		</ul>
+	</nav>
+}
+
+@* ── Log detail modal ────────────────────────────────────────────────── *@
+<div class="modal fade" id="dlgLogDetail" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered modal-lg">
+		<div class="modal-content">
+			<div class="modal-header bg-dark text-white">
+				<h6 class="modal-title fw-semibold w-100">Log Details</h6>
+				<button type="button" class="btn btn-sm btn-clear" data-bs-dismiss="modal" aria-label="Close">
+					<i class="fa-regular fa-close fa-xl"></i>
+				</button>
+			</div>
+			<div class="modal-body" id="dlgLogDetailBody">
+				<div class="text-center text-muted py-4">
+					<i class="fa-regular fa-spinner fa-spin me-1"></i> Loading...
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+@section Scripts {
+	<script>
+		const escapeHtml = (str) => {
+			if (str == null) return '';
+			return String(str)
+				.replace(/&/g, '&amp;')
+				.replace(/</g, '&lt;')
+				.replace(/>/g, '&gt;')
+				.replace(/"/g, '&quot;')
+				.replace(/'/g, '&#039;');
+		};
+
+		const viewLogDetail = (id) => {
+			$('#dlgLogDetailBody').html('<div class="text-center text-muted py-4"><i class="fa-regular fa-spinner fa-spin me-1"></i> Loading...</div>');
+			$('#dlgLogDetail').modal('show');
+
+			$.get(`/admin/logs/${id}`, function (log) {
+				const badgeClass = log.LogType === 'Error'
+					? 'bg-danger-subtle text-danger-emphasis border border-danger-subtle'
+					: (log.LogType === 'Warning'
+						? 'bg-warning-subtle text-warning-emphasis border border-warning-subtle'
+						: 'bg-info-subtle text-info-emphasis border border-info-subtle');
+
+				const html = `
+					<dl class="row mb-0">
+						<dt class="col-sm-3">Date/Time</dt>
+						<dd class="col-sm-9">${new Date(log.CreatedWhen).toLocaleString()}</dd>
+
+						<dt class="col-sm-3">Type</dt>
+						<dd class="col-sm-9"><span class="badge ${badgeClass}">${escapeHtml(log.LogType)}</span></dd>
+
+						<dt class="col-sm-3">Category</dt>
+						<dd class="col-sm-9">${escapeHtml(log.Category) || '<span class="text-muted">—</span>'}</dd>
+
+						<dt class="col-sm-3">Entity</dt>
+						<dd class="col-sm-9">${escapeHtml(log.EntityName) || '<span class="text-muted">—</span>'}</dd>
+
+						<dt class="col-sm-3">User</dt>
+						<dd class="col-sm-9">${log.UserName ? `${escapeHtml(log.UserName)} ${log.UserEmail ? `(${escapeHtml(log.UserEmail)})` : ''}` : '<span class="text-muted">—</span>'}</dd>
+
+						<dt class="col-sm-3">URL</dt>
+						<dd class="col-sm-9">${escapeHtml(log.Url) || '<span class="text-muted">—</span>'}</dd>
+
+						<dt class="col-sm-3">Description</dt>
+						<dd class="col-sm-9" style="white-space:pre-wrap;">${escapeHtml(log.Description) || '<span class="text-muted">—</span>'}</dd>
+
+						${log.SerializedData ? `
+						<dt class="col-sm-3">Data</dt>
+						<dd class="col-sm-9"><pre class="bg-light p-2 rounded small mb-0" style="max-height:300px;overflow:auto;">${escapeHtml(log.SerializedData)}</pre></dd>
+						` : ''}
+					</dl>
+				`;
+
+				$('#dlgLogDetailBody').html(html);
+			}).fail(() => {
+				$('#dlgLogDetailBody').html('<p class="text-danger small mb-0">Failed to load log details.</p>');
+			});
+		};
+	</script>
+}

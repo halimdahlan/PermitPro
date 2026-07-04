@@ -82,6 +82,7 @@ PermitPro-1.2/
 - Dedicated `_LayoutAdmin` layout with a minimal dark navigation bar
 - Super admins have no assigned `UserCompany`; all service calls that need a company ID resolve it automatically from the `{company}` route segment instead
 - Global and per-company app settings management (`/admin/settings`, `/admin/companies/{id}/settings`) — see **App Settings** below
+- System-wide log viewer at `/admin/logs` — paginated, filterable grid over `AuditLog` (type, category, entity, description, user), with a Bootstrap modal for full record detail (including raw `SerializedData`) fetched on demand via `/admin/logs/{id}`
 
 ### Permit Management
 - Create and manage safety permits across 8 certificate types:
@@ -195,8 +196,9 @@ Response caching (HTTP layer) is applied to chart data and dropdown endpoints:
 - Reports permit-holder dropdown — 60-second `Cache-Control`
 
 ### Audit & Security
-- All CRUD operations logged with timestamp and user (`AuditLog` entity)
-- Automatic audit interception via EF Core interceptor
+- Application events logged via `ILogService.LogMessageAsync`/`LogMessage` to the `AuditLog` table (type, category, entity, description, URL, serialized data, acting user, timestamp)
+- Automatic audit-field stamping (`CreatedWhen`/`CreatedBy`/`UpdatedWhen`/`UpdatedBy`) via an EF Core `SaveChangesInterceptor`, applied to every `IAuditableEntity` — a separate mechanism from the explicit `AuditLog` entries above
+- Super admins can browse all `AuditLog` entries at `/admin/logs` (paginated, filterable by type/search, with a detail modal) — see **Super Admin Portal**
 - Session-based access control with multi-tenant data isolation
 
 ---

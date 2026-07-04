@@ -13,6 +13,7 @@ using PermitPro.App.Models.Ajax;
 using PermitPro.App.ViewModels;
 using PermitPro.Core.Data;
 using PermitPro.Core.Entities;
+using PermitPro.Core.Enums;
 using PermitPro.Core.Interfaces;
 
 using System.Security.Claims;
@@ -607,6 +608,93 @@ public class AdminController : Controller
             .OrderBy(c => c.Name)
             .Select(c => new AdminSettingsCompanyOption { Id = c.Id, Name = c.Name })
             .ToListAsync();
+    }
+
+
+    // ── Logs ─────────────────────────────────────────────────────────────────
+
+    [Authorize]
+    [HttpGet("/admin/logs")]
+    public async Task<IActionResult> Logs(int page = 1, int pageSize = 50, string logType = null, string search = null)
+    {
+        if (!IsSuperUser()) return Forbid();
+
+        page = Math.Max(page, 1);
+        pageSize = Math.Clamp(pageSize, 10, 200);
+
+        var query = _db.AuditLogs.Include(l => l.AuditLogUser).AsNoTracking().AsQueryable();
+
+        if (!string.IsNullOrEmpty(logType) && Enum.TryParse<LogTypeEnum>(logType, true, out var parsedType))
+            query = query.Where(l => l.LogType == parsedType);
+
+        if (!string.IsNullOrEmpty(search))
+        {
+            var term = search.Trim();
+            query = query.Where(l =>
+                (l.Category != null && l.Category.Contains(term)) ||
+                (l.Description != null && l.Description.Contains(term)) ||
+                (l.EntityName != null && l.EntityName.Contains(term)));
+        }
+
+        var totalCount = await query.CountAsync();
+        var totalPages = Math.Max((int)Math.Ceiling(totalCount / (double)pageSize), 1);
+        page = Math.Min(page, totalPages);
+
+        var logs = await query
+            .OrderByDescending(l => l.CreatedWhen)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(l => new AdminLogRowViewModel
+            {
+                Id = l.Id,
+                CreatedWhen = l.CreatedWhen,
+                LogType = l.LogType.ToString(),
+                Category = l.Category,
+                EntityName = l.EntityName,
+                Description = l.Description,
+                Url = l.Url,
+                UserName = l.AuditLogUser != null ? (l.AuditLogUser.FirstName + " " + l.AuditLogUser.LastName).Trim() : null,
+            })
+            .ToListAsync();
+
+        return View(new AdminLogsViewModel
+        {
+            Logs = logs,
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = totalCount,
+            TotalPages = totalPages,
+            LogTypeFilter = logType,
+            SearchTerm = search,
+        });
+    }
+
+    [Authorize]
+    [HttpGet("/admin/logs/{id:guid}")]
+    public async Task<IActionResult> GetLogDetail(Guid id)
+    {
+        if (!IsSuperUser()) return Forbid();
+
+        var log = await _db.AuditLogs.Include(l => l.AuditLogUser).AsNoTracking().FirstOrDefaultAsync(l => l.Id == id);
+        if (log == null) return NotFound();
+
+        return new JsonResult(new AdminLogDetailModel
+        {
+            Id = log.Id,
+            CreatedWhen = log.CreatedWhen,
+            UpdatedWhen = log.UpdatedWhen,
+            LogType = log.LogType.ToString(),
+            Category = log.Category,
+            EntityName = log.EntityName,
+            Description = log.Description,
+            Url = log.Url,
+            SerializedData = log.SerializedData,
+            UserName = log.AuditLogUser != null ? $"{log.AuditLogUser.FirstName} {log.AuditLogUser.LastName}".Trim() : null,
+            UserEmail = log.AuditLogUser?.Email,
+        }, new System.Text.Json.JsonSerializerOptions
+        {
+            PropertyNamingPolicy = null
+        });
     }
 
 
