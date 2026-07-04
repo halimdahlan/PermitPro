@@ -9,6 +9,15 @@
 
 <div class="row g-3">
 	<div class="d-flex flex-column col-12 col-lg-6">
+		@if (Model.UserInfoForm!.HasExceededLimit)
+		{
+			<div class="alert alert-info d-flex mb-3" role="alert">
+				<i class="fa-solid fa-circle-info me-3 fa-xl mt-3"></i>
+				<div>
+					You have reached the user creation limit of <strong>@Model.UserInfoForm.MaxNumOfUsers</strong> users. This user can keep their current role or be moved to a role marked <strong>Unlimited users</strong>.
+				</div>
+			</div>
+		}
 		<form method="post">
 			@Html.AntiForgeryToken()
 			<div class="card shadow-sm">

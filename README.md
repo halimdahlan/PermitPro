@@ -235,6 +235,10 @@ Roles support soft-delete via `ISoftDeletable` and carry audit fields (`CreatedW
 - Once a company reaches its limit, the **New User** role dropdown is restricted server-side to only unlimited-users roles (`UsersController.GetSelectableUserRoles`) — an info banner explains why
 - If no unlimited-users role exists, the New User page falls back to a full block message instead of an empty dropdown
 - The restriction is re-validated on `POST` (not just the dropdown) to reject a tampered submission that selects a non-unlimited role after the limit is reached
+- **Editing** an existing user's role is subject to the same limit, treated as reassigning one "slot" rather than a special case:
+  - The user being edited is excluded from their own headcount (`excludeUserId`), and their *current* role always stays selectable (`keepSelectableRoleId`) even at capacity, so the dropdown never silently drops their existing value
+  - At capacity (excluding themselves), the Edit dropdown only offers unlimited-users roles plus their current role — they can keep their role or move to an unlimited one, but can't take a limited slot from someone else
+  - Re-validated on `POST` the same way as New — this closes a gap where editing was previously a backdoor around the New User limit (moving a user from an unlimited role into a limited one silently increased the counted headcount with no check)
 
 ---
 

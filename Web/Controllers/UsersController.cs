@@ -209,16 +209,25 @@ public class UsersController : AppControllerBase
 
 
 	/// <summary>
-	/// Builds the role dropdown for user creation. Once the company has reached its user
-	/// create limit, only roles marked "unlimited users" remain selectable, since those are
-	/// the only roles that don't count against the limit.
+	/// Builds the role dropdown for user creation/edit. Once the company has reached its user
+	/// create limit, only roles marked "unlimited users" remain selectable, since those are the
+	/// only roles that don't count against the limit.
+	/// <paramref name="excludeUserId"/> excludes that user's own slot from the count (so editing
+	/// a user doesn't count them against themselves), and <paramref name="keepSelectableRoleId"/>
+	/// keeps that role selectable regardless (so the user's current role never disappears from
+	/// the list even when there's no room to move anyone else into it).
 	/// </summary>
-	private List<RoleDropDown> GetSelectableUserRoles(Guid company, out bool hasExceededLimit, out bool noRolesAvailable)
+	private List<RoleDropDown> GetSelectableUserRoles(Guid company, out bool hasExceededLimit, out bool noRolesAvailable, string excludeUserId = null, string keepSelectableRoleId = null)
 	{
-		var totalUsers = _dbContext.Users
+		var usersQuery = _dbContext.Users
 			.Include(e => e.UserCompany)
 			.Include(e => e.UserRoles).ThenInclude(e => e.Role)
-			.Count(e => e.UserCompany.Id == company && !e.UserRoles.Any(ur => ur.Role.IsUnlimitedUsers));
+			.Where(e => e.UserCompany.Id == company && !e.UserRoles.Any(ur => ur.Role.IsUnlimitedUsers));
+
+		if (!string.IsNullOrEmpty(excludeUserId))
+			usersQuery = usersQuery.Where(e => e.Id != excludeUserId);
+
+		var totalUsers = usersQuery.Count();
 
 		hasExceededLimit = totalUsers >= _systemConfiguration.UserCreateLimit;
 
@@ -232,9 +241,16 @@ public class UsersController : AppControllerBase
 			})
 			.ToList();
 
-		noRolesAvailable = hasExceededLimit && !allRoles.Any(r => r.IsUnlimitedUsers);
+		if (!hasExceededLimit)
+		{
+			noRolesAvailable = false;
+			return allRoles;
+		}
 
-		return hasExceededLimit ? allRoles.Where(r => r.IsUnlimitedUsers).ToList() : allRoles;
+		var selectable = allRoles.Where(r => r.IsUnlimitedUsers || r.Id == keepSelectableRoleId).ToList();
+		noRolesAvailable = selectable.Count == 0;
+
+		return selectable;
 	}
 
 
@@ -261,18 +277,14 @@ public class UsersController : AppControllerBase
 		if (user == null)
 			return NotFound("User not found!");
 
-		var userRoles = _dbContext.Roles
-			.Where(e => e.NormalizedName != "SUPERUSER")
-			.Select(e => new RoleDropDown
-			{
-				Id = e.Id,
-				Name = e.Name,
-			})
-			.ToList();
+		var userRoles = GetSelectableUserRoles(company, out var hasExceededLimit, out var noRolesAvailable, excludeUserId: user.Id, keepSelectableRoleId: user.UserRole);
 
 		user.Roles = userRoles;
 		user.IsEdit = true;
 		user.OriginFromContractors = !string.IsNullOrEmpty(org) ? org == "c" : false;
+		user.MaxNumOfUsers = _systemConfiguration.UserCreateLimit;
+		user.HasExceededLimit = hasExceededLimit;
+		user.NoRolesAvailable = noRolesAvailable;
 
 		var model = new ManageUserMainViewModel
 		{
@@ -311,6 +323,27 @@ public class UsersController : AppControllerBase
 
 		var oldUserRole = userInfo.UserRoles.FirstOrDefault(e => e.User == userInfo);
 
+		// Defense-in-depth: the dropdown already restricts role choices once the limit is
+		// reached (excluding this user's own current slot), but re-check server-side in case
+		// of a raw/tampered submission — otherwise editing is a backdoor around the New User
+		// limit, since moving a user out of an unlimited role into a limited one increases the
+		// counted headcount.
+		var selectedRole = await _dbContext.Roles.FirstOrDefaultAsync(e => e.Id == model.UserInfoForm.UserRole);
+		var roles = GetSelectableUserRoles(company, out var hasExceededLimit, out var noRolesAvailable, excludeUserId: userInfo.Id, keepSelectableRoleId: oldUserRole?.RoleId);
+		var isRoleChangeAllowed = !hasExceededLimit
+			|| (selectedRole != null && (selectedRole.IsUnlimitedUsers || selectedRole.Id == oldUserRole?.RoleId));
+
+		if (!isRoleChangeAllowed)
+		{
+			ModelState.AddModelError("UserInfoForm.UserRole", "You have reached the user creation limit. This user can only be moved to a role marked \"Unlimited users\".");
+			model.UserInfoForm.Roles = roles;
+			model.UserInfoForm.MaxNumOfUsers = _systemConfiguration.UserCreateLimit;
+			model.UserInfoForm.HasExceededLimit = hasExceededLimit;
+			model.UserInfoForm.NoRolesAvailable = noRolesAvailable;
+			model.UserInfoForm.IsEdit = true;
+			return View(model);
+		}
+
 		userInfo.FirstName = model.UserInfoForm.FirstName;
 		userInfo.LastName = model.UserInfoForm.LastName;
 		userInfo.Designation = model.UserInfoForm.Designation;
@@ -323,8 +356,7 @@ public class UsersController : AppControllerBase
 		// Update user's role
 		await _userManager.RemoveFromRoleAsync(userInfo, oldUserRole.Role.NormalizedName);
 
-		var role = _roleManager.Roles.FirstOrDefault(e => e.Id == model.UserInfoForm.UserRole);
-		await _userManager.AddToRoleAsync(userInfo, role.NormalizedName);
+		await _userManager.AddToRoleAsync(userInfo, selectedRole.NormalizedName);
 
 		// Update user's site(s)
 		var sitesToRemove = userInfo.Sites.ToList();
