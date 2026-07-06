@@ -43,6 +43,7 @@
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="5.0.0" />
 		<PackageReference Include="PuppeteerSharp" Version="18.0.3" />
 		<PackageReference Include="Scriban.Signed" Version="5.10.0" />
+		<PackageReference Include="Telerik.UI.for.AspNet.Core" Version="2025.2.520" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -53,45 +54,6 @@
 		<Folder Include="wwwroot\attachments\" />
 		<Folder Include="wwwroot\img\profile\" />
 		<Folder Include="wwwroot\lib\FileSaver\" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Reference Include="Kendo.Core.Export">
-	    <HintPath>..\Telerik\Kendo.Core.Export.dll</HintPath>
-	  </Reference>
-	  <Reference Include="Kendo.Mvc">
-	    <HintPath>..\Telerik\Kendo.Mvc.dll</HintPath>
-	  </Reference>
-	  <Reference Include="Telerik.Documents.Core">
-	    <HintPath>..\Telerik\Telerik.Documents.Core.dll</HintPath>
-	  </Reference>
-	  <Reference Include="Telerik.Documents.DrawingML">
-	    <HintPath>..\Telerik\Telerik.Documents.DrawingML.dll</HintPath>
-	  </Reference>
-	  <Reference Include="Telerik.Documents.Fixed">
-	    <HintPath>..\Telerik\Telerik.Documents.Fixed.dll</HintPath>
-	  </Reference>
-	  <Reference Include="Telerik.Documents.Flow">
-	    <HintPath>..\Telerik\Telerik.Documents.Flow.dll</HintPath>
-	  </Reference>
-	  <Reference Include="Telerik.Documents.Flow.FormatProviders.Pdf">
-	    <HintPath>..\Telerik\Telerik.Documents.Flow.FormatProviders.Pdf.dll</HintPath>
-	  </Reference>
-	  <Reference Include="Telerik.Documents.ImageUtils">
-	    <HintPath>..\Telerik\Telerik.Documents.ImageUtils.dll</HintPath>
-	  </Reference>
-	  <Reference Include="Telerik.Documents.SpreadsheetStreaming">
-	    <HintPath>..\Telerik\Telerik.Documents.SpreadsheetStreaming.dll</HintPath>
-	  </Reference>
-	  <Reference Include="Telerik.FontIcons">
-	    <HintPath>..\Telerik\Telerik.FontIcons.dll</HintPath>
-	  </Reference>
-	  <Reference Include="Telerik.SvgIcons">
-	    <HintPath>..\Telerik\Telerik.SvgIcons.dll</HintPath>
-	  </Reference>
-	  <Reference Include="Telerik.Zip">
-	    <HintPath>..\Telerik\Telerik.Zip.dll</HintPath>
-	  </Reference>
 	</ItemGroup>
 
 	<ProjectExtensions>

@@ -5,7 +5,7 @@
 	<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
 		<div class="modal-content">
 			<div class="modal-header bg-primary-soft">
-				<div class="modal-title" id="dlgFormDLabel">
+				<div class="modal-title w-100" id="dlgFormDLabel">
 					<div class="d-flex flex-row align-items-center">
 						<!--div-- class="avatar">
 							<span class="avatar-title rounded-circle bg-info" style="font-size: 22.75px !important; font-weight: 700 !important;">E</span>
@@ -19,7 +19,7 @@
 			<div class="modal-body">
 
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
-					<h3 class="mb-0">IDENTIFICATION OF EQUIPMENT BEING WORKED ON AND THE EQUIPMENT THAT IS LOCKED/TAGGED</h3>
+					<h6 class="mb-0">IDENTIFICATION OF EQUIPMENT BEING WORKED ON AND THE EQUIPMENT THAT IS LOCKED/TAGGED</h6>
 				</div>
 				<div class="px-2 mb-4">
 					<div class="mb-3">
@@ -36,7 +36,7 @@
 				</div>
 
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
-					<h3 class="mb-0">TYPE OF LOCK OUT / TAG OUT (LO/TO) USED</h3>
+					<h6 class="mb-0">TYPE OF LOCK OUT / TAG OUT (LO/TO) USED</h6>
 				</div>
 				<div class="px-2 mb-4">
 					<div class="d-flex flex-column flex-md-row">
@@ -45,20 +45,20 @@
 									.Name("chkFormE-LOTOType1")
 									.Label("  Each authorized individual will apply LO/TO to each isolation device")
 									.Size(ComponentSize.Large)
-									.Rounded(BasicRounded.Medium))
+									.Rounded(Rounded.Medium))
 						</div>
 						<div>
 							@(Html.Kendo().CheckBox()
 									.Name("chkFormE-LOTOType2")
 									.Label("  Use of Group LO/TO Using Lock Box")
 									.Size(ComponentSize.Large)
-									.Rounded(BasicRounded.Medium))
+									.Rounded(Rounded.Medium))
 						</div>
 					</div>
 				</div>
 
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
-					<h3 class="mb-0">Energy Type Isolated</h3>
+					<h6 class="mb-0">Energy Type Isolated</h6>
 				</div>
 				<div class="px-2 mb-4">
 					<div class="mb-3">
@@ -70,35 +70,35 @@
 									.Name("chkFormE-EnergyType1")
 									.Label("  Electrical")
 									.Size(ComponentSize.Large)
-									.Rounded(BasicRounded.Medium))
+									.Rounded(Rounded.Medium))
 						</div>
 						<div class="me-0 me-md-5">
 							@(Html.Kendo().CheckBox()
 									.Name("chkFormE-EnergyType2")
 									.Label("  Steam")
 									.Size(ComponentSize.Large)
-									.Rounded(BasicRounded.Medium))
+									.Rounded(Rounded.Medium))
 						</div>
 						<div class="me-0 me-md-5">
 							@(Html.Kendo().CheckBox()
 									.Name("chkFormE-EnergyType3")
 									.Label("  Hydraulic")
 									.Size(ComponentSize.Large)
-									.Rounded(BasicRounded.Medium))
+									.Rounded(Rounded.Medium))
 						</div>
 						<div class="me-0 me-md-5">
 							@(Html.Kendo().CheckBox()
 									.Name("chkFormE-EnergyType4")
 									.Label("  Mechanical")
 									.Size(ComponentSize.Large)
-									.Rounded(BasicRounded.Medium))
+									.Rounded(Rounded.Medium))
 						</div>
 						<div class="me-0 me-md-5">
 							@(Html.Kendo().CheckBox()
 									.Name("chkFormE-EnergyType5")
 									.Label("  Pneumatic")
 									.Size(ComponentSize.Large)
-									.Rounded(BasicRounded.Medium))
+									.Rounded(Rounded.Medium))
 						</div>
 						<div>
 							<div class="d-flex flex-row align-items-center">
@@ -107,7 +107,7 @@
 											.Name("chkFormE-EnergyType6")
 											.Label("  Other")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium)
+											.Rounded(Rounded.Medium)
 											.Events(x => x.Change("onChangeFormEEnergyType")))
 								</div>
 								<div class="ms-5 ms-md-3">
@@ -124,7 +124,7 @@
 				</div>
 
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
-					<h3 class="mb-0">Method of Isolation</h3>
+					<h6 class="mb-0">Method of Isolation</h6>
 				</div>
 				<div class="px-2 mb-4">
 					<div class="mb-3">
@@ -136,28 +136,28 @@
 									.Name("chkFormE-IsolationMethod1")
 									.Label("  Lock & Tag")
 									.Size(ComponentSize.Large)
-									.Rounded(BasicRounded.Medium))
+									.Rounded(Rounded.Medium))
 						</div>
 						<div class="me-0 me-md-5">
 							@(Html.Kendo().CheckBox()
 									.Name("chkFormE-IsolationMethod2")
 									.Label("  Tag Only")
 									.Size(ComponentSize.Large)
-									.Rounded(BasicRounded.Medium))
+									.Rounded(Rounded.Medium))
 						</div>
 						<div class="me-0 me-md-5">
 							@(Html.Kendo().CheckBox()
 									.Name("chkFormE-IsolationMethod3")
 									.Label("  Blinds")
 									.Size(ComponentSize.Large)
-									.Rounded(BasicRounded.Medium))
+									.Rounded(Rounded.Medium))
 						</div>
 						<div class="me-0 me-md-5">
 							@(Html.Kendo().CheckBox()
 									.Name("chkFormE-IsolationMethod4")
 									.Label("  Double Block & Bleed")
 									.Size(ComponentSize.Large)
-									.Rounded(BasicRounded.Medium))
+									.Rounded(Rounded.Medium))
 						</div>
 						<div>
 							<div class="d-flex flex-row align-items-center">
@@ -166,7 +166,7 @@
 											.Name("chkFormE-IsolationMethod5")
 											.Label("  Other")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium)
+											.Rounded(Rounded.Medium)
 											.Events(x => x.Change("onChangeFormEIsolationMethod")))
 								</div>
 								<div class="ms-3">
@@ -184,7 +184,7 @@
 						<div class="card bg-light mb-0">
 							<div class="card-body">
 								<div>
-									<h2>Sequence of Lockout</h2>
+									<h6>Sequence of Lockout</h6>
 								</div>
 								<ol>
 									<li>Prepare for shutdown</li>
@@ -205,7 +205,7 @@
 				</div>
 
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
-					<h3 class="mb-0">AUTHORIZED INDIVIDUALS</h3>
+					<h6 class="mb-0">AUTHORIZED INDIVIDUALS</h6>
 				</div>
 				<div class="px-2 mb-4">
 					<div class="mb-3">
@@ -229,7 +229,7 @@
 				</div>
 
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
-					<h3 class="mb-0">Validity of the Safe Isolation Lock Out Tag Out Permit</h3>
+					<h6 class="mb-0">Validity of the Safe Isolation Lock Out Tag Out Permit</h6>
 				</div>
 				<div class="px-2 mb-4">
 					<div class="mb-3">
@@ -257,7 +257,7 @@
 				</div>
 
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
-					<h3 class="mb-0">RECONNECTION</h3>
+					<h6 class="mb-0">RECONNECTION</h6>
 				</div>
 				<div class="px-2 mb-4">
 					<div>
@@ -266,7 +266,7 @@
 				</div>
 
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
-					<h3 class="mb-0">ISOLATION POINT IDENTIFICATION</h3>
+					<h6 class="mb-0">ISOLATION POINT IDENTIFICATION</h6>
 				</div>
 				<div class="px-2 mb-4">
 					<div>
@@ -292,8 +292,8 @@
 
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-				<button type="button" class="btn btn-primary" id="btnSaveFormE" data-bs-dismiss="modal">Save changes</button>
+				<button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-sm btn-primary" id="btnSaveFormE" data-bs-dismiss="modal">Save changes</button>
 			</div>
 		</div>
 	</div>
@@ -302,8 +302,8 @@
 	<div class="modal-dialog modal-sm modal-dialog-centered">
 		<div class="modal-content">
 			<div class="modal-header bg-warning-soft">
-				<h2 class="modal-title" id="dlgFormE-AuthPersonsLabel">Add authorized person</h2>
-				<button type="button" class="btn-close" data-bs-toggle="modal" data-bs-target="#dlgFormE" aria-label="Close"></button>
+				<h6 class="modal-title w-100" id="dlgFormE-AuthPersonsLabel">Add authorized person</h6>
+				<button type="button" class="btn btn-sm btn-clear" data-bs-dismiss="modal" data-bs-target="#dlgFormE" aria-label="Close"><i class="fa-regular fa-close fa-xl"></i></button>
 			</div>
 			<div class="modal-body">
 
@@ -343,8 +343,8 @@
 
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#dlgFormE">Close</button>
-				<button type="button" class="btn btn-primary disabled" data-bs-toggle="modal" data-bs-target="#dlgFormE" disabled>Save changes</button>
+				<button type="button" class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#dlgFormE">Close</button>
+				<button type="button" class="btn btn-sm btn-primary disabled" data-bs-toggle="modal" data-bs-target="#dlgFormE" disabled>Save changes</button>
 			</div>
 		</div>
 	</div>
@@ -353,8 +353,8 @@
 	<div class="modal-dialog modal-sm modal-dialog-centered">
 		<div class="modal-content">
 			<div class="modal-header bg-warning-soft">
-				<h2 class="modal-title" id="dlgFormE-IsolationPointIDLabel">Add isolation point</h2>
-				<button type="button" class="btn-close" data-bs-toggle="modal" data-bs-target="#dlgFormE" aria-label="Close"></button>
+				<h6 class="modal-title w-100" id="dlgFormE-IsolationPointIDLabel">Add isolation point</h6>
+				<button type="button" class="btn btn-sm btn-clear" data-bs-dismiss="modal" aria-label="Close"><i class="fa-regular fa-close fa-xl"></i></button>
 			</div>
 			<div class="modal-body">
 				<div class="mb-3">
@@ -431,8 +431,8 @@
 				</div>
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#dlgFormE">Close</button>
-				<button type="button" class="btn btn-primary disabled" data-bs-toggle="modal" data-bs-target="#dlgFormE" disabled>Save changes</button>
+				<button type="button" class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#dlgFormE">Close</button>
+				<button type="button" class="btn btn-sm btn-primary disabled" data-bs-toggle="modal" data-bs-target="#dlgFormE" disabled>Save changes</button>
 			</div>
 		</div>
 	</div>

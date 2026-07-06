@@ -16,7 +16,7 @@
 	}
 
 	.dialog-title {
-		font-size: 22.75px !important;
+		font-size: 20px !important;
 	}
 }
 
@@ -186,13 +186,6 @@ xthead tr, xtfoot tr {
 		outline: 0 !important;
 	}
 
-.k-input-solid.k-focus, .k-input-solid:focus {
-	/*border-color: #86b7fe;
-	color: #495057;
-	background-color: #fff;
-	box-shadow: 0 0 0 .25rem rgba(13,110,253,.25);*/
-}
-
 .k-input-outline {
 	border-color: rgb(210, 221, 236) !important;
 	background-color: #fff !important;
@@ -242,14 +235,12 @@ xthead tr, xtfoot tr {
 }
 
 .hazard-option {
-	width: 30px !important;
-	min-width: 30px !important;
-	max-width: 30px !important;
+	width: 35px !important;
 }
 
 .dialog-title {
-	font-size: 18px;
-	font-weight: 700 !important;
+	font-size: 20px;
+	font-weight: 600 !important;
 }
 
 .edit-disable {

@@ -5,7 +5,7 @@
 	<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
 		<div class="modal-content">
 			<div class="modal-header bg-primary-soft">
-				<div class="modal-title" id="dlgFormBLabel">
+				<div class="modal-title w-100" id="dlgFormBLabel">
 					<div class="d-flex flex-row align-items-center">
 						<!--div class="avatar">
 							<span class="avatar-title rounded-circle bg-info" style="font-size: 22.75px !important; font-weight: 700 !important;">B</span>
@@ -19,7 +19,7 @@
 			<div class="modal-body">
 
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
-					<h3 class="mb-0">INSTRUCTIONS</h3>
+					<h6 class="mb-0">INSTRUCTIONS</h6>
 				</div>
 				<div class="px-2 mb-4">
 					<ul>
@@ -35,7 +35,7 @@
 				</div>
 
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
-					<h3 class="mb-0">Attendant Name and Description of Work Information</h3>
+					<h6 class="mb-0">Attendant Name and Description of Work Information</h6>
 				</div>
 				<div class="px-2 mb-4">
 					<div class="mb-3">
@@ -56,7 +56,7 @@
 				</div>
 
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
-					<h3 class="mb-0">GAS TEST PERFORMED BY (AGT name and signature)</h3>
+					<h6 class="mb-0">GAS TEST PERFORMED BY (AGT name and signature)</h6>
 				</div>
 				<div class="px-2 mb-4">
 					<div class="mb-4 text-secondary">
@@ -110,7 +110,7 @@
 				</div>
 
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
-					<h3 class="mb-0">INITIAL GAS READINGS by AGT prior to Permit approval: Input applicable toxic below</h3>
+					<h6 class="mb-0">INITIAL GAS READINGS by AGT prior to Permit approval: Input applicable toxic below</h6>
 				</div>
 				<div class="px-2 mb-4">
 					<div class="d-flex flex-column flex-md-row align-items-center justify-content-evenly mb-3">
@@ -194,10 +194,10 @@
 					<div class="list-group list-group-flush">
 						<div class="list-group-item bg-light px-3">
 							<div class="d-flex flex-row justify-content-end">
-								<div class="flex-grow-1"><h3 class="mb-0">POTENTIAL HAZARDS</h3></div>
-								<div class="hazard-option text-center mx-1"><h3 class="mb-0">YES</h3></div>
-								<div class="hazard-option text-center mx-1"><h3 class="mb-0">NO</h3></div>
-								<div class="hazard-option text-center mx-1"><h3 class="mb-0">N/A</h3></div>
+								<div class="flex-grow-1"><h6 class="mb-0">POTENTIAL HAZARDS</h6></div>
+								<div class="hazard-option text-center mx-1"><h6 class="mb-0">YES</h6></div>
+								<div class="hazard-option text-center mx-1"><h6 class="mb-0">NO</h6></div>
+								<div class="hazard-option text-center mx-1"><h6 class="mb-0">N/A</h6></div>
 							</div>
 						</div>
 						<div class="list-group-item px-3">
@@ -207,19 +207,19 @@
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-01-1")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 								<div class="hazard-option text-center mx-1">
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-01-2")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 								<div class="hazard-option text-center mx-1">
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-01-3")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 							</div>
 						</div>
@@ -230,19 +230,19 @@
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-02-1")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 								<div class="hazard-option text-center mx-1">
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-02-2")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 								<div class="hazard-option text-center mx-1">
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-02-3")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 							</div>
 						</div>
@@ -253,19 +253,19 @@
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-03-1")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 								<div class="hazard-option text-center mx-1">
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-03-2")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 								<div class="hazard-option text-center mx-1">
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-03-3")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 							</div>
 						</div>
@@ -276,19 +276,19 @@
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-04-1")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 								<div class="hazard-option text-center mx-1">
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-04-2")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 								<div class="hazard-option text-center mx-1">
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-04-3")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 							</div>
 						</div>
@@ -299,19 +299,19 @@
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-05-1")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 								<div class="hazard-option text-center mx-1">
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-05-2")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 								<div class="hazard-option text-center mx-1">
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-05-3")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 							</div>
 						</div>
@@ -322,19 +322,19 @@
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-06-1")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 								<div class="hazard-option text-center mx-1">
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-06-2")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 								<div class="hazard-option text-center mx-1">
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-06-3")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 							</div>
 						</div>
@@ -345,19 +345,19 @@
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-07-1")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 								<div class="hazard-option text-center mx-1">
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-07-2")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 								<div class="hazard-option text-center mx-1">
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-07-3")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 							</div>
 						</div>
@@ -368,19 +368,19 @@
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-08-1")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 								<div class="hazard-option text-center mx-1">
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-08-2")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 								<div class="hazard-option text-center mx-1">
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-08-3")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 							</div>
 						</div>
@@ -391,19 +391,19 @@
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-09-1")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 								<div class="hazard-option text-center mx-1">
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-09-2")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 								<div class="hazard-option text-center mx-1">
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-09-3")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 							</div>
 						</div>
@@ -414,19 +414,19 @@
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-10-1")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 								<div class="hazard-option text-center mx-1">
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-10-2")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 								<div class="hazard-option text-center mx-1">
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-10-3")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 							</div>
 						</div>
@@ -437,19 +437,19 @@
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-11-1")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 								<div class="hazard-option text-center mx-1">
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-11-2")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 								<div class="hazard-option text-center mx-1">
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-11-3")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 							</div>
 						</div>
@@ -471,19 +471,19 @@
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-12-1")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 								<div class="hazard-option text-center mx-1">
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-12-2")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 								<div class="hazard-option text-center mx-1">
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-12-3")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 							</div>
 						</div>
@@ -505,19 +505,19 @@
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-13-1")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 								<div class="hazard-option text-center mx-1">
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-13-2")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 								<div class="hazard-option text-center mx-1">
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-13-3")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 							</div>
 						</div>
@@ -539,19 +539,19 @@
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-14-1")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 								<div class="hazard-option text-center mx-1">
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-14-2")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 								<div class="hazard-option text-center mx-1">
 									@(Html.Kendo().CheckBox()
 											.Name("chkFormBHazard-14-3")
 											.Size(ComponentSize.Large)
-											.Rounded(BasicRounded.Medium))
+											.Rounded(Rounded.Medium))
 								</div>
 							</div>
 						</div>
@@ -559,7 +559,7 @@
 				</div>
 
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
-					<h3 class="mb-0">COMMUNICATION REQUIREMENTS</h3>
+					<h6 class="mb-0">COMMUNICATION REQUIREMENTS</h6>
 				</div>
 				<div class="px-2 mb-4">
 					<div class="mb-2">
@@ -571,28 +571,28 @@
 									.Name("chkFormBComm1")
 									.Label("  Radio")
 									.Size(ComponentSize.Large)
-									.Rounded(BasicRounded.Medium))
+									.Rounded(Rounded.Medium))
 						</div>
 						<div class="me-5 mb-3 mb-md-0">
 							@(Html.Kendo().CheckBox()
 									.Name("chkFormBComm2")
 									.Label("  Voice")
 									.Size(ComponentSize.Large)
-									.Rounded(BasicRounded.Medium))
+									.Rounded(Rounded.Medium))
 						</div>
 						<div class="me-5 mb-3 mb-md-0">
 							@(Html.Kendo().CheckBox()
 									.Name("chkFormBComm3")
 									.Label("  Visual")
 									.Size(ComponentSize.Large)
-									.Rounded(BasicRounded.Medium))
+									.Rounded(Rounded.Medium))
 						</div>
 						<div class="me-3 mb-3 mb-md-0">
 							@(Html.Kendo().CheckBox()
 									.Name("chkFormBComm4")
 									.Label("  Other")
 									.Size(ComponentSize.Large)
-									.Rounded(BasicRounded.Medium))
+									.Rounded(Rounded.Medium))
 						</div>
 						<div>
 							@(Html.Kendo().TextBox()
@@ -615,7 +615,7 @@
 				</div>
 
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
-					<h3 class="mb-0">Personal Protective and Emergency/Rescue Equipment Required On Site</h3>
+					<h6 class="mb-0">Personal Protective and Emergency/Rescue Equipment Required On Site</h6>
 				</div>
 				<div class="px-2 mb-4">
 					<div class="mb-3">
@@ -625,10 +625,10 @@
 						<div class="list-group list-group-flush">
 							<div class="list-group-item bg-light px-3">
 								<div class="d-flex flex-row justify-content-end">
-									<div class="flex-grow-1"><h3 class="mb-0">PPE EQUIPMENT</h3></div>
-									<div class="hazard-option text-center mx-1"><h3 class="mb-0">YES</h3></div>
-									<div class="hazard-option text-center mx-1"><h3 class="mb-0">NO</h3></div>
-									<div class="hazard-option text-center mx-1"><h3 class="mb-0">N/A</h3></div>
+									<div class="flex-grow-1"><h6 class="mb-0">PPE EQUIPMENT</h6></div>
+									<div class="hazard-option text-center mx-1"><h6 class="mb-0">YES</h6></div>
+									<div class="hazard-option text-center mx-1"><h6 class="mb-0">NO</h6></div>
+									<div class="hazard-option text-center mx-1"><h6 class="mb-0">N/A</h6></div>
 								</div>
 							</div>
 							<div class="list-group-item px-3">
@@ -638,19 +638,19 @@
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBPPEEquip-01-1")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 									<div class="hazard-option text-center mx-1">
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBPPEEquip-01-2")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 									<div class="hazard-option text-center mx-1">
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBPPEEquip-01-3")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 								</div>
 							</div>
@@ -661,19 +661,19 @@
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBPPEEquip-02-1")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 									<div class="hazard-option text-center mx-1">
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBPPEEquip-02-2")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 									<div class="hazard-option text-center mx-1">
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBPPEEquip-02-3")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 								</div>
 							</div>
@@ -686,19 +686,19 @@
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBPPEEquip-03-1")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 									<div class="hazard-option text-center mx-1">
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBPPEEquip-03-2")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 									<div class="hazard-option text-center mx-1">
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBPPEEquip-03-3")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 								</div>
 							</div>
@@ -711,19 +711,19 @@
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBPPEEquip-04-1")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 									<div class="hazard-option text-center mx-1">
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBPPEEquip-04-2")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 									<div class="hazard-option text-center mx-1">
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBPPEEquip-04-3")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 								</div>
 							</div>
@@ -736,19 +736,19 @@
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBPPEEquip-05-1")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 									<div class="hazard-option text-center mx-1">
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBPPEEquip-05-2")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 									<div class="hazard-option text-center mx-1">
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBPPEEquip-05-3")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 								</div>
 							</div>
@@ -761,19 +761,19 @@
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBPPEEquip-06-1")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 									<div class="hazard-option text-center mx-1">
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBPPEEquip-06-2")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 									<div class="hazard-option text-center mx-1">
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBPPEEquip-06-3")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 								</div>
 							</div>
@@ -786,19 +786,19 @@
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBPPEEquip-07-1")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 									<div class="hazard-option text-center mx-1">
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBPPEEquip-07-2")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 									<div class="hazard-option text-center mx-1">
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBPPEEquip-07-3")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 								</div>
 							</div>
@@ -811,19 +811,19 @@
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBPPEEquip-08-1")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 									<div class="hazard-option text-center mx-1">
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBPPEEquip-08-2")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 									<div class="hazard-option text-center mx-1">
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBPPEEquip-08-3")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 								</div>
 							</div>
@@ -836,19 +836,19 @@
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBPPEEquip-09-1")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 									<div class="hazard-option text-center mx-1">
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBPPEEquip-09-2")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 									<div class="hazard-option text-center mx-1">
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBPPEEquip-09-3")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 								</div>
 							</div>
@@ -861,19 +861,19 @@
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBPPEEquip-10-1")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 									<div class="hazard-option text-center mx-1">
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBPPEEquip-10-2")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 									<div class="hazard-option text-center mx-1">
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBPPEEquip-10-3")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 								</div>
 							</div>
@@ -895,25 +895,25 @@
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBPPEEquip-11-1")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 									<div class="hazard-option text-center mx-1">
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBPPEEquip-11-2")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 									<div class="hazard-option text-center mx-1">
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBPPEEquip-11-3")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 								</div>
 							</div>
 							<div class="list-group-item bg-light px-3">
 								<div class="d-flex flex-row justify-content-end">
-									<div class="flex-grow-1"><h3 class="mb-0">RESCUE EQUIPMENT</h3></div>
+									<div class="flex-grow-1"><h6 class="mb-0">RESCUE EQUIPMENT</h6></div>
 								</div>
 							</div>
 							<div class="list-group-item px-3">
@@ -925,19 +925,19 @@
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBRescueEquip-01-1")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 									<div class="hazard-option text-center mx-1">
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBRescueEquip-01-2")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 									<div class="hazard-option text-center mx-1">
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBRescueEquip-01-3")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 								</div>
 							</div>
@@ -950,19 +950,19 @@
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBRescueEquip-02-1")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 									<div class="hazard-option text-center mx-1">
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBRescueEquip-02-2")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 									<div class="hazard-option text-center mx-1">
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBRescueEquip-02-3")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 								</div>
 							</div>
@@ -975,19 +975,19 @@
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBRescueEquip-03-1")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 									<div class="hazard-option text-center mx-1">
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBRescueEquip-03-2")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 									<div class="hazard-option text-center mx-1">
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBRescueEquip-03-3")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 								</div>
 							</div>
@@ -1000,19 +1000,19 @@
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBRescueEquip-04-1")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 									<div class="hazard-option text-center mx-1">
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBRescueEquip-04-2")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 									<div class="hazard-option text-center mx-1">
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBRescueEquip-04-3")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 								</div>
 							</div>
@@ -1025,19 +1025,19 @@
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBRescueEquip-05-1")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 									<div class="hazard-option text-center mx-1">
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBRescueEquip-05-2")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 									<div class="hazard-option text-center mx-1">
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBRescueEquip-05-3")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 								</div>
 							</div>
@@ -1050,19 +1050,19 @@
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBRescueEquip-06-1")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 									<div class="hazard-option text-center mx-1">
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBRescueEquip-06-2")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 									<div class="hazard-option text-center mx-1">
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBRescueEquip-06-3")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 								</div>
 							</div>
@@ -1075,19 +1075,19 @@
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBRescueEquip-07-1")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 									<div class="hazard-option text-center mx-1">
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBRescueEquip-07-2")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 									<div class="hazard-option text-center mx-1">
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBRescueEquip-07-3")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 								</div>
 							</div>
@@ -1109,19 +1109,19 @@
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBRescueEquip-08-1")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 									<div class="hazard-option text-center mx-1">
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBRescueEquip-08-2")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 									<div class="hazard-option text-center mx-1">
 										@(Html.Kendo().CheckBox()
 												.Name("chkFormBRescueEquip-08-3")
 												.Size(ComponentSize.Large)
-												.Rounded(BasicRounded.Medium))
+												.Rounded(Rounded.Medium))
 									</div>
 								</div>
 							</div>
@@ -1130,7 +1130,7 @@
 				</div>
 
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
-					<h3 class="mb-0">Validity of the Confined Space Permit</h3>
+					<h6 class="mb-0">Validity of the Confined Space Permit</h6>
 				</div>
 				<div class="px-2 mb-4">
 					<div class="mb-3">
@@ -1159,7 +1159,7 @@
 				</div>
 
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
-					<h3 class="mb-0">Confined Space Certificate is Withdrawn</h3>
+					<h6 class="mb-0">Confined Space Certificate is Withdrawn</h6>
 				</div>
 				<div class="px-2 mb-4">
 					<div class="d-flex flex-row align-items-center">
@@ -1183,7 +1183,7 @@
 				</div>
 
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
-					<h3 class="mb-0">Confined Space Entry Record</h3>
+					<h6 class="mb-0">Confined Space Entry Record</h6>
 				</div>
 				<div class="px-2 mb-4">
 					<div>
@@ -1208,8 +1208,8 @@
 
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-				<button type="button" class="btn btn-primary" id="btnSaveFormB" data-bs-dismiss="modal">Save changes</button>
+				<button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-sm btn-primary" id="btnSaveFormB" data-bs-dismiss="modal">Save changes</button>
 			</div>
 		</div>
 	</div>
@@ -1219,8 +1219,10 @@
 	<div class="modal-dialog modal-sm modal-dialog-centered">
 		<div class="modal-content">
 			<div class="modal-header bg-warning-soft">
-				<h2 class="modal-title" id="dlgFormBGasReadLabel">Add gas reading</h2>
-				<button type="button" class="btn-close" data-bs-toggle="modal" data-bs-target="#dlgFormB" aria-label="Close"></button>
+				<h6 class="modal-title w-100" id="dlgFormBGasReadLabel">Add gas reading</h6>
+				<button type="button" class="btn btn-sm btn-clear" data-bs-dismiss="modal" data-bs-target="#dlgFormB" aria-label="Close">
+					<i class="fa-regular fa-close fa-xl"></i>
+				</button>
 			</div>
 			<div class="modal-body">
 				<div>
@@ -1265,8 +1267,8 @@
 				</div>
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#dlgFormB">Close</button>
-				<button type="button" class="btn btn-primary btn-add-gas-reading" data-bs-toggle="modal" data-bs-target="#dlgFormB">Save changes</button>
+				<button type="button" class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#dlgFormB">Close</button>
+				<button type="button" class="btn btn-sm btn-primary btn-add-gas-reading" data-bs-toggle="modal" data-bs-target="#dlgFormB">Save changes</button>
 			</div>
 		</div>
 	</div>
@@ -1276,8 +1278,10 @@
 	<div class="modal-dialog modal-sm modal-dialog-centered">
 		<div class="modal-content">
 			<div class="modal-header bg-warning-soft">
-				<h2 class="modal-title" id="dlgFormB-EntryLabel">Add entry record</h2>
-				<button type="button" class="btn-close" data-bs-toggle="modal" data-bs-target="#dlgFormB" aria-label="Close"></button>
+				<h6 class="modal-title w-100" id="dlgFormB-EntryLabel">Add entry record</h6>
+				<button type="button" class="btn btn-sm btn-clear" data-bs-dismiss="modal" data-bs-target="#dlgFormB" aria-label="Close">
+					<i class="fa-regular fa-close fa-xl"></i>
+				</button>
 			</div>
 			<div class="modal-body">
 				<div>
@@ -1325,8 +1329,8 @@
 				</div>
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#dlgFormB">Close</button>
-				<button type="button" class="btn btn-primary disabled" data-bs-toggle="modal" data-bs-target="#dlgFormB" disabled>Save changes</button>
+				<button type="button" class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#dlgFormB">Close</button>
+				<button type="button" class="btn btn-sm btn-primary disabled" data-bs-toggle="modal" data-bs-target="#dlgFormB" disabled>Save changes</button>
 			</div>
 		</div>
 	</div>

@@ -4,7 +4,7 @@
 	<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
 		<div class="modal-content">
 			<div class="modal-header bg-primary-soft">
-				<div class="modal-title" id="dlgFormHLabel">
+				<div class="modal-title w-100" id="dlgFormHLabel">
 					<div class="d-flex flex-row align-items-center">
 						<!--div-- class="avatar">
 							<span class="avatar-title rounded-circle bg-info" style="font-size: 22.75px !important; font-weight: 700 !important;">H</span>
@@ -16,11 +16,11 @@
 				<a href="" class="text-dark no-loading" data-bs-dismiss="modal" aria-label="Close"><i class="fa-sharp fa-solid fa-xmark fa-xl"></i></a>
 			</div>
 			<div class="modal-body">
-				<div class="mb-3 fs-3 fw-bold">
+				<div class="mb-3 fs-6 fw-semibold">
 					Override of safeguarding protective devices may utilize a standing procedure, the MOC process, 
 					or PTW process (including this certificate).
 				</div>
-				<div class="mb-4 fs-3 fw-bold">
+				<div class="mb-4 fs-6 fw-semibold">
 					This PTW Override may not be utilized for the purpose of preventing an alarm trip associated 
 					with a known actual exceedence of an established operating parameter (pressure, flow, temperature, 
 					fill height, etc) for which the device is intended. It may be utilized for scheduled and planned 
@@ -28,7 +28,7 @@
 					controlled within approved limits during the override period.
 				</div>
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
-					<h3 class="mb-0">TO BE COMPLETED BY THE PERMIT HOLDER</h3>
+					<h6 class="mb-0">TO BE COMPLETED BY THE PERMIT HOLDER</h6>
 				</div>
 				<div class="mb-3">
 					@(Html.Kendo()
@@ -98,7 +98,7 @@
 					</div>
 				</div>
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
-					<h3 class="mb-0">PLANNED DURATION OF OVERRIDE</h3>
+					<h6 class="mb-0">PLANNED DURATION OF OVERRIDE</h6>
 				</div>
 				<div class="mb-4">
 					<div class="mb-2">
@@ -137,7 +137,7 @@
 					</div>
 				</div>
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
-					<h3 class="mb-0">VALIDITY OF THE OVERRIDE PERMIT</h3>
+					<h6 class="mb-0">VALIDITY OF THE OVERRIDE PERMIT</h6>
 				</div>
 				<div class="mb-3">
 					<div>
@@ -148,7 +148,7 @@
 									.CheckBox()
 									.Name("formH-signed-1")
 									.Size(ComponentSize.Large)
-									.Rounded(BasicRounded.Medium))
+									.Rounded(Rounded.Medium))
 							</div>
 							<div>
 								<label for="formH-signed-1">
@@ -200,7 +200,7 @@
 							.CheckBox()
 							.Name("formH-signed-2")
 							.Size(ComponentSize.Large)
-							.Rounded(BasicRounded.Medium))
+							.Rounded(Rounded.Medium))
 					</div>
 					<div>
 						<label for="formH-signed-2">
@@ -211,8 +211,8 @@
 				</div>
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-				<button type="button" class="btn btn-primary" id="btnSaveFormH" data-bs-dismiss="modal">Save changes</button>
+				<button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-sm btn-primary" id="btnSaveFormH" data-bs-dismiss="modal">Save changes</button>
 			</div>
 		</div>
 	</div>

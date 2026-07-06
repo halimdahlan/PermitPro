@@ -5,7 +5,7 @@
 	<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
 		<div class="modal-content">
 			<div class="modal-header bg-primary-soft">
-				<div class="modal-title" id="dlgFormALabel">
+				<div class="modal-title w-100" id="dlgFormALabel">
 					<div class="d-flex flex-row align-items-center">
 						<!--div class="avatar">
 							<span class="avatar-title rounded-circle bg-info" style="font-size: 22.75px !important; font-weight: 700 !important;">A</span>
@@ -19,7 +19,7 @@
 			<div class="modal-body">
 
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
-					<h3 class="mb-0">GENERAL INFORMATION</h3>
+					<h6 class="mb-0">GENERAL INFORMATION</h6>
 				</div>
 				<div class="d-flex flex-column flex-md-row justify-content-evenly mb-4 px-2">
 					<div class="w-100 me-md-3">
@@ -34,7 +34,7 @@
 				</div>
 
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
-					<h3 class="mb-0">HOT WORK CHECKLIST</h3>
+					<h6 class="mb-0">HOT WORK CHECKLIST</h6>
 				</div>
 				<div class="px-2 mb-4">
 					<div class="d-flex flex-row align-items-md-center">
@@ -42,7 +42,7 @@
 							@(Html.Kendo().CheckBox()
 									.Name("chkFormACheckList1")
 									.Size(ComponentSize.Large)
-									.Rounded(BasicRounded.Medium)
+									.Rounded(Rounded.Medium)
 									.Events(e => e.Change("hotWorkOnChange")))
 						</div>
 						<div class="ms-3">
@@ -56,7 +56,7 @@
 							@(Html.Kendo().CheckBox()
 									.Name("chkFormACheckList2")
 									.Size(ComponentSize.Large)
-									.Rounded(BasicRounded.Medium)
+									.Rounded(Rounded.Medium)
 									.Events(e => e.Change("hotWorkOnChange")))
 						</div>
 						<div class="ms-3">
@@ -70,7 +70,7 @@
 							@(Html.Kendo().CheckBox()
 									.Name("chkFormACheckList3")
 									.Size(ComponentSize.Large)
-									.Rounded(BasicRounded.Medium)
+									.Rounded(Rounded.Medium)
 									.Events(e => e.Change("hotWorkOnChange")))
 						</div>
 						<div class="ms-3">
@@ -84,7 +84,7 @@
 							@(Html.Kendo().CheckBox()
 									.Name("chkFormACheckList4")
 									.Size(ComponentSize.Large)
-									.Rounded(BasicRounded.Medium)
+									.Rounded(Rounded.Medium)
 									.Events(e => e.Change("hotWorkOnChange")))
 						</div>
 						<div class="ms-3">
@@ -98,7 +98,7 @@
 							@(Html.Kendo().CheckBox()
 									.Name("chkFormACheckList5")
 									.Size(ComponentSize.Large)
-									.Rounded(BasicRounded.Medium)
+									.Rounded(Rounded.Medium)
 									.Events(e => e.Change("hotWorkOnChange")))
 						</div>
 						<div class="ms-3">
@@ -113,7 +113,7 @@
 							@(Html.Kendo().CheckBox()
 									.Name("chkFormACheckList6")
 									.Size(ComponentSize.Large)
-									.Rounded(BasicRounded.Medium)
+									.Rounded(Rounded.Medium)
 									.Events(e => e.Change("hotWorkOnChange")))
 						</div>
 						<div class="ms-3">
@@ -127,7 +127,7 @@
 							@(Html.Kendo().CheckBox()
 									.Name("chkFormACheckList7")
 									.Size(ComponentSize.Large)
-									.Rounded(BasicRounded.Medium)
+									.Rounded(Rounded.Medium)
 									.Events(e => e.Change("hotWorkOnChange")))
 						</div>
 						<div class="ms-3">
@@ -139,7 +139,7 @@
 				</div>
 
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
-					<h3 class="mb-0">HOT WORK IGNITION SOURCES (mark the applicable sources for the work performed)</h3>
+					<h6 class="mb-0">HOT WORK IGNITION SOURCES (mark the applicable sources for the work performed)</h6>
 				</div>
 				<div class="px-2 mb-4 d-flex flex-column flex-md-row">
 					<div class="d-flex flex-md-row align-items-center ignition-source">
@@ -147,7 +147,7 @@
 							@(Html.Kendo().CheckBox()
 									.Name("chkFormAIgnitionSource1")
 									.Size(ComponentSize.Large)
-									.Rounded(BasicRounded.Medium)
+									.Rounded(Rounded.Medium)
 									.Events(e => e.Change("hotWorkOnChange")))
 						</div>
 						<div class="ms-3">
@@ -161,7 +161,7 @@
 							@(Html.Kendo().CheckBox()
 									.Name("chkFormAIgnitionSource2")
 									.Size(ComponentSize.Large)
-									.Rounded(BasicRounded.Medium)
+									.Rounded(Rounded.Medium)
 									.Events(e => e.Change("hotWorkOnChange")))
 						</div>
 						<div class="ms-3">
@@ -175,7 +175,7 @@
 							@(Html.Kendo().CheckBox()
 									.Name("chkFormAIgnitionSource3")
 									.Size(ComponentSize.Large)
-									.Rounded(BasicRounded.Medium)
+									.Rounded(Rounded.Medium)
 									.Events(e => e.Change("hotWorkOnChange")))
 						</div>
 						<div class="ms-3">
@@ -189,7 +189,7 @@
 							@(Html.Kendo().CheckBox()
 									.Name("chkFormAIgnitionSource4")
 									.Size(ComponentSize.Large)
-									.Rounded(BasicRounded.Medium)
+									.Rounded(Rounded.Medium)
 									.Events(e => e.Change("hotWorkOnChange")))
 						</div>
 						<div class="ms-3">
@@ -203,7 +203,7 @@
 							@(Html.Kendo().CheckBox()
 									.Name("chkFormAIgnitionSource5")
 									.Size(ComponentSize.Large)
-									.Rounded(BasicRounded.Medium)
+									.Rounded(Rounded.Medium)
 									.Events(e => e.Change("onIgnitionSourceCheckBoxChange")))
 						</div>
 						<div class="ms-3">
@@ -226,7 +226,7 @@
 				</div>
 
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
-					<h3 class="mb-0">GAS TEST PERFORMED BY (AGT name and signature)</h3>
+					<h6 class="mb-0">GAS TEST PERFORMED BY (AGT name and signature)</h6>
 				</div>
 				<div class="px-2 mb-4">
 					@(Html.Kendo().TextArea()
@@ -238,7 +238,7 @@
 				</div>
 
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
-					<h3 class="mb-0">INITIAL LEL READING by AGT: Hot Work not to commence unless LEL reading is 0% (&lt; 1% considered negligible and OK)</h3>
+					<h6 class="mb-0">INITIAL LEL READING by AGT: Hot Work not to commence unless LEL reading is 0% (&lt; 1% considered negligible and OK)</h6>
 				</div>
 				<div class="px-2 mb-4">
 					<div class="d-flex flex-column flex-md-row justify-content-evenly">
@@ -297,7 +297,7 @@
 				</div>
 
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
-					<h3 class="mb-0">Other Atmospheric Testing results if required: enter any potentially toxic gases to be monitored below</h3>
+					<h6 class="mb-0">Other Atmospheric Testing results if required: enter any potentially toxic gases to be monitored below</h6>
 				</div>
 				<div class="px-2 mb-4">
 					<div class="mt-3">
@@ -317,9 +317,7 @@
 				</div>
 
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
-					<h3 class="mb-0">
-						VALIDITY OF THE HOT WORK PERMIT
-					</h3>
+					<h6 class="mb-0">VALIDITY OF THE HOT WORK PERMIT</h6>
 				</div>
 				<div class="px-2 mb-4">
 					<div class="mb-3">
@@ -349,7 +347,7 @@
 				</div>
 
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
-					<h3 class="mb-0">Hot Work Certificate is Withdrawn</h3>
+					<h6 class="mb-0">Hot Work Certificate is Withdrawn</h6>
 				</div>
 				<div class="px-2">
 					<div class="d-flex flex-row align-items-center">
@@ -375,8 +373,8 @@
 
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-				<button type="button" class="btn btn-primary" id="btnSaveFormA" data-bs-dismiss="modal">Save changes</button>
+				<button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-sm btn-primary" id="btnSaveFormA" data-bs-dismiss="modal">Save changes</button>
 			</div>
 		</div>
 	</div>
@@ -387,8 +385,8 @@
 	<div class="modal-dialog modal-sm modal-dialog-centered">
 		<div class="modal-content">
 			<div class="modal-header bg-warning-soft">
-				<h2 class="modal-title" id="dlgLelReadingLabel">Add LEL reading</h2>
-				<button type="button" class="btn-close" data-bs-toggle="modal" data-bs-target="#dlgFormA" aria-label="Close"></button>
+				<h6 class="modal-title w-100" id="dlgLelReadingLabel">Add LEL reading</h6>
+				<button type="button" class="btn btn-sm btn-clear" data-bs-dismiss="modal" aria-label="Close"><i class="fa-regular fa-close fa-xl"></i></button>
 			</div>
 			<div class="modal-body">
 				<div>
@@ -411,8 +409,8 @@
 				</div>
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#dlgFormA">Close</button>
-				<button type="button" class="btn btn-primary btn-add-reading" data-bs-toggle="modal" data-bs-target="#dlgFormA">Add</button>
+				<button type="button" class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#dlgFormA">Close</button>
+				<button type="button" class="btn btn-sm btn-primary btn-add-reading" data-bs-toggle="modal" data-bs-target="#dlgFormA">Add</button>
 			</div>
 		</div>
 	</div>
@@ -423,8 +421,8 @@
 	<div class="modal-dialog modal-sm modal-dialog-centered">
 		<div class="modal-content">
 			<div class="modal-header bg-warning-soft">
-				<h2 class="modal-title" id="dlgAtmosLabel">Add O<sub>2</sub> reading</h2>
-				<button type="button" class="btn-close" data-bs-toggle="modal" data-bs-target="#dlgFormA" aria-label="Close"></button>
+				<h6 class="modal-title w-100" id="dlgAtmosLabel">Add O<sub>2</sub> reading</h6>
+				<button type="button" class="btn btn-sm btn-clear" data-bs-dismiss="modal" aria-label="Close"><i class="fa-regular fa-close fa-xl"></i></button>
 			</div>
 			<div class="modal-body">
 				<div>
@@ -447,8 +445,8 @@
 				</div>
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#dlgFormA">Close</button>
-				<button type="button" class="btn btn-primary btn-add-o2" data-bs-toggle="modal" data-bs-target="#dlgFormA">Add</button>
+				<button type="button" class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#dlgFormA">Close</button>
+				<button type="button" class="btn btn-sm btn-primary btn-add-o2" data-bs-toggle="modal" data-bs-target="#dlgFormA">Add</button>
 			</div>
 		</div>
 	</div>

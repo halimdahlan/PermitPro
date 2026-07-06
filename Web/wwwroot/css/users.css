@@ -275,3 +275,7 @@ a:hover {
 .k-calendar, .k-title, .k-button {
 	font-family: 'Poppins', sans-serif !important;
 }
+
+li.list-group-item, li.nav-item, li.k-list-item {
+	margin-inline-start: unset !important;
+}

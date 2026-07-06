@@ -19,7 +19,7 @@
 			<div class="modal-body">
 
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
-					<h3 class="mb-0">GENERAL INFORMATION</h3>
+					<h6 class="mb-0">GENERAL INFORMATION</h6>
 				</div>
 				<div class="px-2 mb-4">
 					<div class="d-flex flex-row align-items-center">
@@ -35,7 +35,7 @@
 				</div>
 
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
-					<h3 class="mb-0">Excavation instructions applicable to the Permit Holder who is responsible for assuring compliance</h3>
+					<h6 class="mb-0">Excavation instructions applicable to the Permit Holder who is responsible for assuring compliance</h6>
 				</div>
 				<div class="px-2 mb-4">
 					<ul>
@@ -81,7 +81,7 @@
 				</div>
 
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
-					<h3 class="mb-0">Controls Used</h3>
+					<h6 class="mb-0">Controls Used</h6>
 				</div>
 				<div class="px-2 mb-4">
 					<div class="d-flex flex-row align-items-center mb-3">
@@ -90,21 +90,21 @@
 									.Name("chkFormD-Sloping")
 									.Label("  Sloping")
 									.Size(ComponentSize.Large)
-									.Rounded(BasicRounded.Medium))
+									.Rounded(Rounded.Medium))
 						</div>
 						<div class="ms-3 me-3">
 							@(Html.Kendo().CheckBox()
 									.Name("chkFormD-Shoring")
 									.Label("  Shoring")
 									.Size(ComponentSize.Large)
-									.Rounded(BasicRounded.Medium))
+									.Rounded(Rounded.Medium))
 						</div>
 						<div class="ms-3">
 							@(Html.Kendo().CheckBox()
 									.Name("chkFormD-Shielding")
 									.Label("  Shielding")
 									.Size(ComponentSize.Large)
-									.Rounded(BasicRounded.Medium))
+									.Rounded(Rounded.Medium))
 						</div>
 					</div>
 					<div class="mb-3">
@@ -155,7 +155,7 @@
 				</div>
 
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
-					<h3 class="mb-0">Emergency Contact Info</h3>
+					<h6 class="mb-0">Emergency Contact Info</h6>
 				</div>
 				<div class="px-2 mb-4">
 					<div class="d-flex flex-row align-items-center">
@@ -171,7 +171,7 @@
 				</div>
 
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
-					<h3 class="mb-0">Validity of the Excavation Permit</h3>
+					<h6 class="mb-0">Validity of the Excavation Permit</h6>
 				</div>
 				<div class="px-2 mb-4">
 					<div class="mb-3">
@@ -198,7 +198,7 @@
 					</div>
 				</div>
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
-					<h3 class="mb-0">Excavation Certificate is Withdrawn</h3>
+					<h6 class="mb-0">Excavation Certificate is Withdrawn</h6>
 				</div>
 				<div class="px-2 mb-4">
 					<div>
@@ -225,8 +225,8 @@
 
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-				<button type="button" class="btn btn-primary" id="btnSaveFormD" data-bs-dismiss="modal">Save changes</button>
+				<button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-sm btn-primary" id="btnSaveFormD" data-bs-dismiss="modal">Save changes</button>
 			</div>
 		</div>
 	</div>
