@@ -254,8 +254,7 @@ public class UsersController : AppControllerBase
 	}
 
 
-	[HttpGet("{company}/users/edit/{id}")]
-	public async Task<IActionResult> Edit(Guid company, Guid id, string org)
+	private async Task<ManageUserViewNodel> BuildEditUserFormAsync(Guid company, Guid id, string org)
 	{
 		var user = await _dbContext.Users
 			.Include(e => e.UserRoles)
@@ -275,16 +274,28 @@ public class UsersController : AppControllerBase
 			.FirstOrDefaultAsync(e => e.Id == id.ToString());
 
 		if (user == null)
-			return NotFound("User not found!");
+			return null;
 
 		var userRoles = GetSelectableUserRoles(company, out var hasExceededLimit, out var noRolesAvailable, excludeUserId: user.Id, keepSelectableRoleId: user.UserRole);
 
 		user.Roles = userRoles;
 		user.IsEdit = true;
-		user.OriginFromContractors = !string.IsNullOrEmpty(org) ? org == "c" : false;
+		user.OriginFromContractors = !string.IsNullOrEmpty(org) && org == "c";
 		user.MaxNumOfUsers = _systemConfiguration.UserCreateLimit;
 		user.HasExceededLimit = hasExceededLimit;
 		user.NoRolesAvailable = noRolesAvailable;
+
+		return user;
+	}
+
+
+	[HttpGet("{company}/users/edit/{id}")]
+	public async Task<IActionResult> Edit(Guid company, Guid id, string org)
+	{
+		var user = await BuildEditUserFormAsync(company, id, org);
+
+		if (user == null)
+			return NotFound("User not found!");
 
 		var model = new ManageUserMainViewModel
 		{
@@ -393,18 +404,34 @@ public class UsersController : AppControllerBase
 	}
 
 
-	[HttpPost("{company}/users/setpassword/{id}/setpassword")]
+	[HttpPost("{company}/users/edit/{id}/setpassword")]
 	[ValidateAntiForgeryToken]
-	public IActionResult SetPassword(Guid company, Guid id, ManageUserMainViewModel model)
+	public async Task<IActionResult> SetPassword(Guid company, Guid id, ManageUserMainViewModel model)
 	{
 		ModelState.Remove("UserInfoForm");
 
+		var org = model.UserPasswordForm?.IsContractors == true ? "c" : null;
+
 		if (!ModelState.IsValid)
 		{
-			return View(model);
+			model.UserInfoForm = await BuildEditUserFormAsync(company, id, org);
+			return View("Edit", model);
 		}
 
-		return RedirectToAction("Edit", new { company, id });
+		var userInfo = await _dbContext.Users.FirstOrDefaultAsync(e => e.Id == id.ToString());
+
+		if (userInfo == null)
+			return NotFound("User not found!");
+
+		userInfo.PasswordHash = _userManager.PasswordHasher.HashPassword(userInfo, model.UserPasswordForm.NewPassword);
+		userInfo.UpdatedWhen = DateTime.UtcNow.ToUniversalTime();
+		userInfo.UpdatedBy = Guid.Parse(_httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier));
+
+		await _userManager.UpdateAsync(userInfo);
+
+		TempData["SuccessMessage"] = "Password has been successfully updated.";
+
+		return RedirectToAction("Edit", new { company, id, org });
 	}
 
 

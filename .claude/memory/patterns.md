@@ -45,6 +45,12 @@ metadata:
 - Pass to partials: `new ViewDataDictionary(ViewData)`
 - SuperUser check: `ViewBag.IsSuperUser` or similar — check RecycleBin/Index for exact pattern
 
+## TempData Messages
+
+- No global TempData rendering in `_Layout.cshtml` — each view that wants to show `TempData["SuccessMessage"]`/`["ErrorMessage"]` renders its own alert block (see `Users/Index.cshtml`, `Sites/Index.cshtml`, `Contractors/Index.cshtml`). `_LayoutAdmin.cshtml` (Super Admin section only) is the exception — it does render both globally.
+- Standard markup: `<div class="alert alert-success alert-dismissible fade show" role="alert"><i class="fa-solid fa-circle-check me-2"></i> @TempData["SuccessMessage"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>`
+- If an action redirects somewhere new (e.g. back to an Edit page rather than the usual Index), check that the target view actually has one of these blocks before relying on `TempData["SuccessMessage"]` to reach the user — it silently does nothing otherwise.
+
 ## Common Gotchas
 
 - `DurationDays` is a computed property (no setter) — cannot be set in object initializer, only derived from StartDate/EndDate

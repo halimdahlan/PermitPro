@@ -7,6 +7,14 @@
 
 @model ManageUserMainViewModel
 
+@if (TempData["SuccessMessage"] != null)
+{
+	<div class="alert alert-success alert-dismissible fade show" role="alert">
+		<i class="fa-solid fa-circle-check me-2"></i> @TempData["SuccessMessage"]
+		<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+	</div>
+}
+
 <div class="row g-3">
 	<div class="d-flex flex-column col-12 col-lg-6">
 		@if (Model.UserInfoForm!.HasExceededLimit)
@@ -118,7 +126,8 @@
 	</div>
 
 	<div class="d-flex flex-column col-12 col-lg-6">
-		<form method="post" action="/@Model.UserInfoForm?.CompanyID/password/@Model.UserInfoForm?.Id">
+		<form method="post" action="/@Model.UserInfoForm?.CompanyID/users/edit/@Model.UserInfoForm?.Id/setpassword">
+			@Html.AntiForgeryToken()
 			<div class="card shadow-sm">
 				<div class="card-header">
 					<h6 class="mb-0 text-uppercase">Set Password</h6>
