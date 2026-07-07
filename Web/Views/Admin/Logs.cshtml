@@ -71,11 +71,11 @@
 						};
 						var shortDescription = (log.Description ?? string.Empty).Length > 90
 							? log.Description!.Substring(0, 90) + "…"
-							: log.Description;
+							: log.Description;	
 
 						<tr>
 							<td style="padding-left:1.25rem;white-space:nowrap;">
-								<small class="text-muted">@log.CreatedWhen.ToLocalTime().ToString("dd MMM yyyy, HH:mm:ss")</small>
+								<small class="text-muted">@log.CreatedWhen.ToString("dd MMM yyyy, HH:mm:ss")</small>
 							</td>
 							<td><span class="badge @badgeClass">@log.LogType</span></td>
 							<td>@log.Category</td>

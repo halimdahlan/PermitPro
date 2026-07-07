@@ -14,6 +14,7 @@ using PermitPro.App.ViewModels;
 using PermitPro.Core.Data;
 using PermitPro.Core.Entities;
 using PermitPro.Core.Enums;
+using PermitPro.Core.Helpers;
 using PermitPro.Core.Interfaces;
 
 using System.Security.Claims;
@@ -681,8 +682,8 @@ public class AdminController : Controller
         return new JsonResult(new AdminLogDetailModel
         {
             Id = log.Id,
-            CreatedWhen = log.CreatedWhen,
-            UpdatedWhen = log.UpdatedWhen,
+            CreatedWhen = GeneralHelper.GetDateInTimeZone(log.CreatedWhen),
+            UpdatedWhen = GeneralHelper.GetDateInTimeZone(log.UpdatedWhen.Value),
             LogType = log.LogType.ToString(),
             Category = log.Category,
             EntityName = log.EntityName,
