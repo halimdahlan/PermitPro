@@ -143,6 +143,8 @@ PermitPro-1.2/
 | **Email** | `smtp_server`, `smtp_port`, `sender_name`, `sender_email`, `email_username`, `email_password` (encrypted) |
 | **Workflow** | `suspended_autoresume_days` |
 
+`email_password` (and any other `IsEncrypted` setting) is encrypted via ASP.NET Core Data Protection (`IDataProtector`, purpose `"AppSettings"`). Keys are persisted to the `DataProtectionKeys` table (`PersistKeysToDbContext<ApplicationDbContext>`, fixed `ApplicationName` of `"PermitPro"`) rather than the per-machine default key ring, so encrypted values decrypt consistently across every dev machine and deployed instance sharing the database. A value encrypted before this was in place (or under a different key ring) fails to decrypt — `Decrypt()` catches this and returns `null` rather than throwing — and must be re-saved through the Settings UI to re-encrypt it under the current shared key.
+
 **Global settings with per-company override**
 - Managed by super admins at `/admin/settings` (Global Settings) and `/admin/companies/{id}/settings` (per-company) — both pages share a **Global / Company** context-switcher dropdown in the header to jump between tiers without leaving the settings screen
 - Tenant admins manage their own company's settings at `/{company}/settings` (unchanged route)
@@ -380,6 +382,7 @@ All core entities support soft-delete via `ISoftDeletable`. Hard deletes are not
 | `AddCompanyLogo` | `LogoFileName` on `Company` |
 | `AddRoleIsUnlimitedUsers` | `IsUnlimitedUsers` flag on `Role` |
 | `AddGlobalSettingsSupport` | `IsUsingGlobal` flag on `AppSetting` + filtered unique indexes for global (`CompanyId IS NULL`) categories/settings |
+| `AddDataProtectionKeys` | `DataProtectionKeys` table — shared Data Protection key ring persisted to the database instead of per-machine storage |
 
 Run migrations:
 ```bash
@@ -418,3 +421,4 @@ Deployment user: `[YOUR_WEB_DEPLOY_USERNAME]`
 - JWT `SecretKey` must be stored securely and never committed to source control
 - The Super Admin portal (`/admin/*`) is protected by the `SUPERUSER` role check on every action — regular tenant users are rejected at login, not just redirected
 - Authentication endpoints are rate-limited: **10 requests per 5-minute window per IP** (policy: `"auth"`, HTTP 429 on breach) — applied via ASP.NET Core's built-in `UseRateLimiter` middleware
+- ASP.NET Core Data Protection keys are persisted to the `DataProtectionKeys` table (shared across every environment pointed at the same database) rather than the per-machine default — without this, encrypted `AppSetting` values (e.g. `email_password`) only decrypt on whichever single machine originally encrypted them
