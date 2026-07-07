@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.DependencyInjection;
 
+using PermitPro.Core.Data;
 using PermitPro.Core.Interceptors;
 using PermitPro.Core.Interfaces;
 using PermitPro.Core.Services;
@@ -12,7 +13,12 @@ public static class CommonExtensions
 	public static void AddPermitProServices(this IServiceCollection services)
 	{
 		services.AddMemoryCache();
-		services.AddDataProtection();
+
+		// Keys persisted to the shared database (not the per-machine default) so encrypted
+		// AppSettings decrypt consistently across every dev machine and deployed instance.
+		services.AddDataProtection()
+			.PersistKeysToDbContext<ApplicationDbContext>()
+			.SetApplicationName("PermitPro");
 		services.AddSingleton<UpdateAuditableEntitiesInterceptor>();
 		services.AddScoped<ICurrentUserService, CurrentUserService>();
 		services.AddScoped<ISystemConfigurationService, SystemConfigurationService>();

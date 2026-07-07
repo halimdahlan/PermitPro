@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -39,7 +40,7 @@ public class Role : IdentityRole, ISoftDeletable
 /// Application database context used for the app
 /// </summary>
 public class ApplicationDbContext
-	 : IdentityDbContext<UserInfo, Role, string, IdentityUserClaim<string>, UserRole, IdentityUserLogin<string>, IdentityRoleClaim<string>, IdentityUserToken<string>>
+	 : IdentityDbContext<UserInfo, Role, string, IdentityUserClaim<string>, UserRole, IdentityUserLogin<string>, IdentityRoleClaim<string>, IdentityUserToken<string>>, IDataProtectionKeyContext
 {
 	/// <summary>
 	/// The default constructor
@@ -86,6 +87,8 @@ public class ApplicationDbContext
 	public DbSet<AppSettingCategory> AppSettingCategories { get; set; }
 
 	public DbSet<AppSetting> AppSettings { get; set; }
+
+	public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
 
 	/// <summary>
 	/// Flag to control delete behavior. When TRUE (default), soft-deletes are used.

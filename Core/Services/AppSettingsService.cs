@@ -300,8 +300,11 @@ public class AppSettingsService : IAppSettingsService
 	{
 		if (!setting.IsEncrypted || string.IsNullOrEmpty(setting.Value))
 			return setting.Value;
-		try { return _protector.Unprotect(setting.Value); }
-		catch { return null; }
+
+		//try { return _protector.Unprotect(setting.Value); }
+		//catch { return null; }
+
+		return _protector.Unprotect(setting.Value);
 	}
 
 	private AppSetting DecryptForDisplay(AppSetting setting)
