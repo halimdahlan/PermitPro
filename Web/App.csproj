@@ -42,7 +42,7 @@
 		<PackageReference Include="Microsoft.CodeAnalysis" Version="5.0.0" />
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="5.0.0" />
 		<PackageReference Include="PuppeteerSharp" Version="18.0.3" />
-		<PackageReference Include="Scriban.Signed" Version="5.10.0" />
+		<PackageReference Include="Scriban.Signed" Version="7.2.5" />
 		<PackageReference Include="Telerik.UI.for.AspNet.Core" Version="2025.2.520" />
 	</ItemGroup>
 

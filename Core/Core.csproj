@@ -35,11 +35,11 @@
 		<PackageReference Include="MimeKit" Version="4.17.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="PuppeteerSharp" Version="18.0.3" />
-		<PackageReference Include="Scriban.Signed" Version="5.10.0" />
-		<PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.7" />
-		<PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="10.1.7" />
-		<PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="10.1.7" />
-		<PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="10.1.7" />
+		<PackageReference Include="Scriban.Signed" Version="7.2.5" />
+		<PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
+		<PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="10.2.3" />
+		<PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="10.2.3" />
+		<PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="10.2.3" />
 	</ItemGroup>
 
 	<ItemGroup>
