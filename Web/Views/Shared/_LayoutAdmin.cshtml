@@ -115,6 +115,10 @@
 				class="@(ViewContext.RouteData.Values["action"]?.ToString() == "GlobalSettings" ? "active" : "")">
 				<i class="fa-solid fa-earth-americas me-1"></i> Global Settings
 			</a>
+			<a href="/admin/about"
+				class="@(ViewContext.RouteData.Values["action"]?.ToString() == "About" ? "active" : "")">
+				<i class="fa-solid fa-circle-info me-1"></i> About
+			</a>
 			<a href="/admin/logs"
 				class="@(ViewContext.RouteData.Values["action"]?.ToString() == "Logs" ? "active" : "")">
 				<i class="fa-solid fa-file-lines me-1"></i> Logs

@@ -23,10 +23,10 @@ jobs:
           run: dotnet restore
 
         - name: Build
-          run: dotnet build --configuration Release --no-restore
+          run: dotnet build --configuration Release --no-restore -p:Version=1.0.${{ github.run_number }}
 
         - name: Publish
-          run: dotnet publish Web/App.csproj --configuration Release --framework net10.0 --output ./publish --runtime win-x64 --self-contained -p:PublishReadyToRun=true
+          run: dotnet publish Web/App.csproj --configuration Release --framework net10.0 --output ./publish --runtime win-x64 --self-contained -p:PublishReadyToRun=true -p:Version=1.0.${{ github.run_number }}
 
         - name: SmarterASP.NET Web Deploy
           uses: jahbenjah/SmarterASP.NET-web-deploy@1.0.0.alpha.8

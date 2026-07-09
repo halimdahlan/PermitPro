@@ -1,0 +1,156 @@
+@{
+	ViewData["Title"] = "About";
+	ViewData["SubTitle"] = "System Information";
+}
+
+@model AboutViewModel
+
+<div class="row g-3 mb-3">
+	<div class="col-md-6">
+		<div class="card border-0 shadow-sm h-100">
+			<div class="card-body">
+				<div class="chart-section-title">Application</div>
+				<p class="text-muted small mb-3">
+					PermitPro is a multi-tenant Permit-to-Work (PTW) platform that helps industrial and HSE teams
+					create, route, and track safety permits through configurable approval workflows — with
+					role-based access control, full audit logging, and real-time notifications throughout the
+					permit lifecycle.
+				</p>
+				<dl class="row mb-0">
+					<dt class="col-4">Version</dt>
+					<dd class="col-8">@Model.AppVersion</dd>
+				</dl>
+				<dl class="row mb-0">
+					<dt class="col-4">Developer</dt>
+					<dd class="col-8">PermitPro Team (HD Inc.)</dd>
+				</dl>
+				<dl class="row mb-0">
+					<dt class="col-4">Copyright</dt>
+					<dd class="col-8">© 2023 PermitPro. All rights reserved.</dd>
+				</dl>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-6">
+		<div class="card border-0 shadow-sm h-100">
+			<div class="card-body">
+				<div class="chart-section-title">Database</div>
+				<dl class="row mb-0">
+					<dt class="col-4">Server</dt>
+					<dd class="col-8">@Model.DbServer</dd>
+
+					<dt class="col-4">Database</dt>
+					<dd class="col-8">@Model.DbName</dd>
+
+					<dt class="col-4">User</dt>
+					<dd class="col-8">@Model.DbUser</dd>
+
+					<dt class="col-4">Size</dt>
+					<dd class="col-8">@(Model.DbSizeMb.HasValue ? $"{Model.DbSizeMb.Value:N2} MB" : "N/A")</dd>
+
+					<dt class="col-4">State</dt>
+					<dd class="col-8">
+						@{
+							var stateBadge = Model.DbState.ToUpperInvariant() switch
+							{
+								"ONLINE" => "bg-success",
+								"RESTORING" or "RECOVERING" or "RECOVERY_PENDING" => "bg-warning text-dark",
+								"UNKNOWN" => "bg-secondary",
+								_ => "bg-danger",
+							};
+						}
+						<span class="badge @stateBadge">@Model.DbState</span>
+					</dd>
+				</dl>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="chart-section-title">Users</div>
+<div class="row g-3 mb-4">
+	<div class="col">
+		<div class="card border-0 shadow-sm text-center kpi-card">
+			<div class="card-body py-3">
+				<div class="kpi-value text-primary">@Model.TotalUsers</div>
+				<div class="kpi-label">Total Users</div>
+			</div>
+		</div>
+	</div>
+	<div class="col">
+		<div class="card border-0 shadow-sm text-center kpi-card">
+			<div class="card-body py-3">
+				<div class="kpi-value text-success">@Model.ActiveUsers</div>
+				<div class="kpi-label">Active</div>
+			</div>
+		</div>
+	</div>
+	<div class="col">
+		<div class="card border-0 shadow-sm text-center kpi-card">
+			<div class="card-body py-3">
+				<div class="kpi-value text-secondary">@Model.InactiveUsers</div>
+				<div class="kpi-label">Inactive</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="chart-section-title">Permits</div>
+<div class="row g-3 mb-3">
+	<div class="col">
+		<div class="card border-0 shadow-sm text-center kpi-card">
+			<div class="card-body py-3">
+				<div class="kpi-value text-primary">@Model.TotalPermits</div>
+				<div class="kpi-label">Total Permits</div>
+			</div>
+		</div>
+	</div>
+	<div class="col">
+		<div class="card border-0 shadow-sm text-center kpi-card">
+			<div class="card-body py-3">
+				<div class="kpi-value" style="color:#f6c343">@Model.OpenPermits</div>
+				<div class="kpi-label">Open</div>
+			</div>
+		</div>
+	</div>
+	<div class="col">
+		<div class="card border-0 shadow-sm text-center kpi-card">
+			<div class="card-body py-3">
+				<div class="kpi-value text-secondary">@Model.ClosedPermits</div>
+				<div class="kpi-label">Closed</div>
+			</div>
+		</div>
+	</div>
+	<div class="col">
+		<div class="card border-0 shadow-sm text-center kpi-card">
+			<div class="card-body py-3">
+				<div class="kpi-value text-danger">@Model.RejectedPermits</div>
+				<div class="kpi-label">Rejected</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+@if (Model.PermitStatusBreakdown.Any())
+{
+	<div class="card border-0 shadow-sm">
+		<div class="card-body">
+			<div class="chart-section-title">Breakdown by Status</div>
+			<table class="table table-sm mb-0">
+				<tbody>
+					@foreach (var status in Model.PermitStatusBreakdown)
+					{
+						<tr>
+							<td>@status.Status</td>
+							<td class="text-end fw-semibold">@status.Count</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+}
+
+@section CustomCss {
+	<link rel="stylesheet" href="~/css/reports.css" />
+}

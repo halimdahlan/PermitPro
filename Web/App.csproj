@@ -8,7 +8,9 @@
 		<RootNamespace>PermitPro.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
 		<PackageScribanIncludeSource>true</PackageScribanIncludeSource>
 		<AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
-	</PropertyGroup>
+	  <UserSecretsId>d5985dcf-6a4c-4788-b35d-e75e087e391d</UserSecretsId>
+  <Version>1.0.0</Version>
+  </PropertyGroup>
 
 	<ItemGroup>
 	  <Compile Remove="Views\Locations\**" />

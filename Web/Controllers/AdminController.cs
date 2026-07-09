@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 using PermitPro.App.Controllers.Base;
 using PermitPro.App.Models.Ajax;
@@ -17,7 +19,9 @@ using PermitPro.Core.Enums;
 using PermitPro.Core.Helpers;
 using PermitPro.Core.Interfaces;
 
+using System.Reflection;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 
 namespace PermitPro.App.Controllers;
 
@@ -30,6 +34,8 @@ public class AdminController : Controller
     private readonly IWebHostEnvironment _env;
     private readonly IAppSettingsService _appSettings;
     private readonly IMemoryCache _cache;
+    private readonly IConfiguration _configuration;
+    private readonly HealthCheckService _healthCheckService;
 
     private static readonly HashSet<string> _allowedLogoExts =
         new(StringComparer.OrdinalIgnoreCase) { ".png", ".jpg", ".jpeg", ".webp", ".svg" };
@@ -41,7 +47,9 @@ public class AdminController : Controller
         ILogService logService,
         IWebHostEnvironment env,
         IAppSettingsService appSettings,
-        IMemoryCache cache)
+        IMemoryCache cache,
+        IConfiguration configuration,
+        HealthCheckService healthCheckService)
     {
         _signInManager = signInManager;
         _userManager = userManager;
@@ -50,6 +58,8 @@ public class AdminController : Controller
         _env = env;
         _appSettings = appSettings;
         _cache = cache;
+        _configuration = configuration;
+        _healthCheckService = healthCheckService;
     }
 
 
@@ -609,6 +619,92 @@ public class AdminController : Controller
             .OrderBy(c => c.Name)
             .Select(c => new AdminSettingsCompanyOption { Id = c.Id, Name = c.Name })
             .ToListAsync();
+    }
+
+
+    // ── About ─────────────────────────────────────────────────────────────────
+
+    [Authorize]
+    [HttpGet("/admin/about")]
+    public async Task<IActionResult> About()
+    {
+        if (!IsSuperUser()) return Forbid();
+
+        var totalUsers = await _db.Users.CountAsync();
+        var activeUsers = await _db.Users.CountAsync(u => u.IsActive);
+
+        var permitCounts = await _db.Permits
+            .GroupBy(p => p.PermitStatus)
+            .Select(g => new { Status = g.Key, Count = g.Count() })
+            .ToListAsync();
+
+        var totalPermits = permitCounts.Sum(p => p.Count);
+        var closedPermits = permitCounts
+            .Where(p => p.Status == PermitStatusEnum.Closed || p.Status == PermitStatusEnum.ClosedNoAction)
+            .Sum(p => p.Count);
+        var rejectedPermits = permitCounts.Where(p => p.Status == PermitStatusEnum.Rejected).Sum(p => p.Count);
+        var openPermits = totalPermits - closedPermits - rejectedPermits;
+
+        var breakdown = Enum.GetValues<PermitStatusEnum>()
+            .Select(s => new AdminPermitStatusCount
+            {
+                Status = s.ToString(),
+                Count = permitCounts.FirstOrDefault(p => p.Status == s)?.Count ?? 0,
+            })
+            .Where(s => s.Count > 0)
+            .OrderByDescending(s => s.Count)
+            .ToList();
+
+        var connectionString = _configuration.GetConnectionString(_env.EnvironmentName) ?? string.Empty;
+        var maskedConnectionString = Regex.Replace(connectionString, @"(Password\s*=\s*)([^;]*)", "$1****", RegexOptions.IgnoreCase);
+
+        decimal? dbSizeMb = null;
+        try
+        {
+            dbSizeMb = await _db.Database
+                .SqlQueryRaw<decimal>("SELECT CAST(SUM(size) * 8.0 / 1024 AS DECIMAL(18,2)) AS Value FROM sys.database_files")
+                .FirstOrDefaultAsync();
+        }
+        catch
+        {
+            // Insufficient permissions or unsupported provider — leave size unknown rather than fail the page.
+        }
+
+        var dbHealthStatus = "Unknown";
+        double? dbHealthResponseMs = null;
+        try
+        {
+            var report = await _healthCheckService.CheckHealthAsync();
+            if (report.Entries.TryGetValue("sqlserver", out var entry))
+            {
+                dbHealthStatus = entry.Status.ToString();
+                dbHealthResponseMs = entry.Duration.TotalMilliseconds;
+            }
+        }
+        catch
+        {
+            dbHealthStatus = "Unhealthy";
+        }
+
+        var version = Assembly.GetExecutingAssembly().GetName().Version;
+
+        return View(new AdminAboutViewModel
+        {
+            AppVersion = version != null ? $"{version.Major}.{version.Minor}.{version.Build}" : "1.0.0",
+            Environment = _env.EnvironmentName,
+            TotalUsers = totalUsers,
+            ActiveUsers = activeUsers,
+            InactiveUsers = totalUsers - activeUsers,
+            TotalPermits = totalPermits,
+            OpenPermits = openPermits,
+            ClosedPermits = closedPermits,
+            RejectedPermits = rejectedPermits,
+            PermitStatusBreakdown = breakdown,
+            MaskedConnectionString = maskedConnectionString,
+            DatabaseSizeMb = dbSizeMb,
+            DbHealthStatus = dbHealthStatus,
+            DbHealthResponseMs = dbHealthResponseMs,
+        });
     }
 
 

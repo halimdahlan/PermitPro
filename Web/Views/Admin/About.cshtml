@@ -1,0 +1,149 @@
+@using PermitPro.App.ViewModels
+
+@{
+	Layout = "_LayoutAdmin";
+	ViewData["Title"] = "About";
+}
+
+@model AdminAboutViewModel
+
+<div class="page-header">
+	<h4><i class="fa-solid fa-circle-info me-2 text-primary"></i> About</h4>
+</div>
+
+<div class="row g-3 mb-3">
+	<div class="col-md-6">
+		<div class="card border-0 shadow-sm h-100">
+			<div class="card-body">
+				<div class="chart-section-title">System</div>
+				<dl class="row mb-0">
+					<dt class="col-5">App version</dt>
+					<dd class="col-7">v@Model.AppVersion</dd>
+
+					<dt class="col-5">Environment</dt>
+					<dd class="col-7">@Model.Environment</dd>
+				</dl>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-6">
+		<div class="card border-0 shadow-sm h-100">
+			<div class="card-body">
+				<div class="chart-section-title">Database</div>
+				<dl class="row mb-0">
+					<dt class="col-5">Connection</dt>
+					<dd class="col-7" style="word-break:break-all;"><small>@Model.MaskedConnectionString</small></dd>
+
+					<dt class="col-5">Size</dt>
+					<dd class="col-7">@(Model.DatabaseSizeMb.HasValue ? $"{Model.DatabaseSizeMb.Value:N2} MB" : "N/A")</dd>
+
+					<dt class="col-5">Health</dt>
+					<dd class="col-7">
+						@{
+							var healthBadge = Model.DbHealthStatus switch
+							{
+								"Healthy" => "bg-success",
+								"Degraded" => "bg-warning text-dark",
+								"Unhealthy" => "bg-danger",
+								_ => "bg-secondary",
+							};
+						}
+						<span class="badge @healthBadge">@Model.DbHealthStatus</span>
+						@if (Model.DbHealthResponseMs.HasValue)
+						{
+							<small class="text-muted ms-1">(@Model.DbHealthResponseMs.Value.ToString("N0") ms)</small>
+						}
+					</dd>
+				</dl>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="chart-section-title">Users</div>
+<div class="row g-3 mb-4">
+	<div class="col">
+		<div class="card border-0 shadow-sm text-center kpi-card">
+			<div class="card-body py-3">
+				<div class="kpi-value text-primary">@Model.TotalUsers</div>
+				<div class="kpi-label">Total Users</div>
+			</div>
+		</div>
+	</div>
+	<div class="col">
+		<div class="card border-0 shadow-sm text-center kpi-card">
+			<div class="card-body py-3">
+				<div class="kpi-value text-success">@Model.ActiveUsers</div>
+				<div class="kpi-label">Active</div>
+			</div>
+		</div>
+	</div>
+	<div class="col">
+		<div class="card border-0 shadow-sm text-center kpi-card">
+			<div class="card-body py-3">
+				<div class="kpi-value text-secondary">@Model.InactiveUsers</div>
+				<div class="kpi-label">Inactive</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="chart-section-title">Permits</div>
+<div class="row g-3 mb-3">
+	<div class="col">
+		<div class="card border-0 shadow-sm text-center kpi-card">
+			<div class="card-body py-3">
+				<div class="kpi-value text-primary">@Model.TotalPermits</div>
+				<div class="kpi-label">Total Permits</div>
+			</div>
+		</div>
+	</div>
+	<div class="col">
+		<div class="card border-0 shadow-sm text-center kpi-card">
+			<div class="card-body py-3">
+				<div class="kpi-value" style="color:#f6c343">@Model.OpenPermits</div>
+				<div class="kpi-label">Open</div>
+			</div>
+		</div>
+	</div>
+	<div class="col">
+		<div class="card border-0 shadow-sm text-center kpi-card">
+			<div class="card-body py-3">
+				<div class="kpi-value text-secondary">@Model.ClosedPermits</div>
+				<div class="kpi-label">Closed</div>
+			</div>
+		</div>
+	</div>
+	<div class="col">
+		<div class="card border-0 shadow-sm text-center kpi-card">
+			<div class="card-body py-3">
+				<div class="kpi-value text-danger">@Model.RejectedPermits</div>
+				<div class="kpi-label">Rejected</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+@if (Model.PermitStatusBreakdown.Any())
+{
+	<div class="card border-0 shadow-sm">
+		<div class="card-body">
+			<div class="chart-section-title">Breakdown by Status</div>
+			<table class="table table-sm mb-0">
+				<tbody>
+					@foreach (var status in Model.PermitStatusBreakdown)
+					{
+						<tr>
+							<td>@status.Status</td>
+							<td class="text-end fw-semibold">@status.Count</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+}
+
+@section CustomCss {
+	<link rel="stylesheet" href="~/css/reports.css" />
+}

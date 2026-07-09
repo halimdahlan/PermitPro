@@ -1,15 +1,21 @@
 #nullable disable
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 using PermitPro.App.Controllers.Base;
 using PermitPro.App.Models.Ajax;
+using PermitPro.App.ViewModels;
 using PermitPro.Core.Data;
 using PermitPro.Core.Entities;
+using PermitPro.Core.Enums;
 using PermitPro.Core.Interfaces;
 
+using System.Diagnostics;
+using System.Reflection;
 using System.Text.Json;
 
 namespace PermitPro.App.Controllers;
@@ -18,6 +24,8 @@ public class SettingsController : AppControllerBase
 {
 	private readonly ApplicationDbContext _dbContext;
 	private readonly IAppSettingsService _appSettings;
+	private readonly IConfiguration _configuration;
+	private readonly IWebHostEnvironment _env;
 
 	public SettingsController(
 		ApplicationDbContext dbContext
@@ -25,10 +33,14 @@ public class SettingsController : AppControllerBase
 		, SignInManager<UserInfo> signInManager
 		, ISystemConfigurationService systemConfigurationService
 		, IAppSettingsService appSettings
+		, IConfiguration configuration
+		, IWebHostEnvironment env
 	) : base(dbContext, httpContextAccessor, signInManager, systemConfigurationService)
 	{
 		_dbContext = dbContext;
 		_appSettings = appSettings;
+		_configuration = configuration;
+		_env = env;
 	}
 
 
@@ -38,6 +50,94 @@ public class SettingsController : AppControllerBase
 		ViewData["Title"] = "Settings";
 		ViewData["SubTitle"] = "Summary";
 		return View(categories);
+	}
+
+
+	// -------------------------------------------------------------------------
+	// About
+	// -------------------------------------------------------------------------
+
+	[Authorize(Roles = "Portal Admin,Super User")]
+	public async Task<IActionResult> About()
+	{
+		ViewData["Title"] = "About";
+		ViewData["SubTitle"] = "System Information";
+
+		var totalUsers = await _dbContext.Users.CountAsync(u => u.UserCompany.Id == CompanyID);
+		var activeUsers = await _dbContext.Users.CountAsync(u => u.UserCompany.Id == CompanyID && u.IsActive);
+
+		var permitCounts = await _dbContext.Permits
+			.Where(p => p.Company.Id == CompanyID)
+			.GroupBy(p => p.PermitStatus)
+			.Select(g => new { Status = g.Key, Count = g.Count() })
+			.ToListAsync();
+
+		var totalPermits = permitCounts.Sum(p => p.Count);
+		var closedPermits = permitCounts
+			.Where(p => p.Status == PermitStatusEnum.Closed || p.Status == PermitStatusEnum.ClosedNoAction)
+			.Sum(p => p.Count);
+		var rejectedPermits = permitCounts.Where(p => p.Status == PermitStatusEnum.Rejected).Sum(p => p.Count);
+		var openPermits = totalPermits - closedPermits - rejectedPermits;
+
+		var breakdown = Enum.GetValues<PermitStatusEnum>()
+			.Select(s => new AboutPermitStatusCount
+			{
+				Status = s.ToString(),
+				Count = permitCounts.FirstOrDefault(p => p.Status == s)?.Count ?? 0,
+			})
+			.Where(s => s.Count > 0)
+			.OrderByDescending(s => s.Count)
+			.ToList();
+
+		var connectionString = _configuration.GetConnectionString(_env.EnvironmentName) ?? string.Empty;
+		var csBuilder = new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(connectionString);
+
+		decimal? dbSizeMb = null;
+		var dbState = "Unknown";
+
+		try
+		{
+			dbSizeMb = await _dbContext.Database
+				.SqlQueryRaw<decimal>("SELECT CAST(SUM(size) * 8.0 / 1024 AS DECIMAL(18,2)) AS Value FROM sys.database_files")
+				.FirstOrDefaultAsync();
+
+			dbState = await _dbContext.Database
+				.SqlQueryRaw<string>("SELECT CAST(DATABASEPROPERTYEX(DB_NAME(), 'Status') AS NVARCHAR(60)) AS Value")
+				.FirstOrDefaultAsync() ?? "Unknown";
+		}
+		catch
+		{
+			// Insufficient permissions or unsupported provider — leave size/state unknown rather than fail the page.
+		}
+
+		// Read the version straight off the compiled DLL's file version resource, rather than the
+		// in-memory assembly metadata, so this reflects whatever binary is actually running.
+		var appVersion = "1.0.0";
+		var assemblyLocation = Assembly.GetExecutingAssembly().Location;
+		
+		if (!string.IsNullOrEmpty(assemblyLocation) && System.IO.File.Exists(assemblyLocation))
+		{
+			var fileVersionInfo = FileVersionInfo.GetVersionInfo(assemblyLocation);
+			appVersion = fileVersionInfo.ProductVersion ?? fileVersionInfo.FileVersion ?? appVersion;
+		}
+
+		return View(new AboutViewModel
+		{
+			AppVersion = appVersion,
+			TotalUsers = totalUsers,
+			ActiveUsers = activeUsers,
+			InactiveUsers = totalUsers - activeUsers,
+			TotalPermits = totalPermits,
+			OpenPermits = openPermits,
+			ClosedPermits = closedPermits,
+			RejectedPermits = rejectedPermits,
+			PermitStatusBreakdown = breakdown,
+			DbServer = csBuilder.DataSource,
+			DbName = csBuilder.InitialCatalog,
+			DbUser = csBuilder.UserID,
+			DbSizeMb = dbSizeMb,
+			DbState = dbState,
+		});
 	}
 
 

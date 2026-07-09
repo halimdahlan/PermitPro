@@ -20,7 +20,9 @@
 	var navSites = currentRoute?.ToLower() == "sites" ? "active" : "";
 	var navWorkflow = currentRoute?.ToLower() == "workflow" ? "active" : "";
 	var navNotifications = currentRoute?.ToLower() == "notifications" ? "active" : "";
-	var navSettings = currentRoute?.ToLower() == "settings" ? "active" : "";
+	var currentAction = ViewContext.RouteData.Values["action"] as string;
+	var navSettings = currentRoute?.ToLower() == "settings" && currentAction?.ToLower() != "about" ? "active" : "";
+	var navAbout = currentRoute?.ToLower() == "settings" && currentAction?.ToLower() == "about" ? "active" : "";
 	var navGeneral = currentRoute?.ToLower() == "dashboard" ? "active" : "";
 	var navRecycleBin = currentRoute?.ToLower() == "recyclebin" ? " active" : "";
 	var showMenu = "";
@@ -142,6 +144,13 @@
 					<i class="fa-solid fa-cog fa-fw me-3"></i>System Settings
 				</a>
 			</li>
+			<!--
+			<li class="nav-item">
+				<a href="/@companyId/settings/about" class="nav-link @navAbout">
+					<i class="fa-solid fa-circle-info fa-fw me-3"></i>About
+				</a>
+			</li>
+			-->
 		}
 	</ul>
 }
