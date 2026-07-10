@@ -133,8 +133,13 @@
 
 		$(document).ready(function () {
 			$('#loginForm').on('submit', function () {
-				//$('.loading').show();
-				//$('#btnSubmit').prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-2"></i> Signing In...');
+				// Guard on client-side validation: if it blocks the actual submit, the page
+				// never navigates away, so the spinner must never show in the first place —
+				// otherwise it gets stuck with no reload to reset it.
+				if (!$(this).valid()) return;
+
+				$('.loading').show();
+				$('#btnSubmit').prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-2"></i> Signing In...');
 			});
 		});
 	</script>

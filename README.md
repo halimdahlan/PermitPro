@@ -203,6 +203,12 @@ Response caching (HTTP layer) is applied to chart data and dropdown endpoints:
 - Super admins can browse all `AuditLog` entries at `/admin/logs` (paginated, filterable by type/search, with a detail modal) — see **Super Admin Portal**
 - Session-based access control with multi-tenant data isolation
 
+### System Information (About Pages)
+- **Super Admin** (`/admin/about`) — cross-tenant snapshot: total/active/inactive users, permit counts (Total/Open/Closed/Rejected + full per-status breakdown), app version, masked DB connection string, DB size, and live DB health (reuses the same `HealthCheckService` that backs the `/health` endpoint)
+- **Tenant** (`/{company}/settings/about`, `Portal Admin`/`Super User`) — same shape scoped to the current company only; the DB card shows server/database/user individually instead of a connection string (via `SqlConnectionStringBuilder`, password never rendered), plus DB size and state (`DATABASEPROPERTYEX(..., 'Status')`, e.g. `ONLINE`). Currently only linked from the sidebar for Super Users, though the route itself also authorizes Portal Admins
+- App version is sourced differently on each page: Super Admin reads the in-memory assembly version (`Assembly.GetExecutingAssembly().GetName().Version`); the tenant page reads the compiled DLL's file version resource directly (`FileVersionInfo.GetVersionInfo`), so it reflects whatever binary is actually running on disk
+- Both ultimately reflect the `<Version>` MSBuild property in `Web/App.csproj` (`1.0.0` by default) — CI overrides it per deploy with `-p:Version=1.0.<github.run_number>`, so the version shown increments automatically on every merge-triggered deploy with no manual bump needed
+
 ---
 
 ## User Roles
@@ -400,15 +406,21 @@ The workflow at `.github/workflows/deploy-on-merge.yml` triggers when a pull req
 
 1. Checkout code
 2. Setup .NET 10.0
-3. Restore → Build (Release) → Publish (self-contained, win-x64, ReadyToRun)
+3. Restore → Build (Release, `-p:Version=1.0.<github.run_number>`) → Publish (self-contained, win-x64, ReadyToRun, same `Version` override)
 4. Deploy to **SmarterASP.NET** via WebDeploy
 
-Deployment secrets are stored in GitHub repository settings (not in source).
+`github.run_number` increments on every run of this workflow, giving each merge-triggered deploy a distinct, ever-increasing app version (surfaced on the **About** pages — see **System Information** above). Deployment secrets are stored in GitHub repository settings (not in source).
 
 ### WebDeploy (Manual)
 
 Target host: SmarterASP.NET  
 Deployment user: `[YOUR_WEB_DEPLOY_USERNAME]`
+
+### AWS EC2 (Manual, Visual Studio Publish)
+
+Publish profiles under `Web/Properties/PublishProfiles/`: `PermitPro v1.2 (AWS).pubxml` and `PermitPro UAT (AWS).pubxml`. Both target the same Windows EC2 instance (`ec2-52-70-84-135.compute-1.amazonaws.com`) running IIS + Web Management Service (WMSVC, port 8172), each deploying to its own IIS application (`DeployIisAppPath`: `PermitPro v1.2` / `PermitPro UAT`).
+
+Both profiles set `<AllowUntrustedCertificate>True</AllowUntrustedCertificate>` — WMSvc presents a self-signed certificate by default (distinct from the site's own HTTPS certificate), which Web Deploy otherwise rejects with `ERROR_CERTIFICATE_VALIDATION_FAILED`. The more correct long-term fix is binding a real certificate to the Management Service in IIS Manager on the EC2 instance; the untrusted-cert override just unblocks deploys in the meantime.
 
 ---
 
