@@ -27,7 +27,7 @@
 		<input type="file" id="avatarInput" class="d-none" accept=".png,.jpg,.jpeg,.gif,.webp" />
 	</div>
 	<div>
-		<h2 class="h4 fw-bold mb-1">@Model.ProfileForm!.FirstName @Model.ProfileForm!.LastName</h2>
+		<h6 class="h4 fw-bold mb-1">@Model.ProfileForm!.FirstName @Model.ProfileForm!.LastName</h6>
 		<div class="d-flex flex-wrap gap-1 mb-1">
 			@if (Model.ProfileForm!.IsSuperAdmin)
 			{
@@ -65,7 +65,7 @@
 	@* ── Personal information ─────────────────────────────────────────────────── *@
 	<div class="col-12 col-lg-6">
 		<div class="card shadow-sm">
-			<div class="card-header h4 px-3">Personal Information</div>
+			<div class="card-header h6 px-3">Personal Information</div>
 			<div class="card-body p-4">
 				<form method="post">
 					@Html.AntiForgeryToken()
@@ -111,7 +111,7 @@
 	@* ── Change password ──────────────────────────────────────────────────────── *@
 	<div class="col-12 col-lg-6">
 		<div class="card shadow-sm">
-			<div class="card-header h4 px-3">Change Password</div>
+			<div class="card-header h6 px-3">Change Password</div>
 			<div class="card-body p-4">
 				<form method="post">
 					@Html.AntiForgeryToken()
