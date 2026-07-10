@@ -3,7 +3,7 @@
 @model ProfileMainViewModel
 
 @{
-	ViewData["Title"] = "Settings / User / Profile";
+	ViewData["Title"] = "User / Profile";
 	ViewData["SubTitle"] = "User profile";
 
 	var companyId = ViewContext.RouteData.Values["company"] as string;
@@ -95,8 +95,7 @@
 							<span asp-validation-for="ProfileForm.PhoneNumber" class="text-danger small"></span>
 						</div>
 					</div>
-					<hr class="my-4" />
-					<div class="d-flex flex-column align-items-end">
+					<div class="d-flex flex-column align-items-end mt-5">
 						<button type="submit" class="btn btn-sm btn-primary">
 							<span class="px-3">Save Changes</span>
 						</button>
@@ -130,8 +129,7 @@
 						<input asp-for="ProfilePasswordForm.ConfirmPassword" class="form-control" />
 						<span asp-validation-for="ProfilePasswordForm.ConfirmPassword" class="text-danger small"></span>
 					</div>
-					<hr class="my-4" />
-					<div class="d-flex flex-column align-items-end">
+					<div class="d-flex flex-column align-items-end mt-5">
 						<button type="submit" class="btn btn-sm btn-primary">
 							<span class="px-3">Change Password</span>
 						</button>
