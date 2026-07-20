@@ -968,6 +968,13 @@ public class PermitPdfService : IPermitPdfService
 		await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions
 		{
 			Headless = true,
+			Args = new[]
+			{
+				"--no-sandbox",                  // 👈 CRUCIAL: Bypasses kernel namespace blocks
+				"--disable-setuid-sandbox",       // 👈 CRUCIAL: Disables helper binary constraints
+				"--disable-dev-shm-usage",        // Prevents memory exhaustion crashes in Linux
+				"--disable-crash-reporter"        // Prevents crashpad folder creation faults
+			}
 		});
 
 		await using var page = await browser.NewPageAsync();
@@ -1021,21 +1028,21 @@ public class PermitPdfService : IPermitPdfService
 		string base64 = Convert.ToBase64String(imageBytes);
 
 		return "<div style=\"width:750px;\">\n" +
-			   "  <div style=\"display:flex;flex-direction:row;margin:0 auto;width:340px;\">\n" +
-			   $"    <div style=\"margin-right:10px;margin-top:0px;\"><img style=\"height:35px;width:auto;\" src=\"data:image/jpeg;base64,{base64}\"/></div>\n" +
-			   "    <div>\n" +
-			   $"      <div style=\"font-family:Arial;font-size:13pt;font-weight:bold;\">{companyInfo.Description.ToUpper()}</div>\n" +
-			   "      <div style=\"font-family:Arial;font-size:10pt;\">PERMIT TO WORK FORM</div>\n" +
-			   "    </div>\n" +
-			   "  </div>\n" +
-			   "</div>\n";
+				"  <div style=\"display:flex;flex-direction:row;margin:0 auto;width:340px;\">\n" +
+				$"    <div style=\"margin-right:10px;margin-top:0px;\"><img style=\"height:35px;width:auto;\" src=\"data:image/jpeg;base64,{base64}\"/></div>\n" +
+				"    <div>\n" +
+				$"      <div style=\"font-family:Arial;font-size:13pt;font-weight:bold;\">{companyInfo.Description.ToUpper()}</div>\n" +
+				"      <div style=\"font-family:Arial;font-size:10pt;\">PERMIT TO WORK FORM</div>\n" +
+				"    </div>\n" +
+				"  </div>\n" +
+				"</div>\n";
 	}
 
 	private static string PdfFooterTemplate()
 	{
 		return "<div style=\"text-align:right;width:800px;padding-right:30px;font-family:Arial;font-size:8pt;\">\n" +
-			   "<span class=\"pageNumber\"></span>/<span class=\"totalPages\"></span>" +
-			   "</div>\n";
+				"<span class=\"pageNumber\"></span>/<span class=\"totalPages\"></span>" +
+				"</div>\n";
 	}
 
 	private string GetCheckBoxImage(bool isChecked)
