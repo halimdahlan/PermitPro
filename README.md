@@ -434,3 +434,374 @@ Both profiles set `<AllowUntrustedCertificate>True</AllowUntrustedCertificate>` 
 - The Super Admin portal (`/admin/*`) is protected by the `SUPERUSER` role check on every action — regular tenant users are rejected at login, not just redirected
 - Authentication endpoints are rate-limited: **10 requests per 5-minute window per IP** (policy: `"auth"`, HTTP 429 on breach) — applied via ASP.NET Core's built-in `UseRateLimiter` middleware
 - ASP.NET Core Data Protection keys are persisted to the `DataProtectionKeys` table (shared across every environment pointed at the same database) rather than the per-machine default — without this, encrypted `AppSetting` values (e.g. `email_password`) only decrypt on whichever single machine originally encrypted them
+
+---
+
+# Ubuntu 24.04 / ASP.NET Core 10 / SQL Server 2025 Express Deployment
+
+This document covers provisioning and configuring the UAT environment on AWS EC2:
+Ubuntu 24.04, ASP.NET Core 10 behind Nginx, SQL Server 2025 Express, and restoring
+the database from a backup. Access is via AWS Systems Manager Session Manager
+(no SSH inbound rule required).
+
+**Stack summary**
+- OS: Ubuntu Server 24.04 LTS (EC2)
+- App: ASP.NET Core 10, run via systemd, reverse-proxied through Nginx
+- DB: SQL Server 2025 Express (Linux), CU1 or later
+- Access: AWS SSM Session Manager (no public SSH port)
+- Domain: `uat.permitpro.app` → Nginx on port 80/443
+
+---
+
+## 1. Launch the EC2 instance
+
+- **AMI:** Ubuntu Server 24.04 LTS, x86_64 (SQL Server on Linux does not support ARM/Graviton)
+- **Instance type:** `t3.large` (2 vCPU / 8 GB) minimum. SQL Server Express caps its
+  buffer pool at ~1,410 MB regardless of instance size, so bigger RAM mainly benefits
+  the OS/app side, not SQL Server itself. Go `t3.xlarge` for heavier workloads.
+- **Storage:** gp3 EBS, 30–50 GB minimum
+- **IAM role:** attach a role with the `AmazonSSMManagedInstanceCore` managed policy
+  (required for Session Manager access — no key pair / SSH needed for this)
+- **Security group:**
+  | Port | Source | Purpose |
+  |------|--------|---------|
+  | 80   | 0.0.0.0/0 | HTTP (Nginx) |
+  | 443  | 0.0.0.0/0 | HTTPS (Nginx) |
+  | 22   | *not required* | SSM replaces inbound SSH entirely |
+  | 1433 | *not open* | SQL Server — local/internal access only, never public |
+
+## 2. Connect via SSM Session Manager
+
+**Console:** EC2 → select instance → **Connect** → **Session Manager** tab → **Connect**
+
+**CLI** (requires the `session-manager-plugin` installed locally):
+```bash
+aws ssm start-session --target i-XXXXXXXXXXXXXXXXX
+```
+
+Notes:
+- You land as `ssm-user`, not `ubuntu`. `ssm-user` has sudo access, so `sudo apt update`
+  etc. all work fine.
+- Confirm the instance shows as "Managed" first:
+  ```bash
+  aws ssm describe-instance-information --query "InstanceInformationList[?InstanceId=='i-XXXXXXXXXXXXXXXXX']"
+  ```
+  `PingStatus` should be `Online`. If it's missing, check the IAM role or the agent:
+  ```bash
+  sudo systemctl status snap.amazon-ssm-agent.amazon-ssm-agent.service
+  ```
+
+### Optional: SSH/SCP over SSM (if you want scp-style file transfer without opening port 22)
+Add to your local `~/.ssh/config`:
+```
+Host i-*
+  ProxyCommand sh -c "aws ssm start-session --target %h --document-name AWS-StartSSHSession --parameters 'portNumber=%p'"
+  User ubuntu
+  IdentityFile ~/.ssh/your-key.pem
+```
+Then `scp`/`ssh` work as normal, targeting the instance ID instead of an IP. Still
+requires your public key in `~/.ssh/authorized_keys` on the instance and `sshd` running,
+but no inbound port 22 in the security group — SSM carries the traffic.
+
+## 3. Initial system setup
+
+```bash
+sudo apt update && sudo apt upgrade -y
+sudo timedatectl set-timezone Asia/Kuala_Lumpur
+
+# UFW as a second layer behind the security group
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw enable
+sudo ufw status verbose
+```
+
+## 4. Install AWS CLI (needed for pulling files from S3)
+
+```bash
+sudo apt install -y curl unzip
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+rm -rf awscliv2.zip aws/
+
+aws --version
+```
+Installs to `/usr/local/bin/aws`, which is on the `sudo` secure path, so `sudo aws ...`
+works too. With the instance's IAM role attached, `aws configure` is not needed —
+credentials come from the instance role automatically.
+
+> **Tip:** avoid running `aws s3 cp` with `sudo` when downloading into a directory
+> you own — `sudo` won't see your working AWS session context the same way. Download
+> to `/tmp` first, then `sudo mv` into protected directories.
+
+## 5. Install and configure ASP.NET Core 10
+
+Ubuntu 24.04 ships .NET 10 directly in its built-in apt feed — no need to add
+Microsoft's package repo for this part.
+
+```bash
+sudo apt update
+sudo apt install -y aspnetcore-runtime-10.0   # runtime only, for hosting
+# OR: sudo apt install -y dotnet-sdk-10.0     # if building/publishing on this box
+
+dotnet --list-runtimes
+```
+Expect both `Microsoft.AspNetCore.App 10.0.x` and `Microsoft.NETCore.App 10.0.x`.
+
+### Deploy the published app (via S3)
+```bash
+sudo apt install -y unzip
+sudo mkdir -p /var/www/permitpro
+
+aws s3 cp s3://your-bucket/permitpro/publish.zip /tmp/publish.zip
+sudo unzip -o /tmp/publish.zip -d /var/www/permitpro
+sudo chown -R www-data:www-data /var/www/permitpro
+rm /tmp/publish.zip
+```
+
+### systemd service
+`/etc/systemd/system/permitpro.service`:
+```ini
+[Unit]
+Description=PermitPro ASP.NET Core App
+After=network.target
+
+[Service]
+WorkingDirectory=/var/www/permitpro
+ExecStart=/usr/bin/dotnet /var/www/permitpro/PermitPro.App.dll
+Restart=always
+RestartSec=10
+KillSignal=SIGINT
+SyslogIdentifier=permitpro
+User=www-data
+Environment=ASPNETCORE_ENVIRONMENT=Production[Staging]
+Environment=ASPNETCORE_URLS=http://localhost:5000
+
+[Install]
+WantedBy=multi-user.target
+```
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now permitpro
+sudo systemctl status permitpro --no-pager
+```
+
+### Nginx reverse proxy
+```bash
+sudo apt install -y nginx
+
+# remove the default site — otherwise it takes priority over your config
+sudo rm -f /etc/nginx/sites-enabled/default
+```
+`/etc/nginx/sites-available/permitpro`:
+```nginx
+server {
+    listen 80;
+    server_name uat.permitpro.app;
+
+    location / {
+        proxy_pass         http://localhost:5000;
+        proxy_http_version 1.1;
+        proxy_set_header    Upgrade $http_upgrade;
+        proxy_set_header    Connection keep-alive;
+        proxy_set_header    Host $host;
+        proxy_set_header    X-Real-IP $remote_addr;
+        proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header    X-Forwarded-Proto $scheme;
+        proxy_cache_bypass  $http_upgrade;
+    }
+}
+```
+```bash
+sudo ln -s /etc/nginx/sites-available/permitpro /etc/nginx/sites-enabled/permitpro
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+## 6. Install and configure SQL Server 2025 Express
+
+Ubuntu 24.04 support went GA starting with SQL Server 2025 **CU1** — make sure the
+production repo (not the old preview one) is used.
+
+```bash
+# GPG key
+curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | sudo gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg
+
+# repo for Ubuntu 24.04
+curl -fsSL https://packages.microsoft.com/config/ubuntu/24.04/mssql-server-2025.list | sudo tee /etc/apt/sources.list.d/mssql-server-2025.list
+
+sudo apt update
+sudo apt install -y mssql-server
+
+# interactive setup — choose "Express" edition when prompted
+sudo /opt/mssql/bin/mssql-conf setup
+
+systemctl status mssql-server --no-pager
+```
+
+### Command-line tools
+```bash
+curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc
+curl -fsSL https://packages.microsoft.com/config/ubuntu/24.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
+sudo apt update
+sudo apt install -y mssql-tools18 unixodbc-dev
+
+echo 'export PATH="$PATH:/opt/mssql-tools18/bin"' >> ~/.bashrc
+source ~/.bashrc
+
+sqlcmd -S localhost -U sa -P '<sa-password>' -No
+```
+
+> **Note:** SQL Server Express hard-caps the buffer pool at ~1,410 MB regardless of
+> instance RAM. If dashboard/reporting queries start hitting `RESOURCE_SEMAPHORE`
+> waits again under load, this cap — not instance size — is the likely cause.
+> Developer edition (also free) has no such cap and is a good fallback for testing.
+
+## 7. Restore the database from backup
+
+```bash
+# pull the .bak from S3
+aws s3 cp s3://your-bucket/backups/MyDatabase.bak /tmp/MyDatabase.bak
+
+# move into place with correct ownership
+sudo mkdir -p /var/opt/mssql/backup
+sudo mv /tmp/MyDatabase.bak /var/opt/mssql/backup/
+sudo chown mssql:mssql /var/opt/mssql/backup/MyDatabase.bak
+```
+
+Inspect logical file names (needed because a Windows-origin `.bak` has Windows-style
+paths baked in):
+```bash
+sqlcmd -S localhost -U sa -P '<sa-password>' -No -Q \
+"RESTORE FILELISTONLY FROM DISK = N'/var/opt/mssql/backup/MyDatabase.bak'"
+```
+
+Restore, remapping file paths to Linux locations:
+```bash
+sqlcmd -S localhost -U sa -P '<sa-password>' -No -Q \
+"RESTORE DATABASE MyDatabase
+FROM DISK = N'/var/opt/mssql/backup/MyDatabase.bak'
+WITH MOVE 'MyDatabase' TO '/var/opt/mssql/data/MyDatabase.mdf',
+     MOVE 'MyDatabase_log' TO '/var/opt/mssql/data/MyDatabase_log.ldf',
+     REPLACE;"
+```
+(Add a `MOVE` line per logical file listed in the previous step — there may be more
+than two if the source DB had extra data files or full-text catalogs.)
+
+Verify:
+```bash
+sqlcmd -S localhost -U sa -P '<sa-password>' -No -Q \
+"SELECT name, state_desc FROM sys.databases WHERE name = 'MyDatabase'"
+```
+`state_desc` must show `ONLINE`.
+
+### Create a dedicated app login (don't use `sa` in the connection string)
+```sql
+CREATE LOGIN permitpro_app WITH PASSWORD = 'Str0ng!Passw0rd';
+USE MyDatabase;
+CREATE USER permitpro_app FOR LOGIN permitpro_app;
+ALTER ROLE db_owner ADD MEMBER permitpro_app;
+```
+
+### Update the app's connection string
+`appsettings.json`:
+```json
+"ConnectionStrings": {
+  "DefaultConnection": "Server=localhost,1433;Database=MyDatabase;User Id=permitpro_app;Password=Str0ng!Passw0rd;TrustServerCertificate=True;"
+}
+```
+```bash
+sudo systemctl restart permitpro
+```
+
+---
+
+## 8. Verification checklist
+
+Run through top to bottom — each layer should pass before checking the next.
+
+**SSM / AWS**
+```bash
+aws sts get-caller-identity
+aws ssm describe-instance-information --query "InstanceInformationList[?InstanceId=='i-XXXXXXXXXXXXXXXXX']"
+```
+
+**OS**
+```bash
+lsb_release -a
+free -h
+df -h
+sudo ufw status verbose
+```
+
+**.NET runtime**
+```bash
+dotnet --list-runtimes
+```
+
+**App (systemd)**
+```bash
+sudo systemctl status permitpro --no-pager
+sudo journalctl -u permitpro -n 50 --no-pager   # if not healthy
+sudo ss -tlnp | grep 5000
+curl -i http://localhost:5000/                  # bypasses Nginx — isolates app vs proxy
+```
+
+**Nginx**
+```bash
+sudo nginx -t
+sudo systemctl status nginx --no-pager
+ls -la /etc/nginx/sites-enabled/    # confirm "default" is NOT present, "permitpro" is
+```
+From outside the box:
+```bash
+curl -i http://uat.permitpro.app/
+```
+
+**SQL Server**
+```bash
+systemctl status mssql-server --no-pager
+sqlcmd -S localhost -U sa -P '<sa-password>' -No -Q "SELECT @@VERSION"
+sudo ss -tlnp | grep 1433
+```
+
+**Database**
+```bash
+sqlcmd -S localhost -U sa -P '<sa-password>' -No -Q \
+"SELECT name, state_desc FROM sys.databases WHERE name = 'MyDatabase'"
+
+sqlcmd -S localhost -U permitpro_app -P 'Str0ng!Passw0rd' -No -Q "SELECT DB_NAME()"
+```
+
+**End-to-end (app ↔ DB)**
+```bash
+curl -i http://localhost:5000/api/health   # or any route that queries the DB
+```
+
+**External exposure check** (from your local machine — only 80/443 should respond):
+```powershell
+Test-NetConnection -ComputerName uat.permitpro.app -Port 80
+Test-NetConnection -ComputerName uat.permitpro.app -Port 1433   # should fail
+Test-NetConnection -ComputerName uat.permitpro.app -Port 5000   # should fail
+```
+
+---
+
+## 9. Known issues / troubleshooting log
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `sudo: aws: command not found` | `sudo` uses a restricted `PATH` that may not include where `aws` lives | Install via the official installer (`/usr/local/bin/aws`), or run `aws` without `sudo` and only `sudo mv` the result |
+| Browser shows "Welcome to nginx!" instead of the app | Default Nginx site still enabled and taking priority, or `server_name` mismatch | `sudo rm /etc/nginx/sites-enabled/default`, confirm `server_name` matches the domain, confirm the `permitpro` site is symlinked into `sites-enabled`, then `nginx -t && systemctl reload nginx` |
+| Page unreachable via public DNS entirely | Security group missing the port rule, UFW blocking locally, or Nginx not listening on `0.0.0.0` | Check SG rules, `sudo ufw status verbose`, `sudo ss -tlnp \| grep :80` |
+
+---
+
+## 10. Follow-ups / hardening
+
+- [ ] Attach an Elastic IP so the domain doesn't break on instance stop/start
+- [ ] Enable HTTPS on `uat.permitpro.app` (Certbot, or terminate TLS at Cloudflare if proxying through it)
+- [ ] Monitor for `RESOURCE_SEMAPHORE` waits — SQL Server Express's ~1,410 MB buffer pool cap is a known ceiling for this setup
+- [ ] Confirm scheduled backups are in place for the restored database (not just the initial restore)
+- [ ] Review IAM role permissions on the instance — scope S3 access to only the specific buckets/prefixes needed
