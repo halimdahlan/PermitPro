@@ -6,6 +6,13 @@ public static class GeneralHelper
 {
 	public static DateTime GetDateInTimeZone(DateTime date)
 	{
+		// On Ubuntu 24.04, this evaluates directly to "Asia/Kuala_Lumpur"
+		if (TimeZoneInfo.Local.Id == "Asia/Kuala_Lumpur")
+		{
+			return date;
+		}
+
+		// Fallback: Convert if the server is set to UTC or another timezone
 		TimeZoneInfo _tzi = TimeZoneInfo.FindSystemTimeZoneById("Asia/Kuala_Lumpur");
 		return TimeZoneInfo.ConvertTimeFromUtc(date, _tzi);
 	}
