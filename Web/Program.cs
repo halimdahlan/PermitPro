@@ -20,7 +20,7 @@ var builder = WebApplication.CreateBuilder(args);
 var appConfig = builder.Configuration;
 
 // Add services to the container.
-var connectionString = appConfig.GetConnectionString(builder.Environment.EnvironmentName);
+var connectionString = appConfig.GetConnectionString("MSSQLConnection");
 var ptwSettings = appConfig.GetSection("PTWSettings").Get<PTWSettings>();
 var jwtSettings = appConfig.GetSection("JwtSettings").Get<JwtSettings>();
 
