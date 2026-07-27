@@ -90,6 +90,10 @@ public class ApplicationDbContext
 
 	public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
 
+	public DbSet<FormControl> FormControls { get; set; }
+
+	public DbSet<FormTemplate> FormTemplates { get; set; }
+
 	/// <summary>
 	/// Flag to control delete behavior. When TRUE (default), soft-deletes are used.
 	/// When FALSE, hard deletes (permanent removal) are performed.
@@ -214,6 +218,29 @@ public class ApplicationDbContext
 		builder.Entity<Address>();
 
 		builder.Entity<Contact>();
+
+		builder.Entity<FormControl>(options =>
+		{
+			options.HasOne(x => x.Company)
+				   .WithMany()
+				   .HasForeignKey(x => x.CompanyId)
+				   .OnDelete(DeleteBehavior.Cascade);
+		});
+
+		builder.Entity<FormTemplate>(options =>
+		{
+			options.HasOne(x => x.Company)
+				   .WithMany()
+				   .HasForeignKey(x => x.CompanyId)
+				   .OnDelete(DeleteBehavior.Cascade);
+
+			// Enforce one active template per company+type at the application layer;
+			// filtered unique index covers only active=true rows.
+			options.HasIndex(x => new { x.CompanyId, x.TemplateType, x.IsActive })
+				   .IsUnique()
+				   .HasFilter("[IsActive] = 1")
+				   .HasDatabaseName("IX_FormTemplates_CompanyId_TemplateType_Active");
+		});
 
 		builder.Entity<AppSettingCategory>(options =>
 		{

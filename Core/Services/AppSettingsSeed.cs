@@ -79,7 +79,8 @@ public static class AppSettingsSeed
             new() { Id = Guid.NewGuid(), CategoryId = generalCategoryId, CompanyId = companyId, Key = "user_create_limit",         DisplayName = "User Create Limit",                DataType = "number", IsEncrypted = false, SortOrder = 2, Value = "15" },
             new() { Id = Guid.NewGuid(), CategoryId = generalCategoryId, CompanyId = companyId, Key = "upload_max_file_size",      DisplayName = "Maximum Upload File Size (bytes)", DataType = "number", IsEncrypted = false, SortOrder = 3, Value = "3145728" },
             new() { Id = Guid.NewGuid(), CategoryId = generalCategoryId, CompanyId = companyId, Key = "upload_max_file_count",     DisplayName = "Maximum Upload File Count",        DataType = "number", IsEncrypted = false, SortOrder = 4, Value = "5" },
-            new() { Id = Guid.NewGuid(), CategoryId = generalCategoryId, CompanyId = companyId, Key = "upload_allowed_file_types", DisplayName = "Allowed Upload File Types",        DataType = "text",   IsEncrypted = false, SortOrder = 5, Value = "pdf,docx,jpg,jpeg,png" },
+            new() { Id = Guid.NewGuid(), CategoryId = generalCategoryId, CompanyId = companyId, Key = "upload_allowed_file_types",       DisplayName = "Allowed Upload File Types",                       DataType = "text",   IsEncrypted = false, SortOrder = 5, Value = "pdf,docx,jpg,jpeg,png" },
+            new() { Id = Guid.NewGuid(), CategoryId = generalCategoryId, CompanyId = companyId, Key = "new_permit_form_cutover_date", DisplayName = "New Permit Form Cutover Date (yyyy-MM-dd)", DataType = "text",   IsEncrypted = false, SortOrder = 6, Value = "" },
         };
 
         await db.AppSettings.AddRangeAsync(generalSettings);

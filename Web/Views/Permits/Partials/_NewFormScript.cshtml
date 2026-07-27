@@ -1,0 +1,235 @@
+@* Shared script for NewForm.cshtml and EditForm.cshtml.
+   Expects caller to declare: LAYOUT, FIELDS, READONLY, SAVE_URL, METHOD *@
+<style>
+.pf-row   { display:grid; gap:1rem; margin-bottom:1.25rem; }
+.pf-row.cols-1 { grid-template-columns:1fr; }
+.pf-row.cols-2 { grid-template-columns:1fr 1fr; }
+.pf-row.cols-3 { grid-template-columns:1fr 1fr 1fr; }
+.pf-field label { font-size:.85rem; font-weight:600; color:#374151; display:block; margin-bottom:.3rem; }
+.pf-field .form-text { font-size:.75rem; }
+.pf-empty-slot {
+    min-height:52px;
+    border:1px dashed #e2e8f0;
+    border-radius:.4rem;
+    background:#f9fafb;
+}
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    renderPermitForm(LAYOUT, FIELDS, READONLY);
+});
+
+// ── Render ────────────────────────────────────────────────────────────────
+function renderPermitForm(layout, savedFields, readonly) {
+    const canvas = document.getElementById('permitFormCanvas');
+    canvas.innerHTML = '';
+
+    if (!layout.rows || !layout.rows.length) {
+        canvas.innerHTML = '<div class="alert alert-warning">No form layout defined. Please contact your administrator.</div>';
+        return;
+    }
+
+    layout.rows.forEach(row => {
+        const rowEl = document.createElement('div');
+        rowEl.className = `pf-row cols-${row.columnCount}`;
+
+        row.columns.forEach(col => {
+            const cell = document.createElement('div');
+            cell.className = 'pf-field';
+
+            if (!col.controlId) {
+                cell.innerHTML = '<div class="pf-empty-slot"></div>';
+            } else {
+                cell.innerHTML = buildField(col, savedFields, readonly);
+            }
+            rowEl.appendChild(cell);
+        });
+
+        canvas.appendChild(rowEl);
+    });
+}
+
+function buildField(col, savedFields, readonly) {
+    const ctrl = col.control;
+    if (!ctrl) return '<div class="pf-empty-slot"></div>';
+
+    const label  = col.labelOverride || ctrl.label;
+    const req    = col.isRequiredOverride ?? ctrl.isRequired;
+    const help   = ctrl.helpText;
+    const ph     = ctrl.placeholder ?? '';
+    const colId  = col.id;
+    const val    = savedFields[colId];
+    const dis    = readonly ? 'disabled' : '';
+    const reqMark = req ? ' <span class="text-danger">*</span>' : '';
+    const helpEl  = help ? `<div class="form-text">${esc(help)}</div>` : '';
+    const reqAttr = req && !readonly ? 'required' : '';
+
+    switch (ctrl.controlType) {
+        case 0: { // TextBox
+            const v = esc(val ?? '');
+            return `<label>${esc(label)}${reqMark}</label>
+                    <input type="text" id="f_${colId}" data-col="${colId}"
+                           class="form-control form-control-sm pf-input"
+                           placeholder="${esc(ph)}" value="${v}" ${dis} ${reqAttr} />
+                    ${helpEl}`;
+        }
+        case 1: { // TextArea
+            const v = esc(val ?? '');
+            return `<label>${esc(label)}${reqMark}</label>
+                    <textarea id="f_${colId}" data-col="${colId}"
+                              class="form-control form-control-sm pf-input"
+                              rows="3" placeholder="${esc(ph)}" ${dis} ${reqAttr}>${v}</textarea>
+                    ${helpEl}`;
+        }
+        case 2: { // Checkbox
+            const chk = val === true || val === 'true' ? 'checked' : '';
+            return `<div class="form-check mt-2">
+                        <input class="form-check-input pf-input" type="checkbox"
+                               id="f_${colId}" data-col="${colId}" ${chk} ${dis} />
+                        <label class="form-check-label" for="f_${colId}">${esc(label)}${reqMark}</label>
+                    </div>
+                    ${helpEl}`;
+        }
+        case 3: { // MultiChoice — checkboxes
+            let opts = [];
+            try { opts = JSON.parse(ctrl.optionsJson || '[]'); } catch {}
+            const savedArr = Array.isArray(val) ? val : (val ? [val] : []);
+            const checks = opts.map((o, i) => {
+                const chk = savedArr.includes(o.value) ? 'checked' : '';
+                return `<div class="form-check form-check-inline">
+                    <input class="form-check-input pf-multi" type="checkbox"
+                           id="f_${colId}_${i}" data-col="${colId}" value="${esc(o.value)}" ${chk} ${dis} />
+                    <label class="form-check-label" for="f_${colId}_${i}">${esc(o.label)}</label>
+                </div>`;
+            }).join('');
+            return `<label class="d-block">${esc(label)}${reqMark}</label>${checks}${helpEl}`;
+        }
+        case 4: { // Select
+            let opts = [];
+            try { opts = JSON.parse(ctrl.optionsJson || '[]'); } catch {}
+            const options = `<option value="">— select —</option>` +
+                opts.map(o => `<option value="${esc(o.value)}" ${val === o.value ? 'selected' : ''}>${esc(o.label)}</option>`).join('');
+            return `<label>${esc(label)}${reqMark}</label>
+                    <select id="f_${colId}" data-col="${colId}"
+                            class="form-select form-select-sm pf-input" ${dis} ${reqAttr}>
+                        ${options}
+                    </select>
+                    ${helpEl}`;
+        }
+        case 5: { // DateTimeInput
+            const v = val ? val.substring(0, 16) : '';
+            return `<label>${esc(label)}${reqMark}</label>
+                    <input type="datetime-local" id="f_${colId}" data-col="${colId}"
+                           class="form-control form-control-sm pf-input"
+                           value="${v}" ${dis} ${reqAttr} />
+                    ${helpEl}`;
+        }
+        case 6: { // FileUpload — shows existing attachment names if any
+            const existing = Array.isArray(val) && val.length
+                ? `<div class="form-text mb-1">${val.length} file(s) previously uploaded.</div>` : '';
+            return `<label>${esc(label)}${reqMark}</label>
+                    ${existing}
+                    <input type="file" data-col="${colId}"
+                           class="form-control form-control-sm"
+                           ${ctrl.optionsJson ? buildFileAttrs(ctrl.optionsJson) : ''}
+                           ${dis} />
+                    ${helpEl}`;
+        }
+        default:
+            return `<label>${esc(label)}</label><input type="text" class="form-control form-control-sm" ${dis} />`;
+    }
+}
+
+function buildFileAttrs(optionsJson) {
+    try {
+        const cfg = JSON.parse(optionsJson);
+        const attrs = [];
+        if (cfg.maxFiles > 1) attrs.push('multiple');
+        if (cfg.allowedTypes) attrs.push(`accept="${cfg.allowedTypes}"`);
+        return attrs.join(' ');
+    } catch { return ''; }
+}
+
+// ── Collect field values ──────────────────────────────────────────────────
+function collectFields() {
+    const fields = {};
+
+    document.querySelectorAll('.pf-input').forEach(el => {
+        const col = el.dataset.col;
+        if (!col) return;
+        if (el.type === 'checkbox') {
+            fields[col] = el.checked;
+        } else {
+            fields[col] = el.value;
+        }
+    });
+
+    // MultiChoice — collect arrays
+    const multiCols = {};
+    document.querySelectorAll('.pf-multi').forEach(el => {
+        const col = el.dataset.col;
+        if (!multiCols[col]) multiCols[col] = [];
+        if (el.checked) multiCols[col].push(el.value);
+    });
+    Object.assign(fields, multiCols);
+
+    return fields;
+}
+
+// ── Submit ────────────────────────────────────────────────────────────────
+async function submitPermit(submissionType) {
+    const form = document.getElementById('frmNewPermit');
+
+    // Validate required fields
+    const firstInvalid = form.querySelector(':invalid');
+    if (firstInvalid) { form.reportValidity(); return; }
+
+    document.getElementById('hdnPermitDataJson').value = JSON.stringify(collectFields());
+    document.getElementById('hdnSubmissionType').value = submissionType;
+
+    const formData = new FormData(form);
+    const token    = form.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+
+    try {
+        const res = await fetch(SAVE_URL, {
+            method: METHOD,
+            headers: { 'RequestVerificationToken': token },
+            body: formData,
+        });
+
+        if (!res.ok) throw new Error(await res.text());
+
+        const data = await res.json();
+        const companyId = location.pathname.split('/')[1];
+
+        if (submissionType === 'draft') {
+            // Redirect to edit form with saved ID
+            const id = data.permitId;
+            if (METHOD === 'POST' && id)
+                window.location.href = `/${companyId}/permits/edit/form/${id}`;
+            else
+                showToast('Draft saved.', 'success');
+        } else {
+            window.location.href = `/${companyId}/permits`;
+        }
+    } catch (err) {
+        showToast('Error: ' + err.message, 'danger');
+    }
+}
+
+function showToast(msg, type) {
+    // Use existing toast.js if available, else alert
+    if (window.toast) { window.toast(msg, type); return; }
+    const el = document.createElement('div');
+    el.className = `alert alert-${type} alert-dismissible fade show position-fixed bottom-0 end-0 m-3`;
+    el.style.zIndex = '9999';
+    el.innerHTML = `${esc(msg)}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 4000);
+}
+
+function esc(str) {
+    if (str == null) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>

@@ -47,6 +47,10 @@ public class Permit : ISoftDeletable
 
 	public string? PermitForm { get; set; }
 
+	// Filled field values for new-system permits (on/after cutover date).
+	// Keyed by column UUID from FormTemplate.LayoutJson.
+	public string? PermitDataJson { get; set; }
+
 	public int RunningNumber { get; set; }
 
 	public DateTime? SuspendedDateTime { get; set; }

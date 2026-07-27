@@ -845,4 +845,238 @@ public class PermitService : IPermitService
 
 		return permits;
 	}
+
+
+	// ── New-system permit methods ─────────────────────────────────────────────
+
+	public async Task<Guid> CreateNewSystemAsync(Guid companyId, Guid templateId, string permitDataJson, string submissionType, IFormFileCollection files, CancellationToken ct = default)
+	{
+		var isDraft = submissionType == "draft";
+		var permitId = Guid.NewGuid();
+
+		var lastRunningNo = _dbContext.Permits
+			.Include(f => f.Company)
+			.OrderByDescending(f => f.CreatedWhen)
+			.FirstOrDefault(f => f.Company.Id == companyId);
+
+		var maxNum = (lastRunningNo?.RunningNumber ?? 0) + 1;
+
+		var hasCertificate = false;
+		var workflow = _dbContext.Workflows
+			.Include(e => e.WorkflowCompany)
+			.FirstOrDefault(wf => wf.IsActive && wf.WorkflowCompany.Id == companyId && wf.HasCertificate == hasCertificate);
+
+		if (workflow == null)
+			throw new Exception("No active workflow found for this company.");
+
+		var userCompany = _dbContext.Companies.SingleOrDefault(f => f.Id == companyId);
+
+		var permit = new Permit
+		{
+			Id = permitId,
+			PermitNo = string.Format("{0:000000}", maxNum),
+			RunningNumber = maxNum,
+			PermitDataJson = BuildPermitDataJson(templateId, permitDataJson),
+			PermitStatus = isDraft ? PermitStatusEnum.Draft : PermitStatusEnum.Pending,
+			Company = userCompany,
+			CreatedWhen = DateTime.UtcNow,
+			CreatedBy = Guid.Parse(_currentUserService.GetCurrentUser().Id),
+		};
+
+		_dbContext.Permits.Add(permit);
+		await _dbContext.SaveChangesAsync(ct);
+
+		await SaveAttachmentsAsync(permit, files, ct);
+
+		var workflowStep = GetWorkflowStep(workflow, isDraft);
+		await NotifyApproversAsync(permit, workflow, workflowStep, companyId, isDraft, ct);
+
+		permit.PermitWorkflow = workflowStep.WorkflowStepWorkflow;
+		permit.PermitWorkflowStep = workflowStep;
+		_dbContext.Permits.Update(permit);
+
+		_dbContext.WorkflowHistories.Add(new WorkflowHistory
+		{
+			Permit = permit,
+			HistoryWorkflow = workflow,
+			HistoryWorkflowStep = workflowStep,
+			Status = isDraft ? WorkflowStatusEnum.Draft : WorkflowStatusEnum.Pending,
+			Comments = isDraft ? "Permit draft saved." : "Permit submitted for approval.",
+		});
+
+		await _dbContext.SaveChangesAsync(ct);
+
+		var currentUser = _currentUserService.GetCurrentUser();
+		await _logService.LogMessageAsync(LogTypeEnum.Information, "CREATE_PERMIT",
+			$"New-system permit [PTW{permit.PermitNo}] created by {currentUser.FirstName} {currentUser.LastName}.", currentUser);
+
+		return permitId;
+	}
+
+	public async Task UpdateNewSystemAsync(Guid permitId, Guid companyId, string permitDataJson, string submissionType, IFormFileCollection files, CancellationToken ct = default)
+	{
+		var isDraft = submissionType == "draft";
+
+		var permit = _dbContext.Permits.SingleOrDefault(f => f.Id == permitId)
+			?? throw new Exception("Permit not found.");
+
+		// Preserve existing templateId from current PermitDataJson
+		var existingTemplateId = ExtractTemplateId(permit.PermitDataJson);
+
+		permit.PermitDataJson = BuildPermitDataJson(existingTemplateId, permitDataJson);
+		permit.PermitStatus = isDraft ? PermitStatusEnum.Draft : PermitStatusEnum.Pending;
+		permit.UpdatedWhen = DateTime.UtcNow;
+		permit.UpdatedBy = Guid.Parse(_currentUserService.GetCurrentUser().Id);
+
+		_dbContext.Permits.Update(permit);
+		await _dbContext.SaveChangesAsync(ct);
+
+		await SaveAttachmentsAsync(permit, files, ct);
+
+		var hasCertificate = false;
+		var workflow = _dbContext.Workflows
+			.Include(e => e.WorkflowCompany)
+			.FirstOrDefault(wf => wf.IsActive && wf.WorkflowCompany.Id == companyId && wf.HasCertificate == hasCertificate)
+			?? throw new Exception("No active workflow found.");
+
+		var workflowStep = GetWorkflowStep(workflow, isDraft);
+		await NotifyApproversAsync(permit, workflow, workflowStep, companyId, isDraft, ct);
+
+		permit.PermitWorkflowStep = workflowStep;
+		_dbContext.Permits.Update(permit);
+
+		_dbContext.WorkflowHistories.Add(new WorkflowHistory
+		{
+			Permit = permit,
+			HistoryWorkflow = workflow,
+			HistoryWorkflowStep = workflowStep,
+			Status = isDraft ? WorkflowStatusEnum.Draft : WorkflowStatusEnum.Pending,
+			Comments = isDraft ? "Permit draft updated." : "Permit resubmitted for approval.",
+		});
+
+		await _dbContext.SaveChangesAsync(ct);
+
+		var currentUser = _currentUserService.GetCurrentUser();
+		await _logService.LogMessageAsync(LogTypeEnum.Information, "UPDATE_PERMIT",
+			$"New-system permit [PTW{permit.PermitNo}] updated by {currentUser.FirstName} {currentUser.LastName}.", currentUser);
+	}
+
+	private static string BuildPermitDataJson(Guid templateId, string fieldsJson)
+	{
+		return System.Text.Json.JsonSerializer.Serialize(new
+		{
+			templateId,
+			savedAt = DateTime.UtcNow,
+			fields = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(
+				string.IsNullOrWhiteSpace(fieldsJson) ? "{}" : fieldsJson),
+		});
+	}
+
+	private static Guid ExtractTemplateId(string permitDataJson)
+	{
+		if (string.IsNullOrWhiteSpace(permitDataJson)) return Guid.Empty;
+		try
+		{
+			using var doc = System.Text.Json.JsonDocument.Parse(permitDataJson);
+			if (doc.RootElement.TryGetProperty("templateId", out var el) && el.TryGetGuid(out var id))
+				return id;
+		}
+		catch { }
+		return Guid.Empty;
+	}
+
+	private WorkflowStep GetWorkflowStep(Workflow workflow, bool isDraft)
+	{
+		return isDraft
+			? _dbContext.WorkflowSteps
+				.Include(s => s.Approvers)
+				.Include(s => s.WorkflowStepWorkflow)
+				.Where(s => s.WorkflowStepWorkflow == workflow && s.Name == "Draft")
+				.OrderBy(s => s.StepOrder)
+				.First()
+			: _dbContext.WorkflowSteps
+				.Include(s => s.Approvers)
+				.Include(s => s.WorkflowStepWorkflow)
+				.Where(s => s.WorkflowStepWorkflow == workflow && s.Name != "Draft" && s.Name != "Completed")
+				.OrderBy(s => s.StepOrder)
+				.First();
+	}
+
+	private async Task SaveAttachmentsAsync(Permit permit, IFormFileCollection files, CancellationToken ct)
+	{
+		if (files == null || files.Count == 0) return;
+
+		var folder = Path.Combine(_webHostEnvironment.WebRootPath, "attachments", "permits", permit.Id.ToString().ToLower());
+		Directory.CreateDirectory(folder);
+
+		foreach (var item in files)
+		{
+			var filePath = Path.Combine(folder, new FileInfo(item.FileName).Name);
+			using var fs = new FileStream(filePath, FileMode.Create);
+			await item.CopyToAsync(fs, ct);
+		}
+
+		foreach (var filePath in Directory.GetFiles(folder))
+		{
+			var fi = new FileInfo(filePath);
+			if (!_dbContext.Attachments.Any(a => a.FileName == fi.Name && a.Permit.Id == permit.Id))
+			{
+				_dbContext.Attachments.Add(new Attachment
+				{
+					FileName = fi.Name,
+					ContentType = fi.Extension.TrimStart('.'),
+					Permit = permit,
+					FileSize = (int)fi.Length,
+				});
+			}
+		}
+
+		await _dbContext.SaveChangesAsync(ct);
+	}
+
+	private async Task NotifyApproversAsync(Permit permit, Workflow workflow, WorkflowStep workflowStep, Guid companyId, bool isDraft, CancellationToken ct)
+	{
+		if (isDraft || workflowStep.Approvers.Count == 0) return;
+
+		var htmlTemplate = File.ReadAllText(Path.Combine(_webHostEnvironment.WebRootPath, "templates", "html", "wf-pending-approval.html"));
+		var template = Template.Parse(htmlTemplate);
+		var permitNo = $"PTW{permit.RunningNumber:000000}";
+
+		foreach (var approver in workflowStep.Approvers)
+		{
+			var approvalLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/{companyId}/permits/edit/{permit.Id}";
+			var renderedHtml = template.Render(new
+			{
+				RecipientName = $"{approver.FirstName} {approver.LastName}",
+				WorkflowName = workflow.Name,
+				PermitNo = permitNo,
+				DateSubmitted = GeneralHelper.GetDateInTimeZone(permit.CreatedWhen).ToString("dd/MM/yyyy hh:mm tt"),
+				ApprovalLink = approvalLink,
+			});
+
+			try
+			{
+				await _messageService.SendEmailAsync(new EmailInfo
+				{
+					Name = $"{approver.FirstName} {approver.LastName}",
+					Email = approver.Email,
+					Subject = $"Pending approval task for {permitNo}",
+					Body = renderedHtml,
+				}, companyId);
+			}
+			catch { }
+
+			_dbContext.Notifications.Add(new Notification
+			{
+				Title = "Approval Required",
+				Message = $"You have a pending approval task for {permitNo}.",
+				Url = $"/{companyId}/permits/edit/{permit.Id}",
+				IsRead = false,
+				IsArchived = false,
+				NotificationUser = approver,
+			});
+
+			await _pushService.PushAsync(approver.Id, "Approval Required", $"You have a pending approval task for {permitNo}.");
+		}
+	}
 }

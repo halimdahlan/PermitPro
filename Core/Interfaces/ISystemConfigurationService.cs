@@ -33,6 +33,8 @@ public interface ISystemConfigurationService
 
 	int SuspendedAutoResume { get; }
 
+	DateTime? NewPermitFormCutoverDate { get; }
+
 	void Init();
 
 	bool HasAccess(string controller);

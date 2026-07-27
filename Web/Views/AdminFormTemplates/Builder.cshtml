@@ -1,0 +1,1078 @@
+@using PermitPro.Core.Enums
+@using System.Text.Json
+@model PermitPro.App.ViewModels.FormBuilderViewModel
+
+@{
+    Layout = "_LayoutAdmin";
+    var isCert = Model.TemplateType == FormTemplateTypeEnum.Certificate;
+    var listUrl = isCert
+        ? $"/admin/certificatetemplates?companyId={Model.CompanyId}"
+        : $"/admin/formtemplates?companyId={Model.CompanyId}";
+    ViewData["Title"] = Model.IsEdit ? "Edit Template" : "New Template";
+
+    var controlLibraryJson = JsonSerializer.Serialize(Model.ControlLibrary.Select(c => new {
+        id          = c.Id,
+        name        = c.Name,
+        label       = c.Label,
+        controlType = (int)c.ControlType,
+        typeName    = c.ControlType.ToString(),
+        isRequired  = c.IsRequired,
+        placeholder = c.Placeholder,
+        helpText    = c.HelpText,
+        optionsJson = c.OptionsJson,
+    }));
+}
+
+@section CustomCss {
+<style>
+/* ── Layout ─────────────────────────────────────────────────────────────── */
+.builder-shell {
+    display: grid;
+    grid-template-columns: 260px 1fr 280px;
+    grid-template-rows: auto 1fr;
+    gap: 0;
+    height: calc(100vh - 120px);
+    min-height: 500px;
+    border: 1px solid #e2e8f0;
+    border-radius: .75rem;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 2px 12px rgba(0,0,0,.07);
+}
+.builder-toolbar {
+    grid-column: 1 / -1;
+    background: #1e293b;
+    color: #fff;
+    padding: .6rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    flex-wrap: wrap;
+}
+.builder-toolbar .tb-group {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+.builder-toolbar .tb-sep {
+    width: 1px;
+    height: 1.4rem;
+    background: #334155;
+}
+.builder-toolbar input.tb-name {
+    background: #334155;
+    border: 1px solid #475569;
+    color: #fff;
+    border-radius: .35rem;
+    padding: .25rem .6rem;
+    font-size: .85rem;
+    width: 220px;
+}
+.builder-toolbar input.tb-name::placeholder { color: #94a3b8; }
+.builder-toolbar input.tb-name:focus { outline: none; border-color: #60a5fa; }
+.tb-badge-type {
+    font-size: .7rem;
+    background: #0f172a;
+    color: #94a3b8;
+    padding: 2px 8px;
+    border-radius: 20px;
+    border: 1px solid #334155;
+}
+.tb-status { font-size: .75rem; color: #94a3b8; }
+.tb-status.saved { color: #4ade80; }
+.tb-status.saving { color: #fbbf24; }
+.tb-status.error { color: #f87171; }
+
+/* ── Left panel – library ────────────────────────────────────────────────── */
+.panel-library {
+    grid-column: 1;
+    grid-row: 2;
+    background: #f8fafc;
+    border-right: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.panel-library .panel-head {
+    padding: .65rem .9rem;
+    font-size: .75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: #64748b;
+    border-bottom: 1px solid #e2e8f0;
+    flex-shrink: 0;
+}
+.panel-library .lib-search {
+    padding: .5rem .75rem;
+    border-bottom: 1px solid #e2e8f0;
+    flex-shrink: 0;
+}
+.panel-library .lib-search input {
+    width: 100%;
+    border: 1px solid #cbd5e1;
+    border-radius: .35rem;
+    padding: .25rem .5rem;
+    font-size: .8rem;
+}
+.lib-list { flex: 1; overflow-y: auto; padding: .5rem; }
+.lib-item {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .45rem .6rem;
+    border-radius: .4rem;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    margin-bottom: .35rem;
+    cursor: grab;
+    user-select: none;
+    font-size: .82rem;
+    transition: background .12s, border-color .12s;
+}
+.lib-item:hover { background: #f0f9ff; border-color: #bae6fd; }
+.lib-item.sortable-chosen { opacity: .5; }
+.lib-item .lib-icon { font-size: .75rem; color: #94a3b8; flex-shrink: 0; }
+.lib-item .lib-label { font-weight: 500; color: #1e293b; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lib-item .lib-type { font-size: .7rem; color: #94a3b8; flex-shrink: 0; }
+.lib-empty { text-align: center; color: #94a3b8; font-size: .8rem; padding: 1.5rem .5rem; }
+
+/* ── Centre – canvas ─────────────────────────────────────────────────────── */
+.panel-canvas {
+    grid-column: 2;
+    grid-row: 2;
+    background: #f1f5f9;
+    overflow-y: auto;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+}
+.canvas-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #94a3b8;
+    font-size: .9rem;
+    gap: .5rem;
+}
+.canvas-row {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: .5rem;
+    overflow: hidden;
+}
+.row-header {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .4rem .65rem;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: .75rem;
+    color: #64748b;
+}
+.row-drag-handle {
+    cursor: grab;
+    color: #94a3b8;
+    font-size: .9rem;
+    padding: 0 .1rem;
+}
+.row-drag-handle:hover { color: #475569; }
+.col-count-selector {
+    display: flex;
+    gap: 2px;
+}
+.col-count-btn {
+    padding: 1px 8px;
+    border: 1px solid #cbd5e1;
+    background: #fff;
+    border-radius: .25rem;
+    font-size: .72rem;
+    cursor: pointer;
+    color: #475569;
+    transition: background .1s;
+}
+.col-count-btn.active { background: #1e293b; color: #fff; border-color: #1e293b; }
+.col-count-btn:hover:not(.active) { background: #f1f5f9; }
+.row-delete {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: .8rem;
+    padding: 0 .25rem;
+    border-radius: .25rem;
+}
+.row-delete:hover { color: #ef4444; background: #fee2e2; }
+.row-cols {
+    display: grid;
+    gap: 1px;
+    background: #e2e8f0;
+}
+.row-cols.cols-1 { grid-template-columns: 1fr; }
+.row-cols.cols-2 { grid-template-columns: 1fr 1fr; }
+.row-cols.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+.col-slot {
+    background: #fff;
+    min-height: 72px;
+    display: flex;
+    align-items: stretch;
+    position: relative;
+}
+.col-slot.drag-over { background: #eff6ff; }
+.slot-empty {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #cbd5e1;
+    font-size: .75rem;
+    gap: .3rem;
+    border: 2px dashed #e2e8f0;
+    margin: .4rem;
+    border-radius: .35rem;
+    cursor: default;
+}
+.slot-control {
+    flex: 1;
+    padding: .6rem .75rem;
+    display: flex;
+    align-items: flex-start;
+    gap: .5rem;
+    cursor: pointer;
+}
+.slot-control:hover { background: #f8fafc; }
+.slot-control.selected { background: #eff6ff; outline: 2px solid #3b82f6; outline-offset: -2px; border-radius: .25rem; }
+.slot-control-info { flex: 1; min-width: 0; }
+.slot-control-label { font-size: .82rem; font-weight: 600; color: #1e293b; }
+.slot-control-meta { font-size: .72rem; color: #64748b; }
+.slot-remove {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: .75rem;
+    padding: 0;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+.slot-remove:hover { color: #ef4444; }
+.add-row-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .4rem;
+    padding: .55rem;
+    border: 2px dashed #cbd5e1;
+    border-radius: .5rem;
+    color: #64748b;
+    font-size: .82rem;
+    cursor: pointer;
+    background: transparent;
+    width: 100%;
+    transition: border-color .12s, background .12s;
+    flex-shrink: 0;
+}
+.add-row-btn:hover { border-color: #3b82f6; color: #3b82f6; background: #eff6ff; }
+
+/* ── Right panel – property editor ──────────────────────────────────────── */
+.panel-props {
+    grid-column: 3;
+    grid-row: 2;
+    border-left: 1px solid #e2e8f0;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.panel-props .panel-head {
+    padding: .65rem .9rem;
+    font-size: .75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: #64748b;
+    border-bottom: 1px solid #e2e8f0;
+    flex-shrink: 0;
+}
+.props-body { flex: 1; overflow-y: auto; padding: .9rem; }
+.props-tabs { display: flex; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; }
+.props-tab {
+    flex: 1;
+    padding: .45rem;
+    border: none;
+    background: none;
+    font-size: .78rem;
+    color: #64748b;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+}
+.props-tab.active { color: #1e293b; border-bottom-color: #3b82f6; font-weight: 600; }
+.props-tab-pane { display: none; }
+.props-tab-pane.active { display: block; }
+.props-empty {
+    text-align: center;
+    color: #94a3b8;
+    font-size: .8rem;
+    padding: 2rem .5rem;
+}
+.prop-group { margin-bottom: 1rem; }
+.prop-label { font-size: .78rem; font-weight: 600; color: #374151; margin-bottom: .3rem; display: block; }
+.prop-input { width: 100%; border: 1px solid #d1d5db; border-radius: .35rem; padding: .3rem .5rem; font-size: .82rem; }
+.prop-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,.15); }
+.prop-check { display: flex; align-items: center; gap: .4rem; font-size: .82rem; color: #374151; cursor: pointer; }
+
+/* ── Preview ────────────────────────────────────────────────────────────── */
+.preview-row { display: grid; gap: 1rem; margin-bottom: 1rem; }
+.preview-row.cols-1 { grid-template-columns: 1fr; }
+.preview-row.cols-2 { grid-template-columns: 1fr 1fr; }
+.preview-row.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+.preview-field label { font-size: .82rem; font-weight: 600; color: #374151; display: block; margin-bottom: .25rem; }
+.preview-field .req { color: #ef4444; }
+.preview-field .help { font-size: .73rem; color: #6b7280; margin-top: .15rem; }
+.preview-field input, .preview-field textarea, .preview-field select {
+    width: 100%; border: 1px solid #d1d5db; border-radius: .35rem;
+    padding: .35rem .6rem; font-size: .82rem; background: #f9fafb;
+}
+</style>
+}
+
+@* ── Shell ────────────────────────────────────────────────────────────────── *@
+<div id="builderShell" class="builder-shell">
+
+    @* ── Toolbar ─────────────────────────────────────────────────────────── *@
+    <div class="builder-toolbar">
+        <div class="tb-group">
+            <a href="@listUrl" class="btn btn-sm btn-outline-secondary" style="font-size:.78rem;padding:.2rem .55rem;">
+                <i class="fa-solid fa-arrow-left me-1"></i> Back
+            </a>
+        </div>
+        <div class="tb-sep"></div>
+        <div class="tb-group">
+            <input type="text" id="tbName" class="tb-name"
+                   placeholder="Template name…" value="@Model.Name" maxlength="200" />
+            <span class="tb-badge-type">@Model.TemplateType</span>
+        </div>
+        <div class="tb-sep"></div>
+        <div class="tb-group">
+            <div class="form-check form-check-inline mb-0">
+                <input class="form-check-input" type="checkbox" id="tbActive" @(Model.IsActive ? "checked" : "") />
+                <label class="form-check-label text-white" for="tbActive" style="font-size:.82rem;">Active</label>
+            </div>
+        </div>
+        <div class="tb-sep"></div>
+        <div class="tb-group">
+            <button type="button" class="btn btn-sm btn-outline-light" style="font-size:.78rem;padding:.2rem .55rem;" onclick="openHeaderFooterDialog()">
+                <i class="fa-solid fa-file-invoice me-1"></i> Header / Footer
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-info" style="font-size:.78rem;padding:.2rem .55rem;" onclick="openPreview()">
+                <i class="fa-solid fa-eye me-1"></i> Preview
+            </button>
+            <button type="button" class="btn btn-sm btn-primary" style="font-size:.78rem;padding:.2rem .55rem;" onclick="saveTemplate()">
+                <i class="fa-solid fa-floppy-disk me-1"></i> Save
+            </button>
+        </div>
+        <div class="tb-sep"></div>
+        <span id="tbStatus" class="tb-status"></span>
+    </div>
+
+    @* ── Library ─────────────────────────────────────────────────────────── *@
+    <div class="panel-library">
+        <div class="panel-head"><i class="fa-solid fa-cubes me-1"></i> Controls Library</div>
+        <div class="lib-search">
+            <input type="text" id="libSearch" placeholder="Search controls…" oninput="filterLibrary(this.value)" />
+        </div>
+        <div class="lib-list" id="libList"></div>
+    </div>
+
+    @* ── Canvas ──────────────────────────────────────────────────────────── *@
+    <div class="panel-canvas" id="canvas">
+        <div class="canvas-empty" id="canvasEmpty">
+            <i class="fa-solid fa-table-columns fa-2x"></i>
+            <span>Click <strong>Add Row</strong> below to start building</span>
+        </div>
+        <div id="rowsContainer"></div>
+        <button type="button" class="add-row-btn" onclick="addRow()">
+            <i class="fa-solid fa-plus"></i> Add Row
+        </button>
+    </div>
+
+    @* ── Properties ──────────────────────────────────────────────────────── *@
+    <div class="panel-props">
+        <div class="props-tabs">
+            <button class="props-tab active" onclick="switchPropsTab('control', this)">Control</button>
+            <button class="props-tab" onclick="switchPropsTab('template', this)">Template</button>
+        </div>
+        <div id="propsTabControl" class="props-body props-tab-pane active">
+            <div class="props-empty" id="propsEmpty">
+                <i class="fa-solid fa-arrow-left fa-lg mb-2 d-block"></i>
+                Select a control on the canvas to edit its properties
+            </div>
+            <div id="propsControlForm" style="display:none;"></div>
+        </div>
+        <div id="propsTabTemplate" class="props-body props-tab-pane">
+            <div class="prop-group">
+                <label class="prop-label">Description</label>
+                <textarea id="tbDesc" class="prop-input" rows="3" maxlength="500"
+                          placeholder="Optional description…">@Model.Description</textarea>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ── Header / Footer modal ────────────────────────────────────────────────── *@
+<div class="modal fade" id="dlgHdrFtr" tabindex="-1" aria-labelledby="dlgHdrFtrTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h6 class="modal-title fw-semibold" id="dlgHdrFtrTitle">PDF Header / Footer</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="nav nav-tabs mb-3" id="hfTabs">
+                    <li class="nav-item"><button class="nav-link active" onclick="switchHfTab('header',this)">Header</button></li>
+                    <li class="nav-item"><button class="nav-link" onclick="switchHfTab('footer',this)">Footer</button></li>
+                </ul>
+                <div id="hfPanelHeader">
+                    <div class="row g-2">
+                        <div class="col-12"><div class="form-check"><input class="form-check-input" type="checkbox" id="hdrLogo" /><label class="form-check-label small" for="hdrLogo">Show company logo</label></div></div>
+                        <div class="col-6">
+                            <label class="form-label small">Logo position</label>
+                            <select id="hdrLogoPos" class="form-select form-select-sm">
+                                <option value="left">Left</option>
+                                <option value="center">Centre</option>
+                                <option value="right">Right</option>
+                            </select>
+                        </div>
+                        <div class="col-12"><div class="form-check"><input class="form-check-input" type="checkbox" id="hdrPermitNo" /><label class="form-check-label small" for="hdrPermitNo">Show permit number</label></div></div>
+                        <div class="col-12"><div class="form-check"><input class="form-check-input" type="checkbox" id="hdrSite" /><label class="form-check-label small" for="hdrSite">Show site name</label></div></div>
+                        <div class="col-12"><div class="form-check"><input class="form-check-input" type="checkbox" id="hdrDate" /><label class="form-check-label small" for="hdrDate">Show date</label></div></div>
+                        <div class="col-12">
+                            <label class="form-label small">Custom text</label>
+                            <input type="text" id="hdrCustomText" class="form-control form-control-sm" maxlength="200" placeholder="e.g. Permit to Work" />
+                        </div>
+                    </div>
+                </div>
+                <div id="hfPanelFooter" style="display:none;">
+                    <div class="row g-2">
+                        <div class="col-12"><div class="form-check"><input class="form-check-input" type="checkbox" id="ftrPageNo" /><label class="form-check-label small" for="ftrPageNo">Show page numbers</label></div></div>
+                        <div class="col-12"><div class="form-check"><input class="form-check-input" type="checkbox" id="ftrDate" /><label class="form-check-label small" for="ftrDate">Show print date</label></div></div>
+                        <div class="col-12">
+                            <label class="form-label small">Custom text</label>
+                            <input type="text" id="ftrCustomText" class="form-control form-control-sm" maxlength="200" placeholder="e.g. Confidential" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-sm btn-primary" onclick="saveHdrFtr()">
+                    <i class="fa-solid fa-floppy-disk me-1"></i> Apply
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ── Preview modal ────────────────────────────────────────────────────────── *@
+<div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h6 class="modal-title fw-semibold" id="previewModalTitle">Form Preview</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="previewBody"></div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// State
+// ═══════════════════════════════════════════════════════════════════════════
+const COMPANY_ID   = '@Model.CompanyId';
+const TEMPLATE_ID  = '@(Model.TemplateId?.ToString() ?? "")';
+const TEMPLATE_TYPE = @((int)Model.TemplateType);
+const SAVE_URL     = '/admin/formtemplates/save';
+let TOKEN          = '';
+
+const controlLibrary = @Html.Raw(controlLibraryJson);
+
+// layout: { rows: [ { id, columnCount, columns: [ { id, controlId } ] } ] }
+let layout = { rows: [] };
+let headerConfig = {};
+let footerConfig = {};
+
+let selectedSlotKey = null;  // "rowId:colId"
+let rowSortable = null;
+
+// ── Type icon map ────────────────────────────────────────────────────────
+const TYPE_ICONS = {
+    0: 'fa-font',           // TextBox
+    1: 'fa-align-left',     // TextArea
+    2: 'fa-square-check',   // Checkbox
+    3: 'fa-list-check',     // MultiChoice
+    4: 'fa-chevron-down',   // Select
+    5: 'fa-calendar',       // DateTimeInput
+    6: 'fa-paperclip',      // FileUpload
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Init
+// ═══════════════════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+    TOKEN = document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+
+    renderLibrary(controlLibrary);
+    initSortableLibrary();
+
+    // Load saved layout
+    try {
+        const saved = @Html.Raw(Model.LayoutJson ?? "{\"rows\":[]}");
+        layout = saved;
+    } catch {}
+
+    // Load saved header/footer
+    try { headerConfig = @Html.Raw(Model.HeaderConfigJson ?? "{}"); } catch {}
+    try { footerConfig = @Html.Raw(Model.FooterConfigJson ?? "{}"); } catch {}
+
+    renderAllRows();
+    initRowSortable();
+    syncCanvasEmpty();
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Library
+// ═══════════════════════════════════════════════════════════════════════════
+function renderLibrary(items) {
+    const list = document.getElementById('libList');
+    list.innerHTML = '';
+    if (!items.length) {
+        list.innerHTML = '<div class="lib-empty"><i class="fa-solid fa-inbox mb-1 d-block"></i>No controls defined yet</div>';
+        return;
+    }
+    items.forEach(c => {
+        const el = document.createElement('div');
+        el.className = 'lib-item';
+        el.dataset.controlId = c.id;
+        el.draggable = true;
+        el.innerHTML = `
+            <i class="fa-solid ${TYPE_ICONS[c.controlType] ?? 'fa-grip-dots'} lib-icon"></i>
+            <span class="lib-label" title="${esc(c.label)}">${esc(c.label)}</span>
+            <span class="lib-type">${esc(c.typeName)}</span>`;
+        list.appendChild(el);
+    });
+}
+
+function initSortableLibrary() {
+    // Library is the source; dragging out clones an item
+    Sortable.create(document.getElementById('libList'), {
+        group: { name: 'controls', pull: 'clone', put: false },
+        sort: false,
+        animation: 120,
+        ghostClass: 'sortable-chosen',
+    });
+}
+
+function filterLibrary(q) {
+    const query = q.toLowerCase();
+    const items = controlLibrary.filter(c =>
+        c.label.toLowerCase().includes(query) || c.name.toLowerCase().includes(query));
+    renderLibrary(items);
+    initSortableLibrary();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Rows
+// ═══════════════════════════════════════════════════════════════════════════
+function addRow(columnCount = 1) {
+    const row = { id: uid(), columnCount, columns: buildColumns(columnCount) };
+    layout.rows.push(row);
+    appendRowEl(row);
+    initRowSortable();
+    syncCanvasEmpty();
+}
+
+function buildColumns(count) {
+    const cols = [];
+    for (let i = 0; i < count; i++) cols.push({ id: uid(), controlId: null });
+    return cols;
+}
+
+function setColumnCount(rowId, newCount) {
+    const row = layout.rows.find(r => r.id === rowId);
+    if (!row) return;
+
+    const displaced = [];
+
+    // Collect controls from slots that will be removed
+    for (let i = newCount; i < row.columns.length; i++) {
+        if (row.columns[i].controlId) displaced.push(row.columns[i].controlId);
+    }
+
+    // Resize column array
+    if (newCount > row.columns.length) {
+        while (row.columns.length < newCount) row.columns.push({ id: uid(), controlId: null });
+    } else {
+        row.columns = row.columns.slice(0, newCount);
+    }
+    row.columnCount = newCount;
+
+    // Deselect if selected slot was displaced
+    if (selectedSlotKey) {
+        const [selRowId] = selectedSlotKey.split(':');
+        if (selRowId === rowId) {
+            const colIdx = row.columns.findIndex(c => c.id === selectedSlotKey.split(':')[1]);
+            if (colIdx === -1) { selectedSlotKey = null; renderPropsEmpty(); }
+        }
+    }
+
+    // Re-render this row
+    const rowEl = document.getElementById(`row_${rowId}`);
+    if (rowEl) {
+        const newEl = buildRowEl(row);
+        rowEl.replaceWith(newEl);
+        initSlotDropZones(newEl, row);
+    }
+}
+
+function deleteRow(rowId) {
+    layout.rows = layout.rows.filter(r => r.id !== rowId);
+    document.getElementById(`row_${rowId}`)?.remove();
+    if (selectedSlotKey?.startsWith(rowId + ':')) {
+        selectedSlotKey = null;
+        renderPropsEmpty();
+    }
+    syncCanvasEmpty();
+}
+
+function renderAllRows() {
+    const container = document.getElementById('rowsContainer');
+    container.innerHTML = '';
+    layout.rows.forEach(row => {
+        const el = buildRowEl(row);
+        container.appendChild(el);
+        initSlotDropZones(el, row);
+    });
+}
+
+function appendRowEl(row) {
+    const el = buildRowEl(row);
+    document.getElementById('rowsContainer').appendChild(el);
+    initSlotDropZones(el, row);
+}
+
+function buildRowEl(row) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'canvas-row';
+    wrapper.id = `row_${row.id}`;
+    wrapper.dataset.rowId = row.id;
+
+    const colBtns = [1, 2, 3].map(n =>
+        `<button type="button" class="col-count-btn ${row.columnCount === n ? 'active' : ''}"
+            onclick="setColumnCount('${row.id}',${n})">${n}</button>`
+    ).join('');
+
+    wrapper.innerHTML = `
+        <div class="row-header">
+            <span class="row-drag-handle" title="Drag to reorder"><i class="fa-solid fa-grip-vertical"></i></span>
+            <span style="font-size:.72rem;">Columns:</span>
+            <div class="col-count-selector">${colBtns}</div>
+            <button type="button" class="row-delete" title="Delete row" onclick="deleteRow('${row.id}')">
+                <i class="fa-solid fa-trash"></i>
+            </button>
+        </div>
+        <div class="row-cols cols-${row.columnCount}" id="cols_${row.id}">
+            ${row.columns.map(col => buildSlotHtml(row.id, col)).join('')}
+        </div>`;
+
+    return wrapper;
+}
+
+function buildSlotHtml(rowId, col) {
+    const ctrl = col.controlId ? controlLibrary.find(c => c.id === col.controlId) : null;
+    const slotKey = `${rowId}:${col.id}`;
+    const isSelected = selectedSlotKey === slotKey;
+
+    if (!ctrl) {
+        return `<div class="col-slot" id="slot_${col.id}" data-row-id="${rowId}" data-col-id="${col.id}">
+            <div class="slot-empty">
+                <i class="fa-solid fa-plus"></i> Drop here
+            </div>
+        </div>`;
+    }
+
+    return `<div class="col-slot" id="slot_${col.id}" data-row-id="${rowId}" data-col-id="${col.id}">
+        <div class="slot-control ${isSelected ? 'selected' : ''}" onclick="selectSlot('${slotKey}')">
+            <i class="fa-solid ${TYPE_ICONS[ctrl.controlType] ?? 'fa-grip-dots'}" style="color:#94a3b8;font-size:.8rem;margin-top:3px;flex-shrink:0;"></i>
+            <div class="slot-control-info">
+                <div class="slot-control-label">${esc(ctrl.label)}${ctrl.isRequired ? ' <span style="color:#ef4444">*</span>' : ''}</div>
+                <div class="slot-control-meta">${esc(ctrl.typeName)}</div>
+            </div>
+            <button type="button" class="slot-remove" title="Remove" onclick="event.stopPropagation();removeFromSlot('${rowId}','${col.id}')">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+    </div>`;
+}
+
+function initSlotDropZones(rowEl, row) {
+    // Each slot is a Sortable drop target (group: controls, put only)
+    row.columns.forEach(col => {
+        const slotEl = document.getElementById(`slot_${col.id}`);
+        if (!slotEl) return;
+
+        Sortable.create(slotEl, {
+            group: { name: 'controls', pull: false, put: true },
+            animation: 80,
+            onAdd(evt) {
+                const controlId = evt.item.dataset.controlId;
+                // Remove the cloned DOM node Sortable inserted — we manage DOM ourselves
+                evt.item.remove();
+                placeControl(row.id, col.id, controlId);
+            },
+        });
+
+        // CSS drag-over highlight
+        slotEl.addEventListener('dragover', () => slotEl.classList.add('drag-over'));
+        slotEl.addEventListener('dragleave', () => slotEl.classList.remove('drag-over'));
+        slotEl.addEventListener('drop', () => slotEl.classList.remove('drag-over'));
+    });
+}
+
+function initRowSortable() {
+    if (rowSortable) rowSortable.destroy();
+    rowSortable = Sortable.create(document.getElementById('rowsContainer'), {
+        handle: '.row-drag-handle',
+        animation: 150,
+        onEnd(evt) {
+            const moved = layout.rows.splice(evt.oldIndex, 1)[0];
+            layout.rows.splice(evt.newIndex, 0, moved);
+        },
+    });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Control placement
+// ═══════════════════════════════════════════════════════════════════════════
+function placeControl(rowId, colId, controlId) {
+    const row = layout.rows.find(r => r.id === rowId);
+    if (!row) return;
+    const col = row.columns.find(c => c.id === colId);
+    if (!col) return;
+
+    col.controlId = controlId;
+    refreshSlot(rowId, col);
+}
+
+function removeFromSlot(rowId, colId) {
+    const row = layout.rows.find(r => r.id === rowId);
+    if (!row) return;
+    const col = row.columns.find(c => c.id === colId);
+    if (!col) return;
+    col.controlId = null;
+
+    const slotKey = `${rowId}:${colId}`;
+    if (selectedSlotKey === slotKey) { selectedSlotKey = null; renderPropsEmpty(); }
+
+    refreshSlot(rowId, col);
+}
+
+function refreshSlot(rowId, col) {
+    const existing = document.getElementById(`slot_${col.id}`);
+    if (!existing) return;
+
+    // Replace just the inner content (keep the element, re-init Sortable)
+    const newHtml = buildSlotHtml(rowId, col);
+    const tmp = document.createElement('div');
+    tmp.innerHTML = newHtml;
+    const newSlot = tmp.firstElementChild;
+    existing.replaceWith(newSlot);
+
+    // Re-init drop zone on replacement element
+    const row = layout.rows.find(r => r.id === rowId);
+    if (row) initSlotDropZones(document.getElementById(`row_${rowId}`), row);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Properties panel
+// ═══════════════════════════════════════════════════════════════════════════
+function selectSlot(slotKey) {
+    // Deselect previous
+    if (selectedSlotKey && selectedSlotKey !== slotKey) {
+        const [pRowId, pColId] = selectedSlotKey.split(':');
+        const pSlotEl = document.getElementById(`slot_${pColId}`)?.querySelector('.slot-control');
+        pSlotEl?.classList.remove('selected');
+    }
+
+    selectedSlotKey = slotKey;
+    const [rowId, colId] = slotKey.split(':');
+    document.getElementById(`slot_${colId}`)?.querySelector('.slot-control')?.classList.add('selected');
+
+    const row = layout.rows.find(r => r.id === rowId);
+    const col = row?.columns.find(c => c.id === colId);
+    const ctrl = col?.controlId ? controlLibrary.find(c => c.id === col.controlId) : null;
+    if (!ctrl) return;
+
+    renderPropsForm(col, ctrl);
+
+    // Switch to control tab
+    document.querySelectorAll('.props-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.props-tab-pane').forEach(p => p.classList.remove('active'));
+    document.querySelector('.props-tab:first-child').classList.add('active');
+    document.getElementById('propsTabControl').classList.add('active');
+}
+
+function renderPropsForm(col, ctrl) {
+    document.getElementById('propsEmpty').style.display = 'none';
+    const form = document.getElementById('propsControlForm');
+    form.style.display = 'block';
+
+    form.innerHTML = `
+        <div class="prop-group">
+            <span class="prop-label" style="color:#94a3b8;font-size:.72rem;">Control: ${esc(ctrl.typeName)}</span>
+        </div>
+        <div class="prop-group">
+            <label class="prop-label">Label override</label>
+            <input type="text" class="prop-input" id="propLabelOverride"
+                   value="${esc(col.labelOverride ?? '')}"
+                   placeholder="${esc(ctrl.label)}"
+                   maxlength="200"
+                   oninput="updateColProp('${col.id}', 'labelOverride', this.value)" />
+            <small style="font-size:.72rem;color:#94a3b8;">Leave blank to use the control's default label.</small>
+        </div>
+        <div class="prop-group">
+            <label class="prop-check">
+                <input type="checkbox" id="propRequiredOverride"
+                       ${col.isRequiredOverride === true ? 'checked' : col.isRequiredOverride === false ? '' : (ctrl.isRequired ? 'checked' : '')}
+                       onchange="updateColProp('${col.id}', 'isRequiredOverride', this.checked)" />
+                Required
+            </label>
+        </div>
+        <hr style="border-color:#f1f5f9;margin:.75rem 0;" />
+        <div style="font-size:.75rem;color:#94a3b8;">
+            <div><strong>Name:</strong> ${esc(ctrl.name)}</div>
+            <div><strong>Type:</strong> ${esc(ctrl.typeName)}</div>
+            ${ctrl.helpText ? `<div class="mt-1">${esc(ctrl.helpText)}</div>` : ''}
+        </div>`;
+}
+
+function renderPropsEmpty() {
+    document.getElementById('propsEmpty').style.display = '';
+    document.getElementById('propsControlForm').style.display = 'none';
+}
+
+function updateColProp(colId, prop, value) {
+    for (const row of layout.rows) {
+        const col = row.columns.find(c => c.id === colId);
+        if (col) { col[prop] = value === '' ? null : value; break; }
+    }
+}
+
+function switchPropsTab(tab, btn) {
+    document.querySelectorAll('.props-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.props-tab-pane').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(`propsTab${tab.charAt(0).toUpperCase() + tab.slice(1)}`).classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Header / Footer modal
+// ═══════════════════════════════════════════════════════════════════════════
+const bsHdrFtr  = new bootstrap.Modal(document.getElementById('dlgHdrFtr'));
+const bsPreview = new bootstrap.Modal(document.getElementById('previewModal'));
+
+function openHeaderFooterDialog() {
+    document.getElementById('hdrLogo').checked     = !!headerConfig.showCompanyLogo;
+    document.getElementById('hdrLogoPos').value    = headerConfig.logoPosition ?? 'left';
+    document.getElementById('hdrPermitNo').checked = !!headerConfig.showPermitNumber;
+    document.getElementById('hdrSite').checked     = !!headerConfig.showSiteName;
+    document.getElementById('hdrDate').checked     = !!headerConfig.showDate;
+    document.getElementById('hdrCustomText').value = headerConfig.customText ?? '';
+    document.getElementById('ftrPageNo').checked   = !!footerConfig.showPageNumbers;
+    document.getElementById('ftrDate').checked     = !!footerConfig.showPrintDate;
+    document.getElementById('ftrCustomText').value = footerConfig.customText ?? '';
+    switchHfTab('header', document.querySelector('#hfTabs .nav-link'));
+    bsHdrFtr.show();
+}
+
+function switchHfTab(tab, btn) {
+    document.querySelectorAll('#hfTabs .nav-link').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('hfPanelHeader').style.display = tab === 'header' ? '' : 'none';
+    document.getElementById('hfPanelFooter').style.display = tab === 'footer'  ? '' : 'none';
+}
+
+function saveHdrFtr() {
+    headerConfig = {
+        showCompanyLogo:  document.getElementById('hdrLogo').checked,
+        logoPosition:     document.getElementById('hdrLogoPos').value,
+        showPermitNumber: document.getElementById('hdrPermitNo').checked,
+        showSiteName:     document.getElementById('hdrSite').checked,
+        showDate:         document.getElementById('hdrDate').checked,
+        customText:       document.getElementById('hdrCustomText').value.trim() || null,
+    };
+    footerConfig = {
+        showPageNumbers: document.getElementById('ftrPageNo').checked,
+        showPrintDate:   document.getElementById('ftrDate').checked,
+        customText:      document.getElementById('ftrCustomText').value.trim() || null,
+    };
+    bsHdrFtr.hide();
+    setStatus('Header/footer saved.', 'saved');
+    setTimeout(() => setStatus(''), 2500);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Preview
+// ═══════════════════════════════════════════════════════════════════════════
+function openPreview() {
+    const body = document.getElementById('previewBody');
+    body.innerHTML = '';
+
+    if (!layout.rows.length) {
+        body.innerHTML = '<p class="text-muted text-center py-4">No rows added yet.</p>';
+    } else {
+        layout.rows.forEach(row => {
+            const rowEl = document.createElement('div');
+            rowEl.className = `preview-row cols-${row.columnCount}`;
+            row.columns.forEach(col => {
+                const ctrl = col.controlId ? controlLibrary.find(c => c.id === col.controlId) : null;
+                const cell = document.createElement('div');
+                cell.className = 'preview-field';
+                if (ctrl) {
+                    const label = col.labelOverride || ctrl.label;
+                    const req   = col.isRequiredOverride ?? ctrl.isRequired;
+                    const help  = ctrl.helpText;
+                    cell.innerHTML = buildPreviewField(ctrl, label, req, help);
+                } else {
+                    cell.innerHTML = '<div style="min-height:48px;border:1px dashed #e2e8f0;border-radius:.35rem;background:#f9fafb;"></div>';
+                }
+                rowEl.appendChild(cell);
+            });
+            body.appendChild(rowEl);
+        });
+    }
+
+    bsPreview.show();
+}
+
+function buildPreviewField(ctrl, label, req, help) {
+    const reqMark = req ? ' <span class="req">*</span>' : '';
+    const helpEl  = help ? `<div class="help">${esc(help)}</div>` : '';
+    const ph = ctrl.placeholder ?? '';
+
+    switch (ctrl.controlType) {
+        case 0: // TextBox
+            return `<label>${esc(label)}${reqMark}</label><input type="text" placeholder="${esc(ph)}" disabled />${helpEl}`;
+        case 1: // TextArea
+            return `<label>${esc(label)}${reqMark}</label><textarea rows="3" placeholder="${esc(ph)}" disabled></textarea>${helpEl}`;
+        case 2: // Checkbox
+            return `<label><input type="checkbox" disabled style="margin-right:.4rem;" />${esc(label)}${reqMark}</label>${helpEl}`;
+        case 3: // MultiChoice
+        case 4: // Select
+        {
+            let opts = '<option value="">— select —</option>';
+            try {
+                const parsed = JSON.parse(ctrl.optionsJson ?? '[]');
+                parsed.forEach(o => { opts += `<option>${esc(o.label ?? o.value)}</option>`; });
+            } catch {}
+            return `<label>${esc(label)}${reqMark}</label><select disabled>${opts}</select>${helpEl}`;
+        }
+        case 5: // DateTimeInput
+            return `<label>${esc(label)}${reqMark}</label><input type="datetime-local" disabled />${helpEl}`;
+        case 6: // FileUpload
+            return `<label>${esc(label)}${reqMark}</label><input type="file" disabled />${helpEl}`;
+        default:
+            return `<label>${esc(label)}</label><input type="text" disabled />`;
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Save
+// ═══════════════════════════════════════════════════════════════════════════
+async function saveTemplate() {
+    const name = document.getElementById('tbName').value.trim();
+    if (!name) { alert('Please enter a template name.'); document.getElementById('tbName').focus(); return; }
+
+    setStatus('Saving…', 'saving');
+
+    const payload = {
+        templateId:     TEMPLATE_ID || null,
+        companyId:      COMPANY_ID,
+        name,
+        description:    document.getElementById('tbDesc').value.trim() || null,
+        templateType:   TEMPLATE_TYPE,
+        isActive:       document.getElementById('tbActive').checked,
+        layoutJson:     JSON.stringify(layout),
+        headerConfigJson: Object.keys(headerConfig).length ? JSON.stringify(headerConfig) : null,
+        footerConfigJson: Object.keys(footerConfig).length ? JSON.stringify(footerConfig) : null,
+    };
+
+    try {
+        const res = await fetch(SAVE_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': TOKEN,
+            },
+            body: JSON.stringify(payload),
+        });
+
+        if (!res.ok) {
+            const text = await res.text();
+            throw new Error(text || res.statusText);
+        }
+
+        const data = await res.json();
+        setStatus('Saved ✓', 'saved');
+        setTimeout(() => setStatus(''), 3000);
+
+        // Update URL without reload if this was a create
+        if (!TEMPLATE_ID && data.templateId) {
+            const isCert = TEMPLATE_TYPE === 1;
+            const base = isCert ? '/admin/certificatetemplates' : '/admin/formtemplates';
+            history.replaceState(null, '', `${base}/${data.templateId}/edit`);
+        }
+    } catch (err) {
+        setStatus(`Error: ${err.message}`, 'error');
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Helpers
+// ═══════════════════════════════════════════════════════════════════════════
+function syncCanvasEmpty() {
+    document.getElementById('canvasEmpty').style.display = layout.rows.length ? 'none' : 'flex';
+}
+
+function setStatus(msg, cls = '') {
+    const el = document.getElementById('tbStatus');
+    el.textContent = msg;
+    el.className = `tb-status ${cls}`;
+}
+
+function uid() {
+    return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+        (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
+}
+
+function esc(str) {
+    if (str == null) return '';
+    return String(str)
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;');
+}
+</script>
+
+@* Anti-forgery token for JS fetch calls *@
+<form id="__csrf" style="display:none;">@Html.AntiForgeryToken()</form>
+}

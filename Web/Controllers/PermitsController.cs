@@ -15,6 +15,7 @@ using PermitPro.Core.Entities;
 using PermitPro.Core.Enums;
 using PermitPro.Core.Helpers;
 using PermitPro.Core.Interfaces;
+using PermitPro.Core.Enums;
 
 using System.Collections;
 using System.Text.RegularExpressions;
@@ -32,6 +33,7 @@ public class PermitsController : AppControllerBase
 	private readonly IPermitPdfService _permitPdfService;
 	private readonly ILogService _logService;
 	private readonly ISystemConfigurationService _systemConfigurationService;
+	private readonly IFormTemplateService _formTemplates;
 
 	public PermitsController(
 		ApplicationDbContext dbContext
@@ -43,7 +45,8 @@ public class PermitsController : AppControllerBase
 		, IWebHostEnvironment webHostEnvironment
 		, ILogService logService
 		, IPermitService permitService
-		, IPermitPdfService permitPdfService) : base(dbContext, httpContextAccessor, signInManager, systemConfigurationService)
+		, IPermitPdfService permitPdfService
+		, IFormTemplateService formTemplates) : base(dbContext, httpContextAccessor, signInManager, systemConfigurationService)
 	{
 		_userManager = userManager;
 		_dbContext = dbContext;
@@ -53,6 +56,7 @@ public class PermitsController : AppControllerBase
 		_permitPdfService = permitPdfService;
 		_logService = logService;
 		_systemConfigurationService = systemConfigurationService;
+		_formTemplates = formTemplates;
 	}
 
 	[Route("{company}/permits/removefile")]
@@ -214,12 +218,14 @@ public class PermitsController : AppControllerBase
 
 
 	[Route("{company}/permits/new")]
-	public IActionResult New(Guid company)
+	public async Task<IActionResult> New(Guid company, CancellationToken ct)
 	{
+		if (IsNewSystemActive())
+			return RedirectToAction(nameof(NewForm), new { company });
+
 		var model = new PermitViewModel
 		{
 			CompanyId = company,
-			//UserRoles = await _currentUserService.GetCurrentUserRoles(),
 			EditPermitViewModel = new EditPermitViewModel
 			{
 				CompanyId = company,
@@ -230,6 +236,49 @@ public class PermitsController : AppControllerBase
 			},
 		};
 
+		return View(model);
+	}
+
+
+	[Route("{company}/permits/new/form")]
+	public async Task<IActionResult> NewForm(Guid company, CancellationToken ct)
+	{
+		var template = await _formTemplates.GetActiveAsync(company, Core.Enums.FormTemplateTypeEnum.Permit, ct);
+		if (template == null)
+		{
+			TempData["ErrorMessage"] = "No active permit form template found. Please configure one in Admin → Form Templates.";
+			return RedirectToAction(nameof(Index), new { company });
+		}
+
+		var controls = await _formTemplates.GetAllAsync(company, Core.Enums.FormTemplateTypeEnum.Permit, ct);
+		var model = BuildNewFormViewModel(company, template, null);
+		return View(model);
+	}
+
+
+	[Route("{company}/permits/edit/form/{id}")]
+	public async Task<IActionResult> EditForm(Guid company, Guid id, CancellationToken ct)
+	{
+		var permit = await _dbContext.Permits
+			.AsNoTracking()
+			.Include(p => p.Site)
+			.Include(p => p.PermitWorkflowStep).ThenInclude(s => s.Approvers)
+			.Include(p => p.WorkflowHistories)
+			.FirstOrDefaultAsync(p => p.Id == id, ct);
+
+		if (permit == null) return NotFound();
+
+		if (!IsNewSystemPermit(permit))
+			return RedirectToAction(nameof(Edit), new { company, id });
+
+		var templateId = ExtractTemplateIdFromDataJson(permit.PermitDataJson);
+		var template = templateId != Guid.Empty
+			? await _formTemplates.GetByIdAsync(templateId, ct)
+			: await _formTemplates.GetActiveAsync(company, Core.Enums.FormTemplateTypeEnum.Permit, ct);
+
+		if (template == null) return NotFound("Form template not found.");
+
+		var model = BuildNewFormViewModel(company, template, permit);
 		return View(model);
 	}
 
@@ -692,6 +741,44 @@ public class PermitsController : AppControllerBase
 		return File(pdf, "application/pdf", $"{Guid.NewGuid()}.pdf");
 	}
 
+
+	// ── New-system CRUD ───────────────────────────────────────────────────────
+
+	[HttpPost("{company}/permits/form")]
+	[ValidateAntiForgeryToken]
+	public async Task<IActionResult> SaveNewPermit(Guid company, string permitDataJson, Guid templateId, string submissionType, CancellationToken ct)
+	{
+		try
+		{
+			var permitId = await _permitService.CreateNewSystemAsync(
+				company, templateId, permitDataJson, submissionType ?? "draft", Request.Form.Files, ct);
+
+			return Ok(new { permitId });
+		}
+		catch (Exception ex)
+		{
+			return BadRequest(ex.Message);
+		}
+	}
+
+
+	[HttpPut("{company}/permits/form/{id}")]
+	[ValidateAntiForgeryToken]
+	public async Task<IActionResult> UpdateNewPermit(Guid company, Guid id, string permitDataJson, string submissionType, CancellationToken ct)
+	{
+		try
+		{
+			await _permitService.UpdateNewSystemAsync(
+				id, company, permitDataJson, submissionType ?? "draft", Request.Form.Files, ct);
+
+			return Ok(new { permitId = id });
+		}
+		catch (Exception ex)
+		{
+			return BadRequest(ex.Message);
+		}
+	}
+
 	#endregion
 
 
@@ -731,6 +818,140 @@ public class PermitsController : AppControllerBase
 	{
 		public string Code { get; init; }
 		public string Description { get; init; }
+	}
+
+	private bool IsNewSystemActive()
+		=> _systemConfigurationService.NewPermitFormCutoverDate.HasValue
+		   && DateTime.UtcNow >= _systemConfigurationService.NewPermitFormCutoverDate.Value;
+
+	private bool IsNewSystemPermit(Permit permit)
+		=> _systemConfigurationService.NewPermitFormCutoverDate.HasValue
+		   && permit.CreatedWhen >= _systemConfigurationService.NewPermitFormCutoverDate.Value;
+
+	private static Guid ExtractTemplateIdFromDataJson(string permitDataJson)
+	{
+		if (string.IsNullOrWhiteSpace(permitDataJson)) return Guid.Empty;
+		try
+		{
+			using var doc = JsonDocument.Parse(permitDataJson);
+			if (doc.RootElement.TryGetProperty("templateId", out var el) && el.TryGetGuid(out var id))
+				return id;
+		}
+		catch { }
+		return Guid.Empty;
+	}
+
+	private EditPermitViewModel BuildNewFormViewModel(Guid companyId, Core.Entities.FormTemplate template, Permit permit)
+	{
+		// Enrich LayoutJson: embed full control data into each column slot so the
+		// view script can render each field without a separate API call.
+		var enrichedLayout = EnrichLayout(template.LayoutJson, companyId);
+
+		return new EditPermitViewModel
+		{
+			IsNewSystemPermit = true,
+			PermitId = permit?.Id ?? Guid.Empty,
+			PermitNo = permit != null ? $"PTW{permit.RunningNumber:000000}" : "(new)",
+			PermitStatus = permit?.PermitStatus ?? PermitStatusEnum.Draft,
+			PermitStatusDisplay = permit != null
+				? GeneralHelper.GetPermitStatusDisplay(permit.PermitStatus, permit.PermitWorkflowStep?.Name)
+				: "Draft",
+			AlertBgColor = permit != null ? GeneralHelper.GetAlertBgColor(permit.PermitStatus) : "secondary",
+			CompanyId = companyId,
+			ActiveTemplateId = template.Id,
+			LayoutJson = enrichedLayout,
+			PermitDataJson = permit?.PermitDataJson,
+			UserRoles = _currentUserService.GetCurrentUserRoles().Result,
+			WorkflowHistories = permit?.WorkflowHistories?
+				.OrderByDescending(h => h.CreatedWhen)
+				.Select(h => new WorkflowHistoryViewModel
+				{
+					UserDisplayName = _dbContext.Users
+						.Where(u => u.Id.ToLower() == h.CreatedBy.ToString().ToLower())
+						.Select(u => $"{u.FirstName} {u.LastName}")
+						.FirstOrDefault() ?? "Unknown",
+					DateCreated = $"{GeneralHelper.GetDateInTimeZone(h.CreatedWhen):dd MMM, yyyy} at {GeneralHelper.GetDateInTimeZone(h.CreatedWhen):hh:mm tt}",
+					Status = h.Status.ToString(),
+					Comments = h.Comments,
+					StatusBgColor = GeneralHelper.GetAlertBgColor(h.Status),
+				})
+				.ToList() ?? new(),
+			UploadAllowedFileTypes = _systemConfigurationService.UploadAllowedFileTypes.Split(";"),
+			UploadFileSizeLimit = _systemConfigurationService.UploadMaxFileSize,
+			UploadMaxFileCount = _systemConfigurationService.UploadMaxFileCount,
+		};
+	}
+
+	private string EnrichLayout(string layoutJson, Guid companyId)
+	{
+		try
+		{
+			using var doc = JsonDocument.Parse(layoutJson);
+			var root = doc.RootElement;
+
+			// Collect all distinct controlIds referenced in the layout
+			var controlIds = root.GetProperty("rows").EnumerateArray()
+				.SelectMany(r => r.GetProperty("columns").EnumerateArray())
+				.Where(c => c.TryGetProperty("controlId", out var cid) && cid.ValueKind != JsonValueKind.Null)
+				.Select(c => { c.GetProperty("controlId").TryGetGuid(out var id); return id; })
+				.Where(id => id != Guid.Empty)
+				.Distinct()
+				.ToList();
+
+			var controls = _dbContext.FormControls
+				.AsNoTracking()
+				.Where(c => c.CompanyId == companyId && controlIds.Contains(c.Id))
+				.Select(c => new
+				{
+					c.Id, c.Name, c.Label, ControlType = (int)c.ControlType,
+					c.IsRequired, c.Placeholder, c.HelpText, c.OptionsJson,
+				})
+				.ToList();
+
+			var controlMap = controls.ToDictionary(c => c.Id);
+
+			// Rebuild layout JSON with embedded control data
+			var opts = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+
+			var enriched = new
+			{
+				rows = root.GetProperty("rows").EnumerateArray().Select(row => new
+				{
+					id = row.GetProperty("id").GetString(),
+					columnCount = row.GetProperty("columnCount").GetInt32(),
+					columns = row.GetProperty("columns").EnumerateArray().Select(col =>
+					{
+						Guid? ctrlId = null;
+						if (col.TryGetProperty("controlId", out var cidEl) && cidEl.ValueKind != JsonValueKind.Null)
+							cidEl.TryGetGuid(out var tmpId);
+
+						col.TryGetProperty("controlId", out var cidEl2);
+						Guid parsedId = Guid.Empty;
+						if (cidEl2.ValueKind != JsonValueKind.Null) cidEl2.TryGetGuid(out parsedId);
+
+						object control = null;
+						if (parsedId != Guid.Empty && controlMap.TryGetValue(parsedId, out var ctrl))
+							control = ctrl;
+
+						return new
+						{
+							id = col.GetProperty("id").GetString(),
+							controlId = parsedId == Guid.Empty ? (Guid?)null : parsedId,
+							labelOverride = col.TryGetProperty("labelOverride", out var lo) && lo.ValueKind != JsonValueKind.Null ? lo.GetString() : null,
+							isRequiredOverride = col.TryGetProperty("isRequiredOverride", out var iro) && iro.ValueKind == JsonValueKind.True ? (bool?)true :
+												 iro.ValueKind == JsonValueKind.False ? (bool?)false : null,
+							control,
+						};
+					}).ToList(),
+				}).ToList(),
+			};
+
+			return JsonSerializer.Serialize(enriched, opts);
+		}
+		catch
+		{
+			return layoutJson;
+		}
 	}
 
 	#endregion

@@ -1,0 +1,77 @@
+@using System.Text.Json
+@model PermitPro.App.ViewModels.EditPermitViewModel
+
+@{
+    ViewData["Title"] = "New Permit";
+    var companyId = ViewContext.RouteData.Values["company"] as string;
+    var layoutJson = Model.LayoutJson ?? "{\"rows\":[]}";
+    var controlLibraryJson = "[]";
+}
+
+<div class="d-flex flex-column flex-md-row mb-2">
+    <div id="form-permit" class="flex-grow-1 mb-3">
+
+        @* ── Status bar ───────────────────────────────────────────────────── *@
+        <div class="alert alert-secondary mb-3" role="alert">
+            <div class="d-flex flex-row align-items-center">
+                <a class="me-3 text-dark" href="/@companyId/permits">
+                    <i class="fa-sharp fa-regular fa-chevron-left fa-xl"></i>
+                </a>
+                <h5 class="mb-0 w-100">New Permit</h5>
+                <div class="text-end">
+                    <span class="fw-semibold fs-6 text-muted">Draft</span>
+                </div>
+            </div>
+        </div>
+
+        @* ── Dynamic form ─────────────────────────────────────────────────── *@
+        <form id="frmNewPermit" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="templateId" value="@Model.ActiveTemplateId" />
+            <input type="hidden" id="hdnPermitDataJson" name="permitDataJson" value="" />
+            <input type="hidden" id="hdnSubmissionType" name="submissionType" value="draft" />
+
+            <div id="permitFormCanvas" class="mb-3"></div>
+
+            @* ── File attachments ─────────────────────────────────────────── *@
+            <div class="card shadow-sm border-0 mb-3">
+                <div class="card-header bg-light fw-semibold">
+                    <i class="fa-solid fa-paperclip me-2"></i> Attachments
+                </div>
+                <div class="card-body">
+                    <input type="file" name="files" id="fileInput" multiple
+                           accept="@string.Join(",", Model.UploadAllowedFileTypes.Select(t => "." + t))"
+                           class="form-control form-control-sm" />
+                    <div class="form-text">
+                        Max @Model.UploadMaxFileCount files · @(Model.UploadFileSizeLimit / 1024 / 1024) MB each ·
+                        Allowed: @string.Join(", ", Model.UploadAllowedFileTypes)
+                    </div>
+                </div>
+            </div>
+
+            @* ── Actions ──────────────────────────────────────────────────── *@
+            <div class="d-flex gap-2 justify-content-end mb-4">
+                <a href="/@companyId/permits" class="btn btn-outline-secondary btn-sm align-content-center">
+                    <i class="fa-solid fa-xmark me-1"></i> Cancel
+                </a>
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="submitPermit('draft')">
+                    <i class="fa-solid fa-floppy-disk me-1"></i> Save Draft
+                </button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="submitPermit('submit')">
+                    <i class="fa-solid fa-paper-plane me-1"></i> Submit
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+const LAYOUT   = @Html.Raw(layoutJson);
+const FIELDS   = {};
+const READONLY = false;
+const SAVE_URL = '/@companyId/permits/form';
+const METHOD   = 'POST';
+</script>
+<partial name="~/Views/Permits/Partials/_NewFormScript.cshtml" />
+}

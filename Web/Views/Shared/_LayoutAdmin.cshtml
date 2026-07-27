@@ -123,6 +123,15 @@
 				class="@(ViewContext.RouteData.Values["action"]?.ToString() == "Logs" ? "active" : "")">
 				<i class="fa-solid fa-file-lines me-1"></i> Logs
 			</a>
+			@{
+				var ctrl = ViewContext.RouteData.Values["controller"]?.ToString();
+			}
+			@if (ctrl == "AdminFormControls" || ctrl == "AdminFormTemplates")
+			{
+				<a href="#" class="active">
+					<i class="fa-solid fa-sliders me-1"></i> Form Builder
+				</a>
+			}
 			<a href="/admin/logout">
 				<i class="fa-solid fa-arrow-right-from-bracket me-1"></i> Sign Out
 			</a>

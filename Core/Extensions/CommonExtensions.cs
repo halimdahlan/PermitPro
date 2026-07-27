@@ -29,5 +29,7 @@ public static class CommonExtensions
 		services.AddScoped<IMessageService, MessageService>();
 		services.AddScoped<ILogService, LogService>();
 		services.AddScoped<IAppSettingsService, AppSettingsService>();
+		services.AddScoped<IFormControlService, FormControlService>();
+		services.AddScoped<IFormTemplateService, FormTemplateService>();
 	}
 }

@@ -7,6 +7,12 @@ namespace PermitPro.App.ViewModels;
 
 public record EditPermitViewModel
 {
+	// ── New-system fields (populated when IsNewSystemPermit = true) ───────────
+	public bool IsNewSystemPermit { get; set; }
+	public Guid? ActiveTemplateId { get; set; }
+	public string LayoutJson { get; set; }
+	public string PermitDataJson { get; set; }
+	public List<FormControlLibraryItem> ControlLibrary { get; set; } = new();
 	public string PermitNo { get; set; }
 
 	public Guid PermitId { get; set; }

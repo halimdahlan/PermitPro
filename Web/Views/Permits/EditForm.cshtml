@@ -1,0 +1,136 @@
+@using System.Text.Json
+@model PermitPro.App.ViewModels.EditPermitViewModel
+
+@{
+    ViewData["Title"] = "Edit Permit";
+    var companyId = ViewContext.RouteData.Values["company"] as string;
+    var layoutJson = Model.LayoutJson ?? "{\"rows\":[]}";
+    var isReadonly = Model.PermitStatus != PermitPro.Core.Enums.PermitStatusEnum.Draft;
+
+    // Parse saved field values from PermitDataJson
+    var savedFields = "{}";
+    if (!string.IsNullOrWhiteSpace(Model.PermitDataJson))
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(Model.PermitDataJson);
+            if (doc.RootElement.TryGetProperty("fields", out var fieldsEl))
+                savedFields = fieldsEl.GetRawText();
+        }
+        catch { }
+    }
+}
+
+<div class="d-flex flex-column flex-md-row mb-2">
+    <div id="form-permit" class="flex-grow-1 mb-3">
+
+        @* ── Status bar ───────────────────────────────────────────────────── *@
+        <div class="alert alert-@Model.AlertBgColor mb-3" role="alert">
+            <div class="d-flex flex-row align-items-center">
+                <a class="me-3 text-dark" href="/@companyId/permits">
+                    <i class="fa-sharp fa-regular fa-chevron-left fa-xl"></i>
+                </a>
+                <h5 class="mb-0">@Model.PermitNo</h5>
+                <div class="w-100 text-end">
+                    <span class="fw-semibold fs-6">@Model.PermitStatusDisplay</span>
+                </div>
+            </div>
+        </div>
+
+        @if (isReadonly)
+        {
+            <div class="alert alert-info d-flex align-items-center gap-2 mb-3" role="alert">
+                <i class="fa-solid fa-lock"></i>
+                <span>This permit is <strong>@Model.PermitStatus</strong> and cannot be edited.</span>
+            </div>
+        }
+
+        @* ── Dynamic form ─────────────────────────────────────────────────── *@
+        <form id="frmNewPermit" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="hdnPermitDataJson" name="permitDataJson" value="" />
+            <input type="hidden" id="hdnSubmissionType" name="submissionType" value="draft" />
+
+            <div id="permitFormCanvas" class="mb-3"></div>
+
+            @* ── File attachments ─────────────────────────────────────────── *@
+            @if (!isReadonly)
+            {
+                <div class="card shadow-sm border-0 mb-3">
+                    <div class="card-header bg-light fw-semibold">
+                        <i class="fa-solid fa-paperclip me-2"></i> Attachments
+                    </div>
+                    <div class="card-body">
+                        <input type="file" name="files" id="fileInput" multiple
+                               accept="@string.Join(",", Model.UploadAllowedFileTypes.Select(t => "." + t))"
+                               class="form-control form-control-sm" />
+                        <div class="form-text">
+                            Max @Model.UploadMaxFileCount files · @(Model.UploadFileSizeLimit / 1024 / 1024) MB each ·
+                            Allowed: @string.Join(", ", Model.UploadAllowedFileTypes)
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @* ── Actions ──────────────────────────────────────────────────── *@
+            @if (!isReadonly)
+            {
+                <div class="d-flex gap-2 justify-content-end mb-4">
+                    <a href="/@companyId/permits" class="btn btn-outline-secondary btn-sm">
+                        <i class="fa-solid fa-xmark me-1"></i> Cancel
+                    </a>
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="submitPermit('draft')">
+                        <i class="fa-solid fa-floppy-disk me-1"></i> Save Draft
+                    </button>
+                    <button type="button" class="btn btn-primary btn-sm" onclick="submitPermit('submit')">
+                        <i class="fa-solid fa-paper-plane me-1"></i> Submit
+                    </button>
+                </div>
+            }
+        </form>
+
+        @* ── Workflow history ─────────────────────────────────────────────── *@
+        @if (Model.WorkflowHistories?.Any() == true)
+        {
+            <div class="card shadow-sm border-0 mb-3">
+                <div class="card-header bg-light fw-semibold">
+                    <i class="fa-solid fa-clock-rotate-left me-2"></i> Workflow History
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-sm mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="padding-left:1rem;">Date</th>
+                                <th>Status</th>
+                                <th>By</th>
+                                <th>Comments</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var h in Model.WorkflowHistories)
+                            {
+                                <tr>
+                                    <td style="padding-left:1rem;white-space:nowrap;"><small class="text-muted">@h.DateCreated</small></td>
+                                    <td><span class="badge bg-@h.StatusBgColor-subtle text-@h.StatusBgColor-emphasis border">@h.Status</span></td>
+                                    <td><small>@h.UserDisplayName</small></td>
+                                    <td><small class="text-muted">@h.Comments</small></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+<script>
+const LAYOUT   = @Html.Raw(layoutJson);
+const FIELDS   = @Html.Raw(savedFields);
+const READONLY = @Html.Raw(isReadonly ? "true" : "false");
+const SAVE_URL = '/@companyId/permits/form/@Model.PermitId';
+const METHOD   = 'PUT';
+</script>
+<partial name="~/Views/Permits/Partials/_NewFormScript.cshtml" />
+}

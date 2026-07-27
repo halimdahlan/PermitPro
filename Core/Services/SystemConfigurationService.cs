@@ -98,6 +98,17 @@ public class SystemConfigurationService : ISystemConfigurationService
 
    public int SuspendedAutoResume => _appSettings.GetIntAsync(GetCurrentCompanyId(), "workflow", "suspended_autoresume_days").GetAwaiter().GetResult();
 
+   public DateTime? NewPermitFormCutoverDate
+   {
+       get
+       {
+           var val = _appSettings.GetValueAsync(GetCurrentCompanyId(), "general", "new_permit_form_cutover_date").GetAwaiter().GetResult();
+           if (DateTime.TryParse(val, out var date))
+               return date;
+           return null;
+       }
+   }
+
    public void Init()
 	{
 		var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
