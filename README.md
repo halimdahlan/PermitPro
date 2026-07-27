@@ -253,6 +253,109 @@ Roles support soft-delete via `ISoftDeletable` and carry audit fields (`CreatedW
 
 ---
 
+## Planned Enhancements
+
+Seven-phase enhancement to introduce a drag-drop form builder, dynamic permit/certificate forms, QuestPDF export for new permits, and full Telerik removal.
+
+### Phase 1 — Database & Entity Foundation
+
+New entities and migration (`AddFormBuilderFoundation`):
+
+- **`FormControl`** — reusable UI control definition per company. Fields: `Id`, `CompanyId`, `Name`, `Label`, `ControlType` (enum: `TextBox`, `TextArea`, `Checkbox`, `MultiChoice`, `Select`, `DateTimeInput`, `FileUpload`), `OptionsJson` (Select/MultiChoice/FileUpload config), `IsRequired`, `Placeholder`, `HelpText`, `SortOrder`. Soft-deletable.
+- **`FormTemplate`** — drag-drop layout for a permit or certificate form. Fields: `Id`, `CompanyId`, `Name`, `Description`, `TemplateType` (enum: `Permit`, `Certificate`), `LayoutJson` (rows/columns/control references), `HeaderConfigJson`, `FooterConfigJson`, `IsActive`. Auditable + soft-deletable.
+- **`Permit.PermitDataJson`** (new nullable column) — stores filled form field values for new-system permits. Existing `PermitForm` column retained and untouched for old-system permits.
+- New DbSets: `FormControls`, `FormTemplates`.
+- New services registered in `CommonExtensions.AddPermitProServices()`: `IFormControlService`, `IFormTemplateService`.
+
+`PermitDataJson` structure:
+```json
+{
+  "templateId": "guid",
+  "savedAt": "2026-07-27T10:00:00Z",
+  "fields": {
+    "col-uuid-1": "text value",
+    "col-uuid-2": true,
+    "col-uuid-3": ["option-a"],
+    "col-uuid-4": "2026-07-28T08:00:00",
+    "col-uuid-5": ["attachment-guid-1"]
+  }
+}
+```
+
+`LayoutJson` structure — each row declares a `columnCount` (1, 2, or 3) which divides the row into equal-width slots. A `columnCount: 1` row spans the full page width; `columnCount: 2` splits into two halves; `columnCount: 3` splits into thirds. All columns in a row share the same width.
+```json
+{
+  "rows": [
+    {
+      "id": "row-uuid",
+      "columnCount": 2,
+      "columns": [
+        { "id": "col-uuid-1", "controlId": "form-control-uuid", "labelOverride": null, "isRequiredOverride": null },
+        { "id": "col-uuid-2", "controlId": null, "labelOverride": null, "isRequiredOverride": null }
+      ]
+    }
+  ]
+}
+```
+`columns` always has exactly `columnCount` entries. A slot with `controlId: null` renders as an empty placeholder. Reordering rows or changing `columnCount` in the builder re-initialises the column array (controls already placed in removed slots are returned to the library panel).
+
+### Phase 2 — Custom Controls Management (`/admin/formcontrols`)
+
+Admin section to define reusable `FormControl` records. No Telerik — plain HTML table, native `<dialog>` modals. When `ControlType` is `Select` or `MultiChoice`, a dynamic JS options list is revealed. `FileUpload` controls store config in `OptionsJson` (`maxFiles`, `allowedTypes`). Uploaded files link back to form fields via the existing `Attachments` table using the column UUID as a field key.
+
+### Phase 3 — Form Template Builder (`/admin/formtemplates`)
+
+Drag-drop layout designer using **Sortable.js** (vanilla JS, no jQuery dependency added). Left panel: available controls library. Center: form canvas with droppable rows. Each row has a **column count selector** (1 / 2 / 3) shown in the row header — changing it redistributes the row's slots (controls displaced from removed slots return to the library panel). Controls are dragged from the library into a column slot; each slot accepts exactly one control. Right panel: property editor for the focused control instance (label override, required override). Toolbar: name, type, Save, Preview, Set as Active. Header/footer config per template (logo, permit number, site name, date, custom text) stored in `HeaderConfigJson` / `FooterConfigJson`. Certificate templates accessible at `/admin/certificatetemplates` (same builder, pre-filtered to `TemplateType.Certificate`).
+
+### Phase 4 — New-System Permit Form Rendering
+
+**Cutover date** — new `AppSetting` (`general` / `new_permit_form_cutover_date`). Exposed on `ISystemConfigurationService` as `DateTime? NewPermitFormCutoverDate`. Permits created on or after the cutover date use the new form system; earlier permits continue to use the existing views unchanged.
+
+Bifurcation in `PermitsController`:
+```csharp
+private bool IsNewSystemPermit(Permit permit) =>
+    _config.NewPermitFormCutoverDate.HasValue &&
+    permit.CreatedWhen >= _config.NewPermitFormCutoverDate.Value;
+```
+
+New views (no Telerik): `Views/Permits/NewForm.cshtml`, `EditForm.cshtml`, `ViewForm.cshtml` — all rendered dynamically from the active `FormTemplate.LayoutJson`.
+
+### Phase 5 — PDF Export (Dual-engine)
+
+| Permit age | PDF engine | Template source |
+|---|---|---|
+| Old (before cutover date) | PuppeteerSharp + Scriban | Existing `PermitPdfService` — **unchanged** |
+| New (on/after cutover date) | **QuestPDF** | `FormTemplate.LayoutJson` + `PermitDataJson` |
+
+Both engines implement a shared `IPermitPdfService` interface (`GenerateAsync(Permit) → byte[]`). `PermitsController.ExportPdf` delegates to the appropriate implementation based on `IsNewSystemPermit`. PuppeteerSharp and Scriban are **not removed** — old permits continue to use them. QuestPDF document structure: header (from `HeaderConfigJson`), body (rows/columns matching layout), footer (from `FooterConfigJson`). `FileUpload` fields embed images inline in the PDF; other file types render as a filename list.
+
+### Phase 6 — Certificate Form Customization
+
+Certificates gain the same form-builder treatment as permits.
+
+- `Certificate` entity gains `FormTemplateId` (nullable FK → `FormTemplates`) and `CertificateDataJson` (string?). Migration: `AddCertificateFormBuilder`.
+- Old hardcoded certificate partials (`_HotWork.cshtml`, `_ConfinedSpace.cshtml`, etc.) preserved for pre-cutover permits.
+- New-system permits render attached certificates from `CertificateDataJson` + the linked `FormTemplate`.
+- QuestPDF embeds certificates as sub-sections within the permit PDF export.
+
+### Phase 7 — Telerik (Kendo UI) Removal
+
+Systematic replacement across all views, executed after Phase 4–6 features are live.
+
+| Kendo Component | Replacement |
+|---|---|
+| Kendo Grid | Plain `<table>` + server-side AJAX pagination |
+| Kendo DropDownList | Native `<select>` + Tom Select (for search/multi) |
+| Kendo DateTimePicker | Native `<input type="datetime-local">` |
+| Kendo Window/Dialog | Native `<dialog>` element |
+| Kendo Notification | Custom `wwwroot/js/toast.js` |
+| Kendo Chart | Chart.js (already in use on dashboard/workflow pages) |
+| Kendo Upload | Native `<input type="file">` + existing upload endpoint |
+
+Order: shared utilities first → Admin pages → Permits pages → remaining pages → remove Telerik NuGet packages and `Telerik/` DLL folder → remove `'unsafe-inline'` from CSP.
+
+---
+
 ## Getting Started
 
 ### Prerequisites

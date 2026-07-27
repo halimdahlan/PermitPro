@@ -67,11 +67,22 @@ Two-tier key-value system in `AppSettingCategory` / `AppSetting` tables. Global 
 
 ### PDF Generation
 
-`PermitPdfService` uses PuppeteerSharp (headless Chrome). Templates rendered via Scriban (`ITemplateService` → `RazorViewsTemplateService`). PDF-specific layout: `Views/Shared/_LayoutPdf.cshtml`.
+Two engines coexist:
+- **Old-system permits** (created before `new_permit_form_cutover_date`) — `PermitPdfService` using PuppeteerSharp (headless Chrome) + Scriban templates. `ITemplateService` → `RazorViewsTemplateService`. PDF-specific layout: `Views/Shared/_LayoutPdf.cshtml`. Do not modify or remove this path.
+- **New-system permits** (on/after cutover date) — `QuestPdfService` using QuestPDF, driven by `FormTemplate.LayoutJson` and `Permit.PermitDataJson`. Both implement `IPermitPdfService`; `PermitsController.ExportPdf` selects the correct implementation via `IsNewSystemPermit(permit)`.
 
 ### UI Framework
 
-Kendo UI for ASP.NET Core (Telerik) — grids, dropdowns, modals, charts. Licensed DLLs in `Telerik/`. Chart.js used additionally on workflow/dashboard pages. `'unsafe-inline'` is required in CSP because Kendo emits inline scripts/styles.
+**In progress — Telerik removal (Phase 7).** Kendo UI for ASP.NET Core (Telerik) is being replaced across all views. Replacements: plain `<table>` + AJAX pagination for grids, native `<select>` + Tom Select for dropdowns, native `<dialog>` for modals, `wwwroot/js/toast.js` for notifications, Chart.js for charts, native `<input type="file">` for uploads. Licensed DLLs remain in `Telerik/` until all views are migrated; `'unsafe-inline'` in CSP remains required until Kendo is fully removed. New views (Phases 2–6) must not use Telerik/Kendo.
+
+### Form Builder
+
+New-system permits and certificates use a drag-drop form builder:
+- **`FormControl`** entity (`Core/Entities/FormControl.cs`) — reusable control definitions per company. `ControlType` enum: `TextBox`, `TextArea`, `Checkbox`, `MultiChoice`, `Select`, `DateTimeInput`, `FileUpload`.
+- **`FormTemplate`** entity (`Core/Entities/FormTemplate.cs`) — layout JSON (`LayoutJson`) defining rows and control placements. Each row has a `columnCount` (1, 2, or 3) — all columns in a row are equal width. A slot with `controlId: null` renders as empty. `TemplateType` enum: `Permit`, `Certificate`. One active template per company+type at a time.
+- **`Permit.PermitDataJson`** — filled field values for new-system permits, keyed by column UUID from `LayoutJson`. `Permit.PermitForm` (old field) unchanged.
+- Admin routes: `/admin/formcontrols` (manage controls), `/admin/formtemplates` (permit layout builder), `/admin/certificatetemplates` (certificate layout builder).
+- Cutover date: `AppSetting` category `general`, key `new_permit_form_cutover_date`. Exposed as `ISystemConfigurationService.NewPermitFormCutoverDate`. Null = new system disabled.
 
 ### SignalR
 
