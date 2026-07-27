@@ -38,6 +38,7 @@ PermitPro-1.2/
 │   │   ├── MaintenanceController.cs
 │   │   ├── ScheduledTaskController.cs
 │   │   └── ToolsController.cs      # System menu management
+│   ├── Extensions/             # Web-layer DI extensions (AddDatabase, AddIdentityConfiguration, AddJwtAuthentication, AddRateLimiting, AddWebServices)
 │   ├── Hubs/                   # SignalR hubs (NotificationHub)
 │   ├── Models/                 # AJAX request/response models, chart models, typed permit request models
 │   ├── Services/               # Web-layer services (NotificationPushService)
@@ -59,7 +60,7 @@ PermitPro-1.2/
 │   ├── Filters/                # Authorization filters
 │   ├── Helpers/                # Email, JWT, PTW settings helpers
 │   ├── Interceptors/           # EF Core audit interceptor
-│   ├── Extensions/             # DI registration (AddPermitProServices)
+│   ├── Extensions/             # Core DI registration (AddPermitProServices)
 │   ├── Migrations/             # EF Core database migrations
 │   └── PTW/                    # Permit-to-Work template data
 ├── Telerik/                    # Kendo UI / Telerik DLL references

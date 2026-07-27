@@ -45,7 +45,17 @@ All tenant routes follow the pattern `/{company}/{controller}/{action}/{id?}` wh
 
 ### Service Registration
 
-All core services are registered in `Core/Extensions/CommonExtensions.cs` → `AddPermitProServices()`. Web-specific services (e.g., `NotificationPushService`) are registered in `Program.cs`.
+Service registration is split across two extension classes:
+
+- **Core services** — `Core/Extensions/CommonExtensions.cs` → `AddPermitProServices()` registers domain services (`IPermitService`, `IUserService`, `IAppSettingsService`, etc.), EF Core interceptors, and Data Protection.
+- **Web services** — `Web/Extensions/WebExtensions.cs` provides five focused extension methods:
+  - `AddDatabase(connectionString)` — DbContext + developer exception filter
+  - `AddIdentityConfiguration()` — ASP.NET Identity, password policy, cookie settings, token lifetime
+  - `AddJwtAuthentication(jwtSettings)` — JWT Bearer scheme
+  - `AddRateLimiting()` — fixed-window auth rate limiter
+  - `AddWebServices(connectionString)` — health checks, response caching, session, MVC/Razor/Kendo/SignalR, `NotificationPushService`
+
+`Program.cs` calls these extension methods in sequence — no DI registration logic lives in `Program.cs` directly.
 
 ### Connection String Resolution
 
