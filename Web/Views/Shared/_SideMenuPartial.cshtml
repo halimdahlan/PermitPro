@@ -23,6 +23,8 @@
 	var currentAction = ViewContext.RouteData.Values["action"] as string;
 	var navSettings = currentRoute?.ToLower() == "settings" && currentAction?.ToLower() != "about" ? "active" : "";
 	var navAbout = currentRoute?.ToLower() == "settings" && currentAction?.ToLower() == "about" ? "active" : "";
+	var navFormControls = currentRoute?.ToLower() == "tenantformcontrols" ? "active" : "";
+	var navFormTemplates = currentRoute?.ToLower() == "tenantformtemplates" ? "active" : "";
 	var navGeneral = currentRoute?.ToLower() == "dashboard" ? "active" : "";
 	var navRecycleBin = currentRoute?.ToLower() == "recyclebin" ? " active" : "";
 	var showMenu = "";
@@ -144,13 +146,16 @@
 					<i class="fa-solid fa-cog fa-fw me-3"></i>System Settings
 				</a>
 			</li>
-			<!--
 			<li class="nav-item">
-				<a href="/@companyId/settings/about" class="nav-link @navAbout">
-					<i class="fa-solid fa-circle-info fa-fw me-3"></i>About
+				<a href="/@companyId/formcontrols" class="nav-link @navFormControls">
+					<i class="fa-solid fa-sliders fa-fw me-3"></i>Form Controls
 				</a>
 			</li>
-			-->
+			<li class="nav-item">
+				<a href="/@companyId/formtemplates" class="nav-link @navFormTemplates">
+					<i class="fa-solid fa-table-columns fa-fw me-3"></i>Form Templates
+				</a>
+			</li>
 		}
 	</ul>
 }

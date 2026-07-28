@@ -12,6 +12,9 @@ public record EditPermitViewModel
 	public Guid? ActiveTemplateId { get; set; }
 	public string LayoutJson { get; set; }
 	public string PermitDataJson { get; set; }
+	public string PermitDescription { get; set; }
+	public DateTime? PermitStartDateTime { get; set; }
+	public DateTime? PermitEndDateTime { get; set; }
 	public List<FormControlLibraryItem> ControlLibrary { get; set; } = new();
 	public string PermitNo { get; set; }
 

@@ -19,8 +19,8 @@ public interface IPermitService : IEntityOperation<Permit>
 	Task UpdateAsync(Guid permitId, Guid companyId, string permitForm, string submissionType, IFormFileCollection files);
 
 	// New-system: stores field values as PermitDataJson, no Scriban template
-	Task<Guid> CreateNewSystemAsync(Guid companyId, Guid templateId, string permitDataJson, string submissionType, IFormFileCollection files, CancellationToken ct = default);
-	Task UpdateNewSystemAsync(Guid permitId, Guid companyId, string permitDataJson, string submissionType, IFormFileCollection files, CancellationToken ct = default);
+	Task<Guid> CreateNewSystemAsync(Guid companyId, Guid templateId, string description, DateTime? startDateTime, DateTime? endDateTime, string permitDataJson, string submissionType, IFormFileCollection files, CancellationToken ct = default);
+	Task UpdateNewSystemAsync(Guid permitId, Guid companyId, string description, DateTime? startDateTime, DateTime? endDateTime, string permitDataJson, string submissionType, IFormFileCollection files, CancellationToken ct = default);
 
 	IEnumerable<Permit> GetPermitsBySite(Site site);
 

@@ -2,19 +2,22 @@
 @model PermitPro.App.ViewModels.FormTemplatesIndexViewModel
 
 @{
-    Layout = "_LayoutAdmin";
+    var isTenant = ViewContext.RouteData.Values["company"] != null;
+    Layout = isTenant ? "_Layout" : "_LayoutAdmin";
     var isCert = Model.TypeFilter == FormTemplateTypeEnum.Certificate;
     var title = isCert ? "Certificate Templates" : "Form Templates";
     var icon  = isCert ? "fa-certificate" : "fa-table-columns";
-    var newUrl = isCert
-        ? $"/admin/certificatetemplates/new?companyId={Model.CompanyId}"
-        : $"/admin/formtemplates/new?companyId={Model.CompanyId}";
-    var editBase = isCert ? "/admin/certificatetemplates" : "/admin/formtemplates";
+    var newUrl = isTenant
+        ? (isCert ? $"/{Model.CompanyId}/certificatetemplates/new" : $"/{Model.CompanyId}/formtemplates/new")
+        : (isCert ? $"/admin/certificatetemplates/new?companyId={Model.CompanyId}" : $"/admin/formtemplates/new?companyId={Model.CompanyId}");
+    var editBase = isTenant
+        ? (isCert ? $"/{Model.CompanyId}/certificatetemplates" : $"/{Model.CompanyId}/formtemplates")
+        : (isCert ? "/admin/certificatetemplates" : "/admin/formtemplates");
     ViewData["Title"] = title;
 }
 
-<div class="page-header">
-    <h4><i class="fa-solid @icon me-2 text-primary"></i> @title</h4>
+<div class="page-header d-flex align-items-center flex-row justify-content-between mb-3">
+    <h6 class="mb-0"><i class="fa-solid @icon me-2 text-primary"></i> @title</h6>
     <a href="@newUrl" class="btn btn-primary btn-sm">
         <i class="fa-solid fa-plus me-1"></i> New Template
     </a>
@@ -89,16 +92,19 @@
                                     </form>
                                 }
 
-                                <form method="post" action="@editBase/@t.Id/delete" class="d-inline"
-                                      onsubmit="return confirm('Delete template \'@t.Name\'?')">
-                                    <input type="hidden" name="companyId" value="@Model.CompanyId" />
-                                    <input type="hidden" name="type" value="@((int)t.TemplateType)" />
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete"
-                                            @(t.IsActive ? "disabled title=\"Cannot delete the active template\"" : "")>
+                                @if (!t.IsActive)
+                                {
+                                    <button type="button" class="btn btn-sm btn-outline-danger" title="Delete"
+                                            onclick="confirmDelete('@editBase/@t.Id/delete', '@Html.Raw(t.Name.Replace("'", "\\'"))', @((int)t.TemplateType))">
                                         <i class="fa-solid fa-trash"></i>
                                     </button>
-                                </form>
+                                }
+                                else
+                                {
+                                    <button type="button" class="btn btn-sm btn-outline-danger" disabled title="Cannot delete the active template">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                }
                             </td>
                         </tr>
                     }
@@ -112,3 +118,47 @@
     @Model.Templates.Count @(Model.Templates.Count == 1 ? "template" : "templates") total &bull;
     @Model.Templates.Count(t => t.IsActive) active
 </div>
+
+@* ── Delete confirm modal ─────────────────────────────────────────────────── *@
+<div class="modal fade" id="dlgDeleteConfirm" tabindex="-1" aria-labelledby="dlgDeleteConfirmTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h6 class="modal-title fw-semibold" id="dlgDeleteConfirmTitle">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i> Confirm Delete
+                </h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">Are you sure you want to delete <strong id="dlgDeleteItemName"></strong>? This cannot be undone.</p>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="frmDeleteConfirm" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="hdnDeleteCompanyId" name="companyId" value="@Model.CompanyId" />
+                    <input type="hidden" id="hdnDeleteType" name="type" value="" />
+                    <button type="submit" class="btn btn-sm btn-danger">
+                        <i class="fa-solid fa-trash me-1"></i> Yes, delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    let bsDeleteModal = null;
+    document.addEventListener('DOMContentLoaded', () => {
+        bsDeleteModal = new bootstrap.Modal(document.getElementById('dlgDeleteConfirm'));
+    });
+
+    function confirmDelete(actionUrl, itemName, templateType) {
+        document.getElementById('dlgDeleteItemName').textContent = itemName;
+        document.getElementById('frmDeleteConfirm').action = actionUrl;
+        document.getElementById('hdnDeleteType').value = templateType;
+        bsDeleteModal.show();
+    }
+</script>
+}

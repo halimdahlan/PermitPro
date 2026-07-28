@@ -1,12 +1,11 @@
 ﻿#nullable disable
 
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.Json;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-
-using System.Text.Json;
 
 using PermitPro.App.Controllers.Base;
 using PermitPro.App.ViewModels;
@@ -15,9 +14,9 @@ using PermitPro.Core.Entities;
 using PermitPro.Core.Enums;
 using PermitPro.Core.Helpers;
 using PermitPro.Core.Interfaces;
-using PermitPro.Core.Enums;
 
 using System.Collections;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace PermitPro.App.Controllers;
@@ -31,6 +30,7 @@ public class PermitsController : AppControllerBase
 	private readonly IWebHostEnvironment _webHostEnvironment;
 	private readonly IPermitService _permitService;
 	private readonly IPermitPdfService _permitPdfService;
+	private readonly IQuestPdfService _questPdfService;
 	private readonly ILogService _logService;
 	private readonly ISystemConfigurationService _systemConfigurationService;
 	private readonly IFormTemplateService _formTemplates;
@@ -46,6 +46,7 @@ public class PermitsController : AppControllerBase
 		, ILogService logService
 		, IPermitService permitService
 		, IPermitPdfService permitPdfService
+		, IQuestPdfService questPdfService
 		, IFormTemplateService formTemplates) : base(dbContext, httpContextAccessor, signInManager, systemConfigurationService)
 	{
 		_userManager = userManager;
@@ -54,6 +55,7 @@ public class PermitsController : AppControllerBase
 		_webHostEnvironment = webHostEnvironment;
 		_permitService = permitService;
 		_permitPdfService = permitPdfService;
+		_questPdfService = questPdfService;
 		_logService = logService;
 		_systemConfigurationService = systemConfigurationService;
 		_formTemplates = formTemplates;
@@ -81,13 +83,23 @@ public class PermitsController : AppControllerBase
 
 
 	[Route("{company}/permits/edit/{id}")]
-	public async Task<IActionResult> Edit(Guid company, Guid id, string origin)
+	public async Task<IActionResult> Edit(Guid company, Guid id, string origin, CancellationToken ct = default)
 	{
 		if (!string.IsNullOrEmpty(origin) && origin == "email")
 		{
 			var returnUrl = $"/{company}/permits/edit/{id}";
 			return LocalRedirectPermanent($"/account/login?url={returnUrl}");
 		}
+
+		// New-system permits use a different view — redirect immediately.
+		var permitCheck = _dbContext.Permits.AsNoTracking()
+			.Where(p => p.Id == id)
+			.Select(p => new { p.CreatedWhen })
+			.FirstOrDefault();
+
+		if (permitCheck != null && _systemConfigurationService.NewPermitFormCutoverDate.HasValue
+			&& permitCheck.CreatedWhen >= _systemConfigurationService.NewPermitFormCutoverDate.Value)
+			return RedirectToAction(nameof(EditForm), new { company, id });
 
 		var permit = _dbContext.Permits
 			.Include(e => e.Site)
@@ -165,7 +177,7 @@ public class PermitsController : AppControllerBase
 			{
 				PermitNo = $"PTW{permit.RunningNumber:000000}",
 				PermitId = permit.Id,
-				PermitJson = regEx.Replace(permit.PermitForm, toReplace),
+				PermitJson = permit.PermitForm != null ? regEx.Replace(permit.PermitForm, toReplace) : string.Empty,
 				PermitStatus = permit.PermitStatus,
 				PermitStatusDisplay = GeneralHelper.GetPermitStatusDisplay(permit.PermitStatus, permit.PermitWorkflowStep.Name),
 				WorkflowStepName = permit.PermitWorkflowStep != null ? permit.PermitWorkflowStep.Name : null,
@@ -251,7 +263,7 @@ public class PermitsController : AppControllerBase
 		}
 
 		var controls = await _formTemplates.GetAllAsync(company, Core.Enums.FormTemplateTypeEnum.Permit, ct);
-		var model = BuildNewFormViewModel(company, template, null);
+		var model = BuildNewFormViewModel(company, template, null, false, null);
 		return View(model);
 	}
 
@@ -259,6 +271,9 @@ public class PermitsController : AppControllerBase
 	[Route("{company}/permits/edit/form/{id}")]
 	public async Task<IActionResult> EditForm(Guid company, Guid id, CancellationToken ct)
 	{
+		var currentUser = _currentUserService.GetCurrentUser();
+		var currentUserIsAdmin = await _userManager.IsInRoleAsync(currentUser, "Super User") || await _userManager.IsInRoleAsync(currentUser, "Administrator");
+
 		var permit = await _dbContext.Permits
 			.AsNoTracking()
 			.Include(p => p.Site)
@@ -278,7 +293,7 @@ public class PermitsController : AppControllerBase
 
 		if (template == null) return NotFound("Form template not found.");
 
-		var model = BuildNewFormViewModel(company, template, permit);
+		var model = BuildNewFormViewModel(company, template, permit, currentUserIsAdmin, currentUser.Id);
 		return View(model);
 	}
 
@@ -296,29 +311,28 @@ public class PermitsController : AppControllerBase
 	{
 		var isContractor = await _currentUserService.IsContractor();
 
-		var data = _dbContext.Permits
+		var query = _dbContext.Permits
 			.AsNoTracking()
 			.Include(e => e.Site)
-			.Include(e => e.Attachments)
-			.Include(e => e.PermitWorkflowStep)
-			.ThenInclude(e => e.WorkflowStepWorkflow)
+			.Include(e => e.PermitWorkflowStep).ThenInclude(e => e.WorkflowStepWorkflow)
 			.Where(e => e.Company.Id == company)
 			.OrderByDescending(e => e.CreatedWhen)
 			.Select(e => new
 			{
 				e.Id,
 				e.PermitForm,
+				e.PermitDataJson,
+				e.Title,
+				e.Description,
+				e.StartDateTime,
+				e.EndDateTime,
 				e.RunningNumber,
-				LocationName = e.Site.Name,
+				LocationName = e.Site != null ? e.Site.Name : "",
 				PermitStatus = e.PermitStatus.ToString().ToUpper(),
 				e.CreatedWhen,
 				e.CreatedBy,
 				SubmittedBy = _dbContext.Users
-					.Select(p => new
-					{
-						UserId = p.Id,
-						FullName = $"{p.FirstName} {p.LastName}"
-					})
+					.Select(p => new { UserId = p.Id, FullName = $"{p.FirstName} {p.LastName}" })
 					.SingleOrDefault(u => u.UserId == e.CreatedBy.ToString().ToLower())
 					.FullName ?? "Unknown",
 			});
@@ -326,64 +340,76 @@ public class PermitsController : AppControllerBase
 		if (isContractor)
 		{
 			var _currentUser = _currentUserService.GetCurrentUser();
-			data = data.Where(e => e.CreatedBy.ToString().ToLower() == _currentUser.Id.ToLower());
+			query = query.Where(e => e.CreatedBy.ToString().ToLower() == _currentUser.Id.ToLower());
 		}
 
-		var permits = data.ToList();
-
+		var permits = query.ToList();
 
 		List<PermitListViewModel> result = new();
 
 		foreach (var permit in permits)
 		{
-			using var doc = JsonDocument.Parse(permit.PermitForm);
-			var general = doc.RootElement.GetProperty("general");
-
-			var description = general.TryGetProperty("description", out var descEl) ? descEl.GetString() ?? "" : "";
-			var dtmStart = general.TryGetProperty("startDateTime", out var s) && s.ValueKind != JsonValueKind.Null ? s.GetString() : null;
-			var dtmEnd   = general.TryGetProperty("endDateTime",   out var en) && en.ValueKind != JsonValueKind.Null ? en.GetString() : null;
-
+			// Title/Description: prefer DB columns (populated by both systems).
+			// Fall back to parsing PermitForm JSON only for legacy rows that predate
+			// the migration backfill (i.e. Title is still null).
+			string description = permit.Description ?? "";
+			DateTime? dtmStart = permit.StartDateTime;
+			DateTime? dtmEnd = permit.EndDateTime;
 			List<string> certs = new();
-			if (general.TryGetProperty("certificates", out var certsEl) && certsEl.ValueKind == JsonValueKind.Array)
+
+			if (permit.Title == null && !string.IsNullOrEmpty(permit.PermitForm))
 			{
-				foreach (var cert in certsEl.EnumerateArray())
+				try
 				{
-					if (!cert.TryGetProperty("name", out var nameEl)) continue;
-					var certName = nameEl.GetString() ?? "";
+					using var doc = JsonDocument.Parse(permit.PermitForm);
+					var general = doc.RootElement.GetProperty("general");
+					description = general.TryGetProperty("description", out var descEl) ? descEl.GetString() ?? "" : "";
+					var sStr = general.TryGetProperty("startDateTime", out var s) && s.ValueKind != JsonValueKind.Null ? s.GetString() : null;
+					var eStr = general.TryGetProperty("endDateTime", out var en) && en.ValueKind != JsonValueKind.Null ? en.GetString() : null;
+					if (sStr != null) dtmStart = DateTime.Parse(sStr).ToLocalTime();
+					if (eStr != null) dtmEnd = DateTime.Parse(eStr).ToLocalTime();
 
-					CertificateIcon selectedCert = certName.ToLower() switch
+					if (general.TryGetProperty("certificates", out var certsEl) && certsEl.ValueKind == JsonValueKind.Array)
 					{
-						"hotwork"         => new() { Code = "A", Description = "Hot Work" },
-						"confinedspace"   => new() { Code = "B", Description = "Confined Space" },
-						"radiation"       => new() { Code = "C", Description = "Radiation" },
-						"excavation"      => new() { Code = "D", Description = "Excavation" },
-						"isolation"       => new() { Code = "E", Description = "Isolation" },
-						"methodstatement" => new() { Code = "F", Description = "Method Statement" },
-						"liftinghoisting" => new() { Code = "G", Description = "Lifting & Hoisting" },
-						"override"        => new() { Code = "H", Description = "Override" },
-						_                 => new() { Code = "X", Description = certName },
-					};
-
-					certs.Add($"<img title=\"({selectedCert.Code}) {selectedCert.Description}\" src=\"/img/icons/certs/{certName.ToLower()}.png\" style=\"width:32px;height:32px;margin-right:3px;\" />");
+						foreach (var cert in certsEl.EnumerateArray())
+						{
+							if (!cert.TryGetProperty("name", out var nameEl)) continue;
+							var certName = nameEl.GetString() ?? "";
+							CertificateIcon selectedCert = certName.ToLower() switch
+							{
+								"hotwork" => new() { Code = "A", Description = "Hot Work" },
+								"confinedspace" => new() { Code = "B", Description = "Confined Space" },
+								"radiation" => new() { Code = "C", Description = "Radiation" },
+								"excavation" => new() { Code = "D", Description = "Excavation" },
+								"isolation" => new() { Code = "E", Description = "Isolation" },
+								"methodstatement" => new() { Code = "F", Description = "Method Statement" },
+								"liftinghoisting" => new() { Code = "G", Description = "Lifting & Hoisting" },
+								"override" => new() { Code = "H", Description = "Override" },
+								_ => new() { Code = "X", Description = certName },
+							};
+							certs.Add($"<img title=\"({selectedCert.Code}) {selectedCert.Description}\" src=\"/img/icons/certs/{certName.ToLower()}.png\" style=\"width:32px;height:32px;margin-right:3px;\" />");
+						}
+					}
 				}
+				catch { /* malformed JSON — leave defaults */ }
 			}
 
-			var newPermit = new PermitListViewModel
+			result.Add(new PermitListViewModel
 			{
 				Id = permit.Id,
 				PermitNumber = string.Format("PTW{0:000000}", permit.RunningNumber),
-				Description = GetTruncatedWords(description, 20),
+				Description = GetTruncatedWords(permit.Title ?? description, 20),
 				Location = permit.LocationName,
-				StartDate = !string.IsNullOrEmpty(dtmStart) ? DateTime.Parse(dtmStart).ToLocalTime() : null,
-				EndDate   = !string.IsNullOrEmpty(dtmEnd)   ? DateTime.Parse(dtmEnd).ToLocalTime()   : null,
-				Certificates = certs.Count > 0 ? "<div class=\"d-flex flex-row certificate-icons justify-content-center\">" + string.Join("", certs) + "</div>" : "",
+				StartDate = dtmStart,
+				EndDate = dtmEnd,
+				Certificates = certs.Count > 0
+					? "<div class=\"d-flex flex-row certificate-icons justify-content-center\">" + string.Join("", certs) + "</div>"
+					: "",
 				Status = permit.PermitStatus,
 				StatusBadge = GeneralHelper.GetStatusBadge(permit.PermitStatus.ToUpper()),
 				DateSubmitted = GeneralHelper.GetDateInTimeZone(permit.CreatedWhen),
 				SubmittedBy = permit.SubmittedBy,
-			};
-
-			result.Add(newPermit);
+			});
 		}
 
 		return new JsonResult(result, new JsonSerializerOptions
@@ -448,7 +474,7 @@ public class PermitsController : AppControllerBase
 	#region "GET"
 
 	[HttpGet("{company}/permits/permit/{id}/files")]
-	public IActionResult GetUploadedFiles(Guid company, Guid id)
+	public JsonResult GetUploadedFiles(Guid company, Guid id)
 	{
 		var files = _dbContext.Attachments
 			.AsNoTracking()
@@ -467,9 +493,9 @@ public class PermitsController : AppControllerBase
 			})
 			.ToList();
 
-		return Ok(new
+		return new JsonResult(files, new JsonSerializerOptions
 		{
-			Data = files,
+			PropertyNamingPolicy = null,
 		});
 	}
 
@@ -582,6 +608,70 @@ public class PermitsController : AppControllerBase
 			return BadRequest(ex.Message);
 		}
 
+	}
+
+
+	[HttpPost("{company}/permits/{id}/attachments/upload")]
+	[ValidateAntiForgeryToken]
+	public async Task<IActionResult> UploadAttachment(Guid company, Guid id, IFormFileCollection files, CancellationToken ct)
+	{
+		var permit = await _dbContext.Permits.FindAsync([id], ct);
+		if (permit is null) return NotFound();
+
+		var maxSize  = _systemConfigurationService.UploadMaxFileSize;
+		var maxCount = _systemConfigurationService.UploadMaxFileCount;
+		var allowed  = (_systemConfigurationService.UploadAllowedFileTypes ?? "")
+						.Split([',', ';'], StringSplitOptions.RemoveEmptyEntries)
+						.Select(e => e.Trim().TrimStart('.').ToLower())
+						.ToHashSet();
+
+		var added = new List<object>();
+
+		foreach (var file in files.Where(f => f.Length > 0))
+		{
+			var ext      = Path.GetExtension(file.FileName).TrimStart('.').ToLower();
+			var safeName = Path.GetFileName(file.FileName);
+			if (string.IsNullOrWhiteSpace(safeName)) continue;
+			if (allowed.Count > 0 && !allowed.Contains(ext)) continue;
+			if (file.Length > maxSize) continue;
+
+			var existing = await _dbContext.Attachments.CountAsync(a => a.Permit.Id == id, ct);
+			if (existing >= maxCount) break;
+
+			var folder = Path.Combine(_webHostEnvironment.WebRootPath, "attachments", "permits", id.ToString().ToLower());
+			Directory.CreateDirectory(folder);
+
+			var filePath = Path.Combine(folder, safeName);
+			await using (var fs = new FileStream(filePath, FileMode.Create))
+				await file.CopyToAsync(fs, ct);
+
+			var fi = new FileInfo(filePath);
+
+			if (!_dbContext.Attachments.Any(a => a.FileName == safeName && a.Permit.Id == id))
+			{
+				var attachment = new Attachment
+				{
+					FileName    = safeName,
+					ContentType = ext,
+					Permit      = permit,
+					FileSize    = (int)fi.Length,
+				};
+				_dbContext.Attachments.Add(attachment);
+				await _dbContext.SaveChangesAsync(ct);
+
+				added.Add(new
+				{
+					attachment.Id,
+					PermitId    = id,
+					attachment.FileName,
+					FileSize    = $"{(attachment.FileSize / 1024):n0}",
+					attachment.ContentType,
+					CreatedWhen = GeneralHelper.GetDateInTimeZone(attachment.CreatedWhen).ToString("dd MMM, yyyy"),
+				});
+			}
+		}
+
+		return Ok(new { Data = added });
 	}
 
 
@@ -735,10 +825,34 @@ public class PermitsController : AppControllerBase
 
 
 	[HttpPost("{company}/permits/permit/export/pdf")]
-	public async Task<IActionResult> ExportPdf(Guid company)
+	public async Task<IActionResult> ExportPdf(Guid company, CancellationToken ct)
 	{
-		var pdf = await _permitPdfService.GetPdfBytesAsync(Request.Form);
-		return File(pdf, "application/pdf", $"{Guid.NewGuid()}.pdf");
+		if (!Guid.TryParse(Request.Form["Id"], out var permitId))
+			return BadRequest("Invalid permit ID.");
+
+		var permitCheck = await _dbContext.Permits
+			.AsNoTracking()
+			.Include(p => p.Company)
+			.Include(p => p.Site)
+			.Include(p => p.PermitWorkflowStep)
+			.Include(p => p.WorkflowHistories)
+			.FirstOrDefaultAsync(p => p.Id == permitId, ct);
+
+		if (permitCheck == null) return NotFound();
+
+		byte[] pdf;
+
+		if (_systemConfigurationService.NewPermitFormCutoverDate.HasValue
+			&& permitCheck.CreatedWhen >= _systemConfigurationService.NewPermitFormCutoverDate.Value)
+		{
+			pdf = await _questPdfService.GenerateAsync(permitCheck, ct);
+		}
+		else
+		{
+			pdf = await _permitPdfService.GetPdfBytesAsync(Request.Form);
+		}
+
+		return File(pdf, "application/pdf", $"PTW{permitCheck.RunningNumber:000000}.pdf");
 	}
 
 
@@ -746,12 +860,15 @@ public class PermitsController : AppControllerBase
 
 	[HttpPost("{company}/permits/form")]
 	[ValidateAntiForgeryToken]
-	public async Task<IActionResult> SaveNewPermit(Guid company, string permitDataJson, Guid templateId, string submissionType, CancellationToken ct)
+	public async Task<IActionResult> SaveNewPermit(Guid company, string description, string startDateTime, string endDateTime, string permitDataJson, Guid templateId, string submissionType, IFormFileCollection permitFiles, CancellationToken ct)
 	{
 		try
 		{
+			DateTime? start = DateTime.TryParse(startDateTime, out var s) ? s : null;
+			DateTime? end   = DateTime.TryParse(endDateTime,   out var e) ? e : null;
+
 			var permitId = await _permitService.CreateNewSystemAsync(
-				company, templateId, permitDataJson, submissionType ?? "draft", Request.Form.Files, ct);
+				company, templateId, description, start, end, permitDataJson, submissionType ?? "draft", permitFiles, ct);
 
 			return Ok(new { permitId });
 		}
@@ -764,12 +881,15 @@ public class PermitsController : AppControllerBase
 
 	[HttpPut("{company}/permits/form/{id}")]
 	[ValidateAntiForgeryToken]
-	public async Task<IActionResult> UpdateNewPermit(Guid company, Guid id, string permitDataJson, string submissionType, CancellationToken ct)
+	public async Task<IActionResult> UpdateNewPermit(Guid company, Guid id, string description, string startDateTime, string endDateTime, string permitDataJson, string submissionType, IFormFileCollection permitFiles, CancellationToken ct)
 	{
 		try
 		{
+			DateTime? start = DateTime.TryParse(startDateTime, out var s) ? s : null;
+			DateTime? end   = DateTime.TryParse(endDateTime,   out var e) ? e : null;
+
 			await _permitService.UpdateNewSystemAsync(
-				id, company, permitDataJson, submissionType ?? "draft", Request.Form.Files, ct);
+				id, company, description, start, end, permitDataJson, submissionType ?? "draft", permitFiles, ct);
 
 			return Ok(new { permitId = id });
 		}
@@ -822,11 +942,11 @@ public class PermitsController : AppControllerBase
 
 	private bool IsNewSystemActive()
 		=> _systemConfigurationService.NewPermitFormCutoverDate.HasValue
-		   && DateTime.UtcNow >= _systemConfigurationService.NewPermitFormCutoverDate.Value;
+			&& DateTime.UtcNow >= _systemConfigurationService.NewPermitFormCutoverDate.Value;
 
 	private bool IsNewSystemPermit(Permit permit)
 		=> _systemConfigurationService.NewPermitFormCutoverDate.HasValue
-		   && permit.CreatedWhen >= _systemConfigurationService.NewPermitFormCutoverDate.Value;
+			&& permit.CreatedWhen >= _systemConfigurationService.NewPermitFormCutoverDate.Value;
 
 	private static Guid ExtractTemplateIdFromDataJson(string permitDataJson)
 	{
@@ -841,13 +961,12 @@ public class PermitsController : AppControllerBase
 		return Guid.Empty;
 	}
 
-	private EditPermitViewModel BuildNewFormViewModel(Guid companyId, Core.Entities.FormTemplate template, Permit permit)
+	private EditPermitViewModel BuildNewFormViewModel(Guid companyId, Core.Entities.FormTemplate template, Permit permit, bool currentUserIsAdmin, string currentUserId)
 	{
 		// Enrich LayoutJson: embed full control data into each column slot so the
 		// view script can render each field without a separate API call.
 		var enrichedLayout = EnrichLayout(template.LayoutJson, companyId);
-
-		return new EditPermitViewModel
+		var model = new EditPermitViewModel
 		{
 			IsNewSystemPermit = true,
 			PermitId = permit?.Id ?? Guid.Empty,
@@ -861,6 +980,9 @@ public class PermitsController : AppControllerBase
 			ActiveTemplateId = template.Id,
 			LayoutJson = enrichedLayout,
 			PermitDataJson = permit?.PermitDataJson,
+			PermitDescription = permit?.Description,
+			PermitStartDateTime = permit?.StartDateTime?.ToLocalTime(),
+			PermitEndDateTime = permit?.EndDateTime?.ToLocalTime(),
 			UserRoles = _currentUserService.GetCurrentUserRoles().Result,
 			WorkflowHistories = permit?.WorkflowHistories?
 				.OrderByDescending(h => h.CreatedWhen)
@@ -879,7 +1001,37 @@ public class PermitsController : AppControllerBase
 			UploadAllowedFileTypes = _systemConfigurationService.UploadAllowedFileTypes.Split(";"),
 			UploadFileSizeLimit = _systemConfigurationService.UploadMaxFileSize,
 			UploadMaxFileCount = _systemConfigurationService.UploadMaxFileCount,
+			ExecuteWorkflowAction = false,
+			PermitCreatedByInfo = permit == null ? null : BuildUserDateInfo(permit.CreatedBy, permit.CreatedWhen),
+			PermitUpdatedByInfo = permit?.UpdatedWhen == null ? null : BuildUserDateInfo(permit.UpdatedBy, permit.UpdatedWhen.Value),
 		};
+
+		if (currentUserIsAdmin)
+		{
+			model.ExecuteWorkflowAction = true;
+		}
+		else
+		{
+			if (permit != null && permit.PermitWorkflowStep != null)
+			{
+				if (!string.IsNullOrEmpty(currentUserId))
+				{
+					model.ExecuteWorkflowAction = permit.PermitWorkflowStep.Approvers.Any(e => e.Id == currentUserId);
+				}
+			}
+		}
+
+		return model;
+	}
+
+	private string BuildUserDateInfo(Guid? userId, DateTime when)
+	{
+		var name = userId == null ? "Unknown" :
+			_dbContext.Users
+				.Where(u => u.Id == userId.Value.ToString().ToLower())
+				.Select(u => $"{u.FirstName} {u.LastName}")
+				.FirstOrDefault() ?? "Unknown";
+		return $"{name} on {GeneralHelper.GetDateInTimeZone(when):dd MMM, yyyy} at {GeneralHelper.GetDateInTimeZone(when):hh:mm tt}";
 	}
 
 	private string EnrichLayout(string layoutJson, Guid companyId)
@@ -903,8 +1055,14 @@ public class PermitsController : AppControllerBase
 				.Where(c => c.CompanyId == companyId && controlIds.Contains(c.Id))
 				.Select(c => new
 				{
-					c.Id, c.Name, c.Label, ControlType = (int)c.ControlType,
-					c.IsRequired, c.Placeholder, c.HelpText, c.OptionsJson,
+					c.Id,
+					c.Name,
+					c.Label,
+					ControlType = (int)c.ControlType,
+					c.IsRequired,
+					c.Placeholder,
+					c.HelpText,
+					c.OptionsJson,
 				})
 				.ToList();
 
@@ -921,7 +1079,8 @@ public class PermitsController : AppControllerBase
 					columnCount = row.GetProperty("columnCount").GetInt32(),
 					columns = row.GetProperty("columns").EnumerateArray().Select(col =>
 					{
-						Guid? ctrlId = null;
+						//Guid? ctrlId = null;
+
 						if (col.TryGetProperty("controlId", out var cidEl) && cidEl.ValueKind != JsonValueKind.Null)
 							cidEl.TryGetGuid(out var tmpId);
 

@@ -3,11 +3,12 @@
 @model PermitPro.App.ViewModels.FormBuilderViewModel
 
 @{
-    Layout = "_LayoutAdmin";
+    var isTenant = ViewContext.RouteData.Values["company"] != null;
+    Layout = isTenant ? "_Layout" : "_LayoutAdmin";
     var isCert = Model.TemplateType == FormTemplateTypeEnum.Certificate;
-    var listUrl = isCert
-        ? $"/admin/certificatetemplates?companyId={Model.CompanyId}"
-        : $"/admin/formtemplates?companyId={Model.CompanyId}";
+    var listUrl = isTenant
+        ? (isCert ? $"/{Model.CompanyId}/certificatetemplates" : $"/{Model.CompanyId}/formtemplates")
+        : (isCert ? $"/admin/certificatetemplates?companyId={Model.CompanyId}" : $"/admin/formtemplates?companyId={Model.CompanyId}");
     ViewData["Title"] = Model.IsEdit ? "Edit Template" : "New Template";
 
     var controlLibraryJson = JsonSerializer.Serialize(Model.ControlLibrary.Select(c => new {
@@ -500,7 +501,10 @@
 const COMPANY_ID   = '@Model.CompanyId';
 const TEMPLATE_ID  = '@(Model.TemplateId?.ToString() ?? "")';
 const TEMPLATE_TYPE = @((int)Model.TemplateType);
-const SAVE_URL     = '/admin/formtemplates/save';
+// Tenant-facing controllers live under /{company}/formtemplates/save;
+// Super Admin controllers live under /admin/formtemplates/save.
+const IS_TENANT    = @Html.Raw(ViewContext.RouteData.Values["company"] != null ? "true" : "false");
+const SAVE_URL     = IS_TENANT ? `/${COMPANY_ID}/formtemplates/save` : '/admin/formtemplates/save';
 let TOKEN          = '';
 
 const controlLibrary = @Html.Raw(controlLibraryJson);
@@ -528,7 +532,9 @@ const TYPE_ICONS = {
 // Init
 // ═══════════════════════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
-    TOKEN = document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+    TOKEN     = document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+    bsHdrFtr  = new bootstrap.Modal(document.getElementById('dlgHdrFtr'));
+    bsPreview = new bootstrap.Modal(document.getElementById('previewModal'));
 
     renderLibrary(controlLibrary);
     initSortableLibrary();
@@ -886,8 +892,10 @@ function switchPropsTab(tab, btn) {
 // ═══════════════════════════════════════════════════════════════════════════
 // Header / Footer modal
 // ═══════════════════════════════════════════════════════════════════════════
-const bsHdrFtr  = new bootstrap.Modal(document.getElementById('dlgHdrFtr'));
-const bsPreview = new bootstrap.Modal(document.getElementById('previewModal'));
+// Instantiated inside DOMContentLoaded so Bootstrap is guaranteed to be loaded
+// (in _Layout, bootstrap.bundle.min.js is injected AFTER @@section Scripts).
+let bsHdrFtr  = null;
+let bsPreview = null;
 
 function openHeaderFooterDialog() {
     document.getElementById('hdrLogo').checked     = !!headerConfig.showCompanyLogo;

@@ -995,6 +995,9 @@ namespace PermitPro.Core.Migrations
                     b.Property<DateTime?>("SuspendedDateTime")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Title")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<Guid?>("UpdatedBy")
                         .HasColumnType("uniqueidentifier");
 

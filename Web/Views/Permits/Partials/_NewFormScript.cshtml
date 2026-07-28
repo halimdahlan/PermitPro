@@ -1,6 +1,45 @@
 @* Shared script for NewForm.cshtml and EditForm.cshtml.
    Expects caller to declare: LAYOUT, FIELDS, READONLY, SAVE_URL, METHOD *@
 <style>
+/* ── Dropzone ────────────────────────────────────────────────────────────── */
+.pf-dropzone {
+    border: 2px dashed #cbd5e1;
+    border-radius: .5rem;
+    padding: 1.25rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+    background: #f9fafb;
+    user-select: none;
+}
+.pf-dropzone.drag-over {
+    border-color: #3b82f6;
+    background: #eff6ff;
+}
+.pf-dropzone .dz-icon { font-size: 1.6rem; color: #94a3b8; margin-bottom: .4rem; }
+.pf-dropzone .dz-label { font-size: .85rem; color: #64748b; }
+.pf-dropzone .dz-hint  { font-size: .75rem; color: #94a3b8; margin-top: .2rem; }
+.pf-file-list { margin-top: .75rem; }
+.pf-file-item {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .3rem .6rem;
+    border: 1px solid #e2e8f0;
+    border-radius: .35rem;
+    background: #fff;
+    margin-bottom: .3rem;
+    font-size: .82rem;
+}
+.pf-file-item .pf-file-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pf-file-item .pf-file-size { color: #94a3b8; flex-shrink: 0; }
+.pf-file-remove {
+    background: none; border: none; color: #94a3b8; cursor: pointer;
+    padding: 0; line-height: 1; flex-shrink: 0;
+}
+.pf-file-remove:hover { color: #ef4444; }
+</style>
+<style>
 .pf-row   { display:grid; gap:1rem; margin-bottom:1.25rem; }
 .pf-row.cols-1 { grid-template-columns:1fr; }
 .pf-row.cols-2 { grid-template-columns:1fr 1fr; }
@@ -13,11 +52,243 @@
     border-radius:.4rem;
     background:#f9fafb;
 }
+/* Flatpickr — match Bootstrap form-control sizing */
+.flatpickr-input { background-color:#fff !important; }
+.flatpickr-input.is-invalid { border-color:#dc3545 !important; }
+.flatpickr-input.is-valid   { border-color:#198754 !important; }
+/* Validation feedback */
+.pf-error { display:none; font-size:.8rem; color:#dc3545; margin-top:.25rem; }
+.pf-error.visible { display:block; }
+.was-validated .form-control:invalid,
+.form-control.is-invalid { border-color:#dc3545; background-image:none; }
+.was-validated .form-control:valid,
+.form-control.is-valid   { border-color:#198754; background-image:none; }
 </style>
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     renderPermitForm(LAYOUT, FIELDS, READONLY);
+    initFlatpickr();
+    initDropzone();
 });
+
+// ── Flatpickr init ────────────────────────────────────────────────────────
+// Initialise the fixed start/end date fields and any DateTimeInput controls
+// that were rendered into the canvas after renderPermitForm().
+function initFlatpickr() {
+    const baseOpts = {
+        enableTime: true,
+        dateFormat: 'Y-m-d H:i',
+        altInput: true,
+        altFormat: 'd M Y  H:i',
+        time_24hr: true,
+        allowInput: true,
+        disableMobile: false,
+        defaultHour: 0,
+        defaultMinute: 0,
+        onReady(_, __, fp) {
+            fp.altInput.removeAttribute('name');
+        },
+    };
+
+    // Start date — when changed, update end date's minDate to match
+    const startEl = document.getElementById('fldStartDateTime');
+    const endEl   = document.getElementById('fldEndDateTime');
+
+    if (startEl && !startEl.hasAttribute('readonly')) {
+        flatpickr(startEl, {
+            ...baseOpts,
+            onChange(dates) {
+                clearFieldError(startEl);
+                const fpEnd = endEl?._flatpickr;
+                if (!fpEnd) return;
+                if (dates[0]) {
+                    fpEnd.set('minDate', dates[0]);
+                    // If end is already set but now before start, clear it
+                    if (fpEnd.selectedDates[0] && fpEnd.selectedDates[0] < dates[0]) {
+                        fpEnd.clear();
+                    }
+                } else {
+                    fpEnd.set('minDate', null);
+                }
+            },
+        });
+    }
+
+    if (endEl && !endEl.hasAttribute('readonly')) {
+        flatpickr(endEl, {
+            ...baseOpts,
+            // If start is already populated when end initialises, apply minDate immediately
+            onReady(_, __, fp) {
+                fp.altInput.removeAttribute('name');
+                const fpStart = startEl?._flatpickr;
+                if (fpStart?.selectedDates[0]) fp.set('minDate', fpStart.selectedDates[0]);
+            },
+            onChange(dates) { clearFieldError(endEl); },
+        });
+    }
+
+    // Canvas DateTimeInput controls (type 5) — re-init after canvas render
+    document.querySelectorAll('.pf-flatpickr').forEach(el => {
+        if (el._flatpickr) return;
+        flatpickr(el, {
+            ...baseOpts,
+            onChange(dates) { clearFieldError(el); },
+        });
+    });
+}
+
+// ── Dropzone ──────────────────────────────────────────────────────────────
+// pendingFiles: staged for submit when no permit ID exists yet (new permit).
+// When PERMIT_ID is set, files upload immediately and the saved list reloads.
+let pendingFiles = [];
+
+function initDropzone() {
+    const el = document.getElementById('dropzone');
+    if (!el) return;
+
+    const maxFiles = parseInt(el.dataset.maxFiles || '5');
+    const maxBytes = parseInt(el.dataset.maxSize  || '3145728');
+    const accept   = (el.dataset.accept || '').split(',').map(s => s.trim().replace('.','').toLowerCase()).filter(Boolean);
+
+    // Determine mode: if a permit ID is known, upload immediately
+    const autoUpload = typeof PERMIT_ID !== 'undefined' && PERMIT_ID && PERMIT_ID !== '00000000-0000-0000-0000-000000000000';
+
+    el.innerHTML = `
+        <div class="pf-dropzone" id="dzInner">
+            <div class="dz-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+            <div class="dz-label">Drag &amp; drop files here, or
+                <span style="color:#3b82f6;text-decoration:underline;cursor:pointer;" id="dzBrowse">browse</span>
+            </div>
+            <div class="dz-hint">Max ${maxFiles} files · ${Math.round(maxBytes/1024/1024)} MB each · ${accept.join(', ').toUpperCase()}</div>
+        </div>
+        <div class="pf-file-list" id="dzFileList"></div>`;
+
+    // Hidden input placed outside any form — Kendo scans forms, not document.body
+    const hiddenInput = document.createElement('input');
+    hiddenInput.type          = 'file';
+    hiddenInput.multiple      = true;
+    hiddenInput.accept        = el.dataset.accept || '';
+    hiddenInput.style.display = 'none';
+    document.body.appendChild(hiddenInput);
+
+    const inner = document.getElementById('dzInner');
+
+    const onFiles = files => {
+        if (autoUpload) uploadFilesNow(files, maxFiles, maxBytes, accept);
+        else            stageFiles(files, maxFiles, maxBytes, accept);
+        hiddenInput.value = '';
+    };
+
+    el.addEventListener('click', () => hiddenInput.click());
+    document.getElementById('dzBrowse')?.addEventListener('click', e => { e.stopPropagation(); hiddenInput.click(); });
+    hiddenInput.addEventListener('change', () => onFiles(Array.from(hiddenInput.files)));
+
+    inner.addEventListener('dragover',  e => { e.preventDefault(); inner.classList.add('drag-over'); });
+    inner.addEventListener('dragleave', ()  => inner.classList.remove('drag-over'));
+    inner.addEventListener('drop',      e  => {
+        e.preventDefault();
+        inner.classList.remove('drag-over');
+        onFiles(Array.from(e.dataTransfer.files));
+    });
+}
+
+// ── Immediate upload (edit mode — permit already exists) ──────────────────
+async function uploadFilesNow(newFiles, maxFiles, maxBytes, accept) {
+    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+    const companyId = location.pathname.split('/')[1];
+
+    for (const file of newFiles) {
+        if (!validateFile(file, maxBytes, accept)) continue;
+
+        const fd = new FormData();
+        fd.append('files', file, file.name);
+
+        // Show uploading indicator in list
+        const tmpId = 'tmp_' + Date.now();
+        appendUploadingRow(tmpId, file.name);
+
+        try {
+            const res = await fetch(`/${companyId}/permits/${PERMIT_ID}/attachments/upload`, {
+                method: 'POST',
+                headers: { 'RequestVerificationToken': token },
+                body: fd,
+            });
+            if (!res.ok) throw new Error(await res.text());
+            removeUploadingRow(tmpId);
+            // Reload the saved file list
+            if (typeof loadAttachments === 'function') loadAttachments();
+        } catch (err) {
+            removeUploadingRow(tmpId);
+            showToast(`Failed to upload "${file.name}": ${err.message}`, 'danger');
+        }
+    }
+}
+
+function appendUploadingRow(id, name) {
+    const tbody = document.getElementById('tblAttachmentsBody');
+    if (!tbody) return;
+    const tr = document.createElement('tr');
+    tr.id = id;
+    tr.innerHTML = `<td colspan="4" class="text-muted small">
+        <i class="fa-solid fa-spinner fa-spin me-1"></i> Uploading ${escHtml(name)}…
+    </td>`;
+    tbody.prepend(tr);
+    document.getElementById('tblAttachments')?.classList.remove('d-none');
+    document.getElementById('filesEmpty')?.classList.add('d-none');
+}
+
+function removeUploadingRow(id) {
+    document.getElementById(id)?.remove();
+}
+
+// ── Stage files (new permit — no ID yet) ─────────────────────────────────
+function stageFiles(newFiles, maxFiles, maxBytes, accept) {
+    for (const file of newFiles) {
+        if (!validateFile(file, maxBytes, accept)) continue;
+        if (pendingFiles.length >= maxFiles) { showToast(`Maximum ${maxFiles} files allowed.`, 'warning'); break; }
+        if (pendingFiles.some(f => f.name === file.name && f.size === file.size)) continue;
+        pendingFiles.push(file);
+    }
+    renderPendingList();
+}
+
+function validateFile(file, maxBytes, accept) {
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (accept.length && !accept.includes(ext)) {
+        showToast(`"${file.name}" is not an allowed file type.`, 'warning'); return false;
+    }
+    if (file.size > maxBytes) {
+        showToast(`"${file.name}" exceeds the ${Math.round(maxBytes/1024/1024)} MB limit.`, 'warning'); return false;
+    }
+    return true;
+}
+
+function removeFile(idx) {
+    pendingFiles.splice(idx, 1);
+    renderPendingList();
+}
+
+function renderPendingList() {
+    const list = document.getElementById('dzFileList');
+    if (!list) return;
+    list.innerHTML = '';
+    pendingFiles.forEach((f, i) => {
+        const item = document.createElement('div');
+        item.className = 'pf-file-item';
+        item.innerHTML = `
+            <i class="fa-solid fa-file text-muted"></i>
+            <span class="pf-file-name" title="${escAttr(f.name)}">${escHtml(f.name)}</span>
+            <span class="pf-file-size">${(f.size/1024).toFixed(0)} kB</span>
+            <button type="button" class="pf-file-remove" onclick="removeFile(${i})" title="Remove">
+                <i class="fa-solid fa-xmark"></i>
+            </button>`;
+        list.appendChild(item);
+    });
+}
+
+function escAttr(s) { return String(s ?? '').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); }
+function escHtml(s) { return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 // ── Render ────────────────────────────────────────────────────────────────
 function renderPermitForm(layout, savedFields, readonly) {
@@ -32,20 +303,22 @@ function renderPermitForm(layout, savedFields, readonly) {
     layout.rows.forEach(row => {
         const rowEl = document.createElement('div');
         rowEl.className = `pf-row cols-${row.columnCount}`;
-
         row.columns.forEach(col => {
             const cell = document.createElement('div');
             cell.className = 'pf-field';
-
-            if (!col.controlId) {
-                cell.innerHTML = '<div class="pf-empty-slot"></div>';
-            } else {
-                cell.innerHTML = buildField(col, savedFields, readonly);
-            }
+            cell.innerHTML = col.controlId ? buildField(col, savedFields, readonly) : '<div class="pf-empty-slot"></div>';
             rowEl.appendChild(cell);
         });
-
         canvas.appendChild(rowEl);
+    });
+
+    // Re-init Flatpickr for any DateTimeInput controls just rendered
+    initFlatpickr();
+
+    // Live-clear errors on input
+    canvas.querySelectorAll('.pf-input').forEach(el => {
+        el.addEventListener('input', () => clearFieldError(el));
+        el.addEventListener('change', () => clearFieldError(el));
     });
 }
 
@@ -53,32 +326,32 @@ function buildField(col, savedFields, readonly) {
     const ctrl = col.control;
     if (!ctrl) return '<div class="pf-empty-slot"></div>';
 
-    const label  = col.labelOverride || ctrl.label;
-    const req    = col.isRequiredOverride ?? ctrl.isRequired;
-    const help   = ctrl.helpText;
-    const ph     = ctrl.placeholder ?? '';
-    const colId  = col.id;
-    const val    = savedFields[colId];
-    const dis    = readonly ? 'disabled' : '';
+    const label   = col.labelOverride || ctrl.label;
+    const req     = col.isRequiredOverride ?? ctrl.isRequired;
+    const help    = ctrl.helpText;
+    const ph      = ctrl.placeholder ?? '';
+    const colId   = col.id;
+    const val     = savedFields[colId];
+    const dis     = readonly ? 'disabled' : '';
     const reqMark = req ? ' <span class="text-danger">*</span>' : '';
-    const helpEl  = help ? `<div class="form-text">${esc(help)}</div>` : '';
-    const reqAttr = req && !readonly ? 'required' : '';
+    const helpEl  = help ? `<div class="form-text text-muted">${esc(help)}</div>` : '';
+    const reqAttr = req && !readonly ? 'data-required="true"' : '';
 
     switch (ctrl.controlType) {
         case 0: { // TextBox
-            const v = esc(val ?? '');
-            return `<label>${esc(label)}${reqMark}</label>
+            return `<label class="form-label">${esc(label)}${reqMark}</label>
                     <input type="text" id="f_${colId}" data-col="${colId}"
                            class="form-control form-control-sm pf-input"
-                           placeholder="${esc(ph)}" value="${v}" ${dis} ${reqAttr} />
+                           placeholder="${esc(ph)}" value="${esc(val ?? '')}" ${dis} ${reqAttr} />
+                    <div class="pf-error" data-for="f_${colId}">${esc(label)} is required.</div>
                     ${helpEl}`;
         }
         case 1: { // TextArea
-            const v = esc(val ?? '');
-            return `<label>${esc(label)}${reqMark}</label>
+            return `<label class="form-label">${esc(label)}${reqMark}</label>
                     <textarea id="f_${colId}" data-col="${colId}"
                               class="form-control form-control-sm pf-input"
-                              rows="3" placeholder="${esc(ph)}" ${dis} ${reqAttr}>${v}</textarea>
+                              rows="3" placeholder="${esc(ph)}" ${dis} ${reqAttr}>${esc(val ?? '')}</textarea>
+                    <div class="pf-error" data-for="f_${colId}">${esc(label)} is required.</div>
                     ${helpEl}`;
         }
         case 2: { // Checkbox
@@ -90,7 +363,7 @@ function buildField(col, savedFields, readonly) {
                     </div>
                     ${helpEl}`;
         }
-        case 3: { // MultiChoice — checkboxes
+        case 3: { // MultiChoice
             let opts = [];
             try { opts = JSON.parse(ctrl.optionsJson || '[]'); } catch {}
             const savedArr = Array.isArray(val) ? val : (val ? [val] : []);
@@ -102,32 +375,37 @@ function buildField(col, savedFields, readonly) {
                     <label class="form-check-label" for="f_${colId}_${i}">${esc(o.label)}</label>
                 </div>`;
             }).join('');
-            return `<label class="d-block">${esc(label)}${reqMark}</label>${checks}${helpEl}`;
+            return `<label class="form-label d-block">${esc(label)}${reqMark}</label>
+                    <div data-multicol="${colId}">${checks}</div>
+                    <div class="pf-error" data-for="multi_${colId}">Please select at least one option for "${esc(label)}".</div>
+                    ${helpEl}`;
         }
         case 4: { // Select
             let opts = [];
             try { opts = JSON.parse(ctrl.optionsJson || '[]'); } catch {}
             const options = `<option value="">— select —</option>` +
                 opts.map(o => `<option value="${esc(o.value)}" ${val === o.value ? 'selected' : ''}>${esc(o.label)}</option>`).join('');
-            return `<label>${esc(label)}${reqMark}</label>
+            return `<label class="form-label">${esc(label)}${reqMark}</label>
                     <select id="f_${colId}" data-col="${colId}"
                             class="form-select form-select-sm pf-input" ${dis} ${reqAttr}>
                         ${options}
                     </select>
+                    <div class="pf-error" data-for="f_${colId}">Please select a value for "${esc(label)}".</div>
                     ${helpEl}`;
         }
-        case 5: { // DateTimeInput
-            const v = val ? val.substring(0, 16) : '';
-            return `<label>${esc(label)}${reqMark}</label>
-                    <input type="datetime-local" id="f_${colId}" data-col="${colId}"
-                           class="form-control form-control-sm pf-input"
-                           value="${v}" ${dis} ${reqAttr} />
+        case 5: { // DateTimeInput — Flatpickr
+            const v = val ? String(val).substring(0, 16) : '';
+            return `<label class="form-label">${esc(label)}${reqMark}</label>
+                    <input type="text" id="f_${colId}" data-col="${colId}"
+                           class="form-control form-control-sm pf-input pf-flatpickr"
+                           value="${esc(v)}" placeholder="dd Mon yyyy  HH:mm" ${dis} ${reqAttr} />
+                    <div class="pf-error" data-for="f_${colId}">${esc(label)} is required.</div>
                     ${helpEl}`;
         }
-        case 6: { // FileUpload — shows existing attachment names if any
+        case 6: { // FileUpload
             const existing = Array.isArray(val) && val.length
-                ? `<div class="form-text mb-1">${val.length} file(s) previously uploaded.</div>` : '';
-            return `<label>${esc(label)}${reqMark}</label>
+                ? `<div class="form-text mb-1 text-muted">${val.length} file(s) previously uploaded.</div>` : '';
+            return `<label class="form-label">${esc(label)}${reqMark}</label>
                     ${existing}
                     <input type="file" data-col="${colId}"
                            class="form-control form-control-sm"
@@ -136,7 +414,8 @@ function buildField(col, savedFields, readonly) {
                     ${helpEl}`;
         }
         default:
-            return `<label>${esc(label)}</label><input type="text" class="form-control form-control-sm" ${dis} />`;
+            return `<label class="form-label">${esc(label)}</label>
+                    <input type="text" class="form-control form-control-sm" ${dis} />`;
     }
 }
 
@@ -150,20 +429,134 @@ function buildFileAttrs(optionsJson) {
     } catch { return ''; }
 }
 
+// ── Validation ────────────────────────────────────────────────────────────
+const VALIDATION_RULES = {
+    fldDescription:   { label: 'Description of work', test: el => el.value.trim() !== '' },
+    fldStartDateTime: { label: 'Start date/time',     test: el => el.value.trim() !== '' },
+    fldEndDateTime:   { label: 'End date/time',        test: el => el.value.trim() !== '' },
+};
+
+function validateForm() {
+    let valid = true;
+
+    // Fixed header fields
+    for (const [id, rule] of Object.entries(VALIDATION_RULES)) {
+        const el = document.getElementById(id);
+        if (!el) continue;
+        // For Flatpickr: the real value is on the hidden input; altInput holds display value
+        const fp = el._flatpickr;
+        const isEmpty = fp ? fp.selectedDates.length === 0 : !rule.test(el);
+        if (isEmpty) {
+            showFieldError(el, `${rule.label} is required.`);
+            valid = false;
+        } else {
+            clearFieldError(el);
+        }
+    }
+
+    // End >= Start
+    const fpStart = document.getElementById('fldStartDateTime')?._flatpickr;
+    const fpEnd   = document.getElementById('fldEndDateTime')?._flatpickr;
+    if (fpStart?.selectedDates[0] && fpEnd?.selectedDates[0]) {
+        if (fpEnd.selectedDates[0] < fpStart.selectedDates[0]) {
+            showFieldError(document.getElementById('fldEndDateTime'), 'End date/time must be after start date/time.');
+            valid = false;
+        }
+    }
+
+    // Canvas required fields
+    document.querySelectorAll('.pf-input[data-required="true"]').forEach(el => {
+        const isEmpty = el.tagName === 'SELECT' ? !el.value : el.value.trim() === '';
+        if (isEmpty) {
+            showFieldError(el, null); // message already in sibling .pf-error
+            valid = false;
+        } else {
+            clearFieldError(el);
+        }
+    });
+
+    // Required MultiChoice groups
+    document.querySelectorAll('[data-multicol]').forEach(group => {
+        const colId = group.dataset.multicol;
+        const ctrl  = group.closest('.pf-field');
+        const isReq = ctrl?.querySelector(`[data-required]`);
+        if (!isReq) return;
+        const checked = group.querySelectorAll('input:checked').length > 0;
+        const errEl   = ctrl?.querySelector(`.pf-error[data-for="multi_${colId}"]`);
+        if (!checked) { errEl?.classList.add('visible'); valid = false; }
+        else            errEl?.classList.remove('visible');
+    });
+
+    if (!valid) {
+        // Scroll to first visible error
+        const first = document.querySelector('.pf-error.visible, .is-invalid');
+        first?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    return valid;
+}
+
+function showFieldError(el, message) {
+    el.classList.add('is-invalid');
+    el.classList.remove('is-valid');
+    // For Flatpickr alt inputs, mark them too
+    if (el._flatpickr?.altInput) {
+        el._flatpickr.altInput.classList.add('is-invalid');
+        el._flatpickr.altInput.classList.remove('is-valid');
+    }
+    // Look for a sibling .pf-error or an immediately following div.invalid-feedback
+    const errEl = el.parentElement?.querySelector(`.pf-error[data-for="${el.id}"]`);
+    if (errEl) {
+        if (message) errEl.textContent = message;
+        errEl.classList.add('visible');
+    } else if (message) {
+        // Fixed header fields — inject/update beneath the input
+        let fb = el.nextElementSibling;
+        if (!fb || !fb.classList.contains('invalid-feedback')) {
+            fb = document.createElement('div');
+            fb.className = 'invalid-feedback d-block';
+            el.insertAdjacentElement('afterend', fb);
+        }
+        fb.textContent = message;
+    }
+}
+
+function clearFieldError(el) {
+    el.classList.remove('is-invalid');
+    el.classList.add('is-valid');
+    if (el._flatpickr?.altInput) {
+        el._flatpickr.altInput.classList.remove('is-invalid');
+        el._flatpickr.altInput.classList.add('is-valid');
+    }
+    const errEl = el.parentElement?.querySelector(`.pf-error[data-for="${el.id}"]`);
+    if (errEl) errEl.classList.remove('visible');
+    const fb = el.nextElementSibling;
+    if (fb?.classList.contains('invalid-feedback')) fb.remove();
+}
+
+// Attach live-clear listeners to fixed header fields on load
+document.addEventListener('DOMContentLoaded', () => {
+    ['fldDescription', 'fldStartDateTime', 'fldEndDateTime'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('input',  () => clearFieldError(el));
+        el.addEventListener('change', () => clearFieldError(el));
+    });
+});
+
 // ── Collect field values ──────────────────────────────────────────────────
 function collectFields() {
     const fields = {};
-
     document.querySelectorAll('.pf-input').forEach(el => {
         const col = el.dataset.col;
         if (!col) return;
         if (el.type === 'checkbox') {
             fields[col] = el.checked;
         } else {
+            // For Flatpickr inputs, use the ISO value from the hidden input
             fields[col] = el.value;
         }
     });
-
     // MultiChoice — collect arrays
     const multiCols = {};
     document.querySelectorAll('.pf-multi').forEach(el => {
@@ -172,23 +565,44 @@ function collectFields() {
         if (el.checked) multiCols[col].push(el.value);
     });
     Object.assign(fields, multiCols);
-
     return fields;
 }
 
 // ── Submit ────────────────────────────────────────────────────────────────
 async function submitPermit(submissionType) {
-    const form = document.getElementById('frmNewPermit');
+    if (!validateForm()) return;
 
-    // Validate required fields
-    const firstInvalid = form.querySelector(':invalid');
-    if (firstInvalid) { form.reportValidity(); return; }
+    const form  = document.getElementById('frmNewPermit');
+    const token = form.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
 
-    document.getElementById('hdnPermitDataJson').value = JSON.stringify(collectFields());
-    document.getElementById('hdnSubmissionType').value = submissionType;
+    // Build FormData manually — never use new FormData(form) because Kendo may
+    // have mutated or hidden the file input. Append each field explicitly.
+    const formData = new FormData();
+    formData.append('__RequestVerificationToken', token);
 
-    const formData = new FormData(form);
-    const token    = form.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+    // Scalar fields from the form
+    const scalarNames = ['templateId', 'permitDataJson', 'submissionType', 'description', 'startDateTime', 'endDateTime'];
+    scalarNames.forEach(name => {
+        const el = form.querySelector(`[name="${name}"]`);
+        if (el) formData.append(name, el.value);
+    });
+
+    // Set the JSON and submission type now
+    formData.set('permitDataJson',   JSON.stringify(collectFields()));
+    formData.set('submissionType',   submissionType);
+
+    // Append staged files — keyed as 'permitFiles' to match the controller parameter
+    pendingFiles.forEach(f => formData.append('permitFiles', f, f.name));
+
+    // Disable submit buttons to prevent double-submit; store original labels for restore
+    const btns = form.querySelectorAll('button[onclick^="submitPermit"]');
+    btns.forEach(b => {
+        b.dataset.origLabel = b.innerHTML;
+        b.disabled = true;
+        b.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving…';
+    });
+
+    const restoreBtns = () => btns.forEach(b => { b.disabled = false; b.innerHTML = b.dataset.origLabel || 'Save'; });
 
     try {
         const res = await fetch(SAVE_URL, {
@@ -199,33 +613,34 @@ async function submitPermit(submissionType) {
 
         if (!res.ok) throw new Error(await res.text());
 
-        const data = await res.json();
+        const data      = await res.json();
         const companyId = location.pathname.split('/')[1];
 
         if (submissionType === 'draft') {
-            // Redirect to edit form with saved ID
             const id = data.permitId;
-            if (METHOD === 'POST' && id)
+            if (METHOD === 'POST' && id) {
                 window.location.href = `/${companyId}/permits/edit/form/${id}`;
-            else
-                showToast('Draft saved.', 'success');
+            } else {
+                restoreBtns();
+                showToast('Draft saved successfully.', 'success');
+            }
         } else {
             window.location.href = `/${companyId}/permits`;
         }
     } catch (err) {
-        showToast('Error: ' + err.message, 'danger');
+        restoreBtns();
+        showToast('Save failed: ' + err.message, 'danger');
     }
 }
 
 function showToast(msg, type) {
-    // Use existing toast.js if available, else alert
     if (window.toast) { window.toast(msg, type); return; }
     const el = document.createElement('div');
     el.className = `alert alert-${type} alert-dismissible fade show position-fixed bottom-0 end-0 m-3`;
     el.style.zIndex = '9999';
     el.innerHTML = `${esc(msg)}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
     document.body.appendChild(el);
-    setTimeout(() => el.remove(), 4000);
+    setTimeout(() => el.remove(), 5000);
 }
 
 function esc(str) {

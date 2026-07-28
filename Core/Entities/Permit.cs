@@ -26,6 +26,9 @@ public class Permit : ISoftDeletable
 
 	public required string PermitNo { get; set; }
 
+	// Display columns used by both old and new-system permits for grid/list views.
+	public string? Title { get; set; }
+
 	//public Guid SiteId { get; set; }
 	public Site? Site { get; set; } = null!;
 

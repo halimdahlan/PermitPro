@@ -56,14 +56,26 @@ public class FormTemplateService : IFormTemplateService
 
     public async Task<FormTemplate> UpdateAsync(FormTemplate template, CancellationToken ct = default)
     {
-        template.UpdatedWhen = DateTime.UtcNow;
+        // Fetch the tracked instance — the caller may hold a detached (AsNoTracking) copy,
+        // and attaching it via Update() would conflict with any rows ClearActiveAsync already loaded.
+        var tracked = await _db.FormTemplates.FindAsync([template.Id], ct);
+        if (tracked is null) return template;
 
-        if (template.IsActive)
-            await ClearActiveAsync(template.CompanyId, template.TemplateType, ct, excludeId: template.Id);
+        tracked.Name             = template.Name;
+        tracked.Description      = template.Description;
+        tracked.TemplateType     = template.TemplateType;
+        tracked.LayoutJson       = template.LayoutJson;
+        tracked.HeaderConfigJson = template.HeaderConfigJson;
+        tracked.FooterConfigJson = template.FooterConfigJson;
+        tracked.IsActive         = template.IsActive;
+        tracked.UpdatedWhen      = DateTime.UtcNow;
+        tracked.UpdatedBy        = template.UpdatedBy;
 
-        _db.FormTemplates.Update(template);
+        if (tracked.IsActive)
+            await ClearActiveAsync(tracked.CompanyId, tracked.TemplateType, ct, excludeId: tracked.Id);
+
         await _db.SaveChangesAsync(ct);
-        return template;
+        return tracked;
     }
 
     public async Task SetActiveAsync(Guid id, Guid companyId, FormTemplateTypeEnum type, CancellationToken ct = default)

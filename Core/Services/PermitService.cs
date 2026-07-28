@@ -107,12 +107,28 @@ public class PermitService : IPermitService
 
 				var userCompany = _dbContext.Companies.SingleOrDefault(f => f.Id == company);
 
+				// Extract scalar fields from JSON for direct column storage
+				DateTime? startDt = null, endDt = null;
+				string descriptionOld = null;
+				if (generalCreate.TryGetProperty("startDateTime", out var sdEl) && sdEl.ValueKind != JsonValueKind.Null)
+					DateTime.TryParse(sdEl.GetString(), out var sd);
+				if (generalCreate.TryGetProperty("startDateTime", out var sdEl2) && sdEl2.ValueKind != JsonValueKind.Null && DateTime.TryParse(sdEl2.GetString(), out var sd2))
+					startDt = sd2.ToUniversalTime();
+				if (generalCreate.TryGetProperty("endDateTime", out var edEl) && edEl.ValueKind != JsonValueKind.Null && DateTime.TryParse(edEl.GetString(), out var ed))
+					endDt = ed.ToUniversalTime();
+				if (generalCreate.TryGetProperty("description", out var descEl) && descEl.ValueKind != JsonValueKind.Null)
+					descriptionOld = descEl.GetString();
+
 				var permit = new Permit
 				{
 					Id = permitId,
 					PermitNo = string.Format("{0:000000}", maxNum),
 					PermitForm = permitForm,
 					RunningNumber = maxNum,
+					Title = string.IsNullOrWhiteSpace(descriptionOld) ? $"PTW{maxNum:000000}" : descriptionOld.Trim(),
+					Description = descriptionOld?.Trim(),
+					StartDateTime = startDt,
+					EndDateTime = endDt,
 					PermitStatus = isDraft ? PermitStatusEnum.Draft : PermitStatusEnum.Pending,
 					Site = loc,
 					Company = userCompany,
@@ -316,6 +332,18 @@ public class PermitService : IPermitService
 				var loc = _dbContext.Sites.FirstOrDefault(f => f.Id.ToString().ToLower() == locationId);
 
 				var permit = _dbContext.Permits.SingleOrDefault(f => f.Id == permitId);
+
+				// Extract scalar fields from JSON
+				if (generalUpdate.TryGetProperty("startDateTime", out var sdUpEl) && sdUpEl.ValueKind != JsonValueKind.Null && DateTime.TryParse(sdUpEl.GetString(), out var sdUp))
+					permit.StartDateTime = sdUp.ToUniversalTime();
+				if (generalUpdate.TryGetProperty("endDateTime", out var edUpEl) && edUpEl.ValueKind != JsonValueKind.Null && DateTime.TryParse(edUpEl.GetString(), out var edUp))
+					permit.EndDateTime = edUp.ToUniversalTime();
+				if (generalUpdate.TryGetProperty("description", out var descUpEl) && descUpEl.ValueKind != JsonValueKind.Null)
+				{
+					var d = descUpEl.GetString()?.Trim();
+					permit.Description = d;
+					permit.Title = string.IsNullOrWhiteSpace(d) ? permit.Title : d;
+				}
 
 				permit.PermitForm = permitForm;
 				permit.PermitStatus = isDraft ? PermitStatusEnum.Draft : PermitStatusEnum.Pending;
@@ -849,7 +877,7 @@ public class PermitService : IPermitService
 
 	// ── New-system permit methods ─────────────────────────────────────────────
 
-	public async Task<Guid> CreateNewSystemAsync(Guid companyId, Guid templateId, string permitDataJson, string submissionType, IFormFileCollection files, CancellationToken ct = default)
+	public async Task<Guid> CreateNewSystemAsync(Guid companyId, Guid templateId, string description, DateTime? startDateTime, DateTime? endDateTime, string permitDataJson, string submissionType, IFormFileCollection files, CancellationToken ct = default)
 	{
 		var isDraft = submissionType == "draft";
 		var permitId = Guid.NewGuid();
@@ -876,6 +904,10 @@ public class PermitService : IPermitService
 			Id = permitId,
 			PermitNo = string.Format("{0:000000}", maxNum),
 			RunningNumber = maxNum,
+			Title = string.IsNullOrWhiteSpace(description) ? $"PTW{maxNum:000000}" : description.Trim(),
+			Description = description?.Trim(),
+			StartDateTime = startDateTime?.ToUniversalTime(),
+			EndDateTime = endDateTime?.ToUniversalTime(),
 			PermitDataJson = BuildPermitDataJson(templateId, permitDataJson),
 			PermitStatus = isDraft ? PermitStatusEnum.Draft : PermitStatusEnum.Pending,
 			Company = userCompany,
@@ -913,7 +945,7 @@ public class PermitService : IPermitService
 		return permitId;
 	}
 
-	public async Task UpdateNewSystemAsync(Guid permitId, Guid companyId, string permitDataJson, string submissionType, IFormFileCollection files, CancellationToken ct = default)
+	public async Task UpdateNewSystemAsync(Guid permitId, Guid companyId, string description, DateTime? startDateTime, DateTime? endDateTime, string permitDataJson, string submissionType, IFormFileCollection files, CancellationToken ct = default)
 	{
 		var isDraft = submissionType == "draft";
 
@@ -923,6 +955,10 @@ public class PermitService : IPermitService
 		// Preserve existing templateId from current PermitDataJson
 		var existingTemplateId = ExtractTemplateId(permit.PermitDataJson);
 
+		permit.Description = string.IsNullOrWhiteSpace(description) ? permit.Description : description.Trim();
+		permit.Title = permit.Description ?? permit.Title;
+		if (startDateTime.HasValue) permit.StartDateTime = startDateTime.Value.ToUniversalTime();
+		if (endDateTime.HasValue) permit.EndDateTime = endDateTime.Value.ToUniversalTime();
 		permit.PermitDataJson = BuildPermitDataJson(existingTemplateId, permitDataJson);
 		permit.PermitStatus = isDraft ? PermitStatusEnum.Draft : PermitStatusEnum.Pending;
 		permit.UpdatedWhen = DateTime.UtcNow;
@@ -1006,29 +1042,41 @@ public class PermitService : IPermitService
 	{
 		if (files == null || files.Count == 0) return;
 
+		// Filter out zero-length entries (browser sends empty IFormFile when no file chosen)
+		var validFiles = files.Where(f => f.Length > 0).ToList();
+		if (validFiles.Count == 0) return;
+
 		var folder = Path.Combine(_webHostEnvironment.WebRootPath, "attachments", "permits", permit.Id.ToString().ToLower());
 		Directory.CreateDirectory(folder);
 
-		foreach (var item in files)
+		foreach (var item in validFiles)
 		{
-			var filePath = Path.Combine(folder, new FileInfo(item.FileName).Name);
+			// Path.GetFileName handles both / and \ separators cross-platform
+			var safeFileName = Path.GetFileName(item.FileName);
+			if (string.IsNullOrWhiteSpace(safeFileName)) continue;
+
+			var filePath = Path.Combine(folder, safeFileName);
 			using var fs = new FileStream(filePath, FileMode.Create);
 			await item.CopyToAsync(fs, ct);
 		}
 
+		// Track which filenames were just uploaded so we only register those, not pre-existing files in the folder
+		var uploadedNames = validFiles.Select(f => Path.GetFileName(f.FileName)).Where(n => !string.IsNullOrWhiteSpace(n)).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
 		foreach (var filePath in Directory.GetFiles(folder))
 		{
 			var fi = new FileInfo(filePath);
-			if (!_dbContext.Attachments.Any(a => a.FileName == fi.Name && a.Permit.Id == permit.Id))
+			if (!uploadedNames.Contains(fi.Name)) continue; // skip pre-existing files from prior saves
+			if (_dbContext.Attachments.Any(a => a.FileName == fi.Name && a.Permit == permit))
+				continue;
+
+			_dbContext.Attachments.Add(new Attachment
 			{
-				_dbContext.Attachments.Add(new Attachment
-				{
-					FileName = fi.Name,
-					ContentType = fi.Extension.TrimStart('.'),
-					Permit = permit,
-					FileSize = (int)fi.Length,
-				});
-			}
+				FileName = fi.Name,
+				ContentType = fi.Extension.TrimStart('.'),
+				Permit = permit,
+				FileSize = (int)fi.Length,
+			});
 		}
 
 		await _dbContext.SaveChangesAsync(ct);
