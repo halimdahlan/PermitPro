@@ -31,6 +31,7 @@ public static class CommonExtensions
 		services.AddScoped<IAppSettingsService, AppSettingsService>();
 		services.AddScoped<IFormControlService, FormControlService>();
 		services.AddScoped<IFormTemplateService, FormTemplateService>();
+		services.AddScoped<ICertificateService, CertificateService>();
 		services.AddScoped<IQuestPdfService, QuestPdfService>();
 	}
 }

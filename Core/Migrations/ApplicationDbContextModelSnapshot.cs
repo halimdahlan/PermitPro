@@ -482,6 +482,9 @@ namespace PermitPro.Core.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("CertificateDataJson")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<Guid?>("CreatedBy")
                         .HasColumnType("uniqueidentifier");
 
@@ -496,6 +499,9 @@ namespace PermitPro.Core.Migrations
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("FormTemplateId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
@@ -514,6 +520,8 @@ namespace PermitPro.Core.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("FormTemplateId");
 
                     b.ToTable("Certificates");
                 });
@@ -1605,6 +1613,16 @@ namespace PermitPro.Core.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("AuditLogUser");
+                });
+
+            modelBuilder.Entity("PermitPro.Core.Entities.Certificate", b =>
+                {
+                    b.HasOne("PermitPro.Core.Entities.FormTemplate", "FormTemplate")
+                        .WithMany()
+                        .HasForeignKey("FormTemplateId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("FormTemplate");
                 });
 
             modelBuilder.Entity("PermitPro.Core.Entities.Department", b =>

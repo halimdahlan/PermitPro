@@ -257,6 +257,17 @@
 				</div>
 			}
 
+			@* Certificates *@
+			@if (Model.PermitId != Guid.Empty)
+			{
+				<div class="mb-4">
+					<a href="/@companyId/permits/@Model.PermitId/certificates"
+					   class="btn btn-sm btn-outline-secondary w-100">
+						<i class="fa-solid fa-certificate me-2"></i> Certificates
+					</a>
+				</div>
+			}
+
 			@* Export PDF *@
 			@if (Model.PermitStatus == PermitPro.Core.Enums.PermitStatusEnum.Draft
 			  || Model.PermitStatus == PermitPro.Core.Enums.PermitStatusEnum.Approved

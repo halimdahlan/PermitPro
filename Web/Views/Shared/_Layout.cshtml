@@ -350,10 +350,22 @@
 				$('#permitSubmenu').collapse('toggle');
 			});
 
+			$('#templatesDropdown').click((e) => {
+				e.preventDefault();
+				$('#templateSubmenu').collapse('toggle');
+			});
+
 
 			$('#permitSubmenu').on('show.bs.collapse hide.bs.collapse', (e) => {
 				const isShow = e.type === 'show';
 				$('#permitsDropdown i:last-child')
+					.toggleClass('fa-chevron-up', isShow)
+					.toggleClass('fa-chevron-down', !isShow);
+			});
+
+			$('#templateSubmenu').on('show.bs.collapse hide.bs.collapse', (e) => {
+				const isShow = e.type === 'show';
+				$('#templatesDropdown i:last-child')
 					.toggleClass('fa-chevron-up', isShow)
 					.toggleClass('fa-chevron-down', !isShow);
 			});

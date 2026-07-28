@@ -23,13 +23,17 @@
 	var currentAction = ViewContext.RouteData.Values["action"] as string;
 	var navSettings = currentRoute?.ToLower() == "settings" && currentAction?.ToLower() != "about" ? "active" : "";
 	var navAbout = currentRoute?.ToLower() == "settings" && currentAction?.ToLower() == "about" ? "active" : "";
-	var navFormControls = currentRoute?.ToLower() == "tenantformcontrols" ? "active" : "";
+	var navFormControls  = currentRoute?.ToLower() == "tenantformcontrols"  ? "active" : "";
 	var navFormTemplates = currentRoute?.ToLower() == "tenantformtemplates" ? "active" : "";
+	var navCertTemplates = currentRoute?.ToLower() == "certificates"        ? "active" : "";
+	var isTemplatesActive = navFormControls == "active" || navFormTemplates == "active" || navCertTemplates == "active";
+	var templatesShow    = isTemplatesActive ? " show" : "";
 	var navGeneral = currentRoute?.ToLower() == "dashboard" ? "active" : "";
 	var navRecycleBin = currentRoute?.ToLower() == "recyclebin" ? " active" : "";
 	var showMenu = "";
 	var navPermitsMain = "";
 	var arrowClass = "fa-chevron-down";
+	var arrowClass2 = "fa-chevron-down";
 
 	if (companyId == Guid.Empty.ToString())
 	{
@@ -42,6 +46,11 @@
 		showMenu = " show";
 		navPermitsMain = "active-light active";
 		arrowClass = "fa-chevron-up";
+	}
+
+	if (isTemplatesActive)
+	{
+		arrowClass2 = "fa-chevron-up";
 	}
 
 	var isSuperUser = User.IsInRole("Super User");
@@ -67,11 +76,11 @@
 		</li>
 		<li class="nav-item">
 			<a href="#" id="permitsDropdown" class="d-flex no-loading nav-link @navPermitsMain">
-				<i class="fa-solid fa-list-ul fa-fw me-3"></i>Permits
+				<i class="fa-solid fa-list-ul fa-fw me-3 mt-1"></i>Permits
 				<i class="fa-solid fa-fw ms-auto @arrowClass"></i>
 			</a>
 			<div id="permitSubmenu" class="ps-3 collapse @showMenu">
-				<ul class="navbar-nav ms-2">
+				<ul class="navbar-nav">
 					<li class="nav-item">
 						<a href="/@companyId/permits" class="nav-link @navPermits">
 							<i class="fa-solid fa-list-ul fa-fw me-3"></i>All Permits
@@ -147,14 +156,29 @@
 				</a>
 			</li>
 			<li class="nav-item">
-				<a href="/@companyId/formcontrols" class="nav-link @navFormControls">
-					<i class="fa-solid fa-sliders fa-fw me-3"></i>Form Controls
+				<a href="#" id="templatesDropdown" class="d-flex no-loading nav-link @(isTemplatesActive ? "active-light active" : "")">
+					<i class="fa-solid fa-list-ul fa-fw me-3 mt-1"></i>Templates
+					<i class="fa-solid fa-fw ms-auto @arrowClass2"></i>
 				</a>
-			</li>
-			<li class="nav-item">
-				<a href="/@companyId/formtemplates" class="nav-link @navFormTemplates">
-					<i class="fa-solid fa-table-columns fa-fw me-3"></i>Form Templates
-				</a>
+				<div id="templateSubmenu" class="ps-3 collapse @templatesShow">
+					<ul class="navbar-nav">
+						<li class="nav-item">
+							<a href="/@companyId/formcontrols" class="nav-link @navFormControls">
+								<i class="fa-solid fa-sliders fa-fw me-3"></i>Form Controls
+							</a>
+						</li>
+						<li class="nav-item">
+							<a href="/@companyId/formtemplates" class="nav-link @navFormTemplates">
+								<i class="fa-solid fa-table-columns fa-fw me-3"></i>Permit Forms
+							</a>
+						</li>
+						<li class="nav-item">
+							<a href="/@companyId/certificatetemplates" class="nav-link @navCertTemplates">
+								<i class="fa-solid fa-certificate fa-fw me-3"></i>Certificates
+							</a>
+						</li>
+					</ul>
+				</div>
 			</li>
 		}
 	</ul>

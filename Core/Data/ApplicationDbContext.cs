@@ -219,6 +219,14 @@ public class ApplicationDbContext
 
 		builder.Entity<Contact>();
 
+		builder.Entity<Certificate>(options =>
+		{
+			options.HasOne(x => x.FormTemplate)
+				   .WithMany()
+				   .HasForeignKey(x => x.FormTemplateId)
+				   .OnDelete(DeleteBehavior.SetNull);
+		});
+
 		builder.Entity<FormControl>(options =>
 		{
 			options.HasOne(x => x.Company)
