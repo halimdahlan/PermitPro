@@ -16,7 +16,8 @@ A multi-tenant, enterprise web application for managing **Permit-to-Work (PTW)**
 | **Real-time** | ASP.NET Core SignalR |
 | **Background Jobs** | Hangfire 1.8.14 (currently disabled) |
 | **Rate Limiting** | ASP.NET Core built-in rate limiter (fixed-window, per-IP) |
-| **PDF Generation** | PuppeteerSharp 18.0.3 |
+| **PDF Generation** | PuppeteerSharp 18.0.3 (old-system) + QuestPDF 2025.4.3 (new-system) |
+| **Date Picker** | Flatpickr (CDN, new-system forms) |
 | **Excel Export** | ClosedXML 0.105.0 |
 | **Email** | MailKit 4.17.0 + MimeKit 4.17.0 |
 | **Templating** | Scriban.Signed 5.10.0 |
@@ -253,11 +254,11 @@ Roles support soft-delete via `ISoftDeletable` and carry audit fields (`CreatedW
 
 ---
 
-## Planned Enhancements
+## Enhancements (Phases 1–6 complete)
 
-Seven-phase enhancement to introduce a drag-drop form builder, dynamic permit/certificate forms, QuestPDF export for new permits, and full Telerik removal.
+Phases 1–6 of a seven-phase enhancement have been implemented. Phase 7 (Telerik removal) is in progress.
 
-### Phase 1 — Database & Entity Foundation
+### Phase 1 — Database & Entity Foundation ✅
 
 New entities and migration (`AddFormBuilderFoundation`):
 
@@ -299,17 +300,29 @@ New entities and migration (`AddFormBuilderFoundation`):
 ```
 `columns` always has exactly `columnCount` entries. A slot with `controlId: null` renders as an empty placeholder. Reordering rows or changing `columnCount` in the builder re-initialises the column array (controls already placed in removed slots are returned to the library panel).
 
-### Phase 2 — Custom Controls Management (`/admin/formcontrols`)
+### Phase 2 — Custom Controls Management ✅
 
-Admin section to define reusable `FormControl` records. No Telerik — plain HTML table, native `<dialog>` modals. When `ControlType` is `Select` or `MultiChoice`, a dynamic JS options list is revealed. `FileUpload` controls store config in `OptionsJson` (`maxFiles`, `allowedTypes`). Uploaded files link back to form fields via the existing `Attachments` table using the column UUID as a field key.
+Routes: `/admin/formcontrols?companyId=<guid>` (Super Admin) · `/{company}/formcontrols` (tenant, Super User only).
 
-### Phase 3 — Form Template Builder (`/admin/formtemplates`)
+- Plain HTML table + BS5 modal for create/edit. No Telerik.
+- `ControlType` dropdown reveals Options panel (dynamic value/label rows) for `Select`/`MultiChoice`; switches to `maxFiles`/`allowedTypes` config for `FileUpload`.
+- Search by name/label, filter by type, 20-per-page pagination.
+- Bootstrap Modal replaces all `confirm()`/`alert()` dialogs.
 
-Drag-drop layout designer using **Sortable.js** (vanilla JS, no jQuery dependency added). Left panel: available controls library. Center: form canvas with droppable rows. Each row has a **column count selector** (1 / 2 / 3) shown in the row header — changing it redistributes the row's slots (controls displaced from removed slots return to the library panel). Controls are dragged from the library into a column slot; each slot accepts exactly one control. Right panel: property editor for the focused control instance (label override, required override). Toolbar: name, type, Save, Preview, Set as Active. Header/footer config per template (logo, permit number, site name, date, custom text) stored in `HeaderConfigJson` / `FooterConfigJson`. Certificate templates accessible at `/admin/certificatetemplates` (same builder, pre-filtered to `TemplateType.Certificate`).
+### Phase 3 — Form Template Builder ✅
 
-### Phase 4 — New-System Permit Form Rendering
+Routes: `/admin/formtemplates` · `/{company}/formtemplates` · `/admin/certificatetemplates` · `/{company}/certificatetemplates`.
 
-**Cutover date** — new `AppSetting` (`general` / `new_permit_form_cutover_date`). Exposed on `ISystemConfigurationService` as `DateTime? NewPermitFormCutoverDate`. Permits created on or after the cutover date use the new form system; earlier permits continue to use the existing views unchanged.
+- Three-panel builder: Library (Sortable.js drag source) → Canvas (rows with 1/2/3 column selector) → Properties (label/required overrides).
+- Save via JSON `POST`. URL updated on first create via `history.replaceState`.
+- Header/Footer config modal: logo, permit number, site name, date, custom text — stored in `HeaderConfigJson`/`FooterConfigJson`.
+- Preview modal renders all 7 control types with live values.
+- Certificate templates use the same builder pre-filtered to `TemplateType.Certificate`.
+- Both Admin and tenant routes share the same views; layout (`_Layout` vs `_LayoutAdmin`) and save URL resolved at runtime from route data.
+
+### Phase 4 — New-System Permit Form Rendering ✅
+
+**Cutover date** — `AppSetting` (`general` / `new_permit_form_cutover_date`). Exposed on `ISystemConfigurationService` as `DateTime? NewPermitFormCutoverDate`. Null = new system disabled.
 
 Bifurcation in `PermitsController`:
 ```csharp
@@ -318,41 +331,57 @@ private bool IsNewSystemPermit(Permit permit) =>
     permit.CreatedWhen >= _config.NewPermitFormCutoverDate.Value;
 ```
 
-New views (no Telerik): `Views/Permits/NewForm.cshtml`, `EditForm.cshtml`, `ViewForm.cshtml` — all rendered dynamically from the active `FormTemplate.LayoutJson`.
+- `New` and `Edit` actions redirect to `NewForm`/`EditForm` for new-system permits; old-system paths untouched.
+- `EnrichLayout()` embeds full control metadata into `LayoutJson` server-side so the browser needs no extra API calls.
+- New views (`NewForm.cshtml`, `EditForm.cshtml`) use `_NewFormScript.cshtml` partial — shared JS renders all 7 control types, handles Flatpickr date pickers, custom dropzone upload, inline validation with `is-invalid` per field.
+- Fixed fields above the canvas: **Description** (required), **Start date/time** (required), **End date/time** (required). All three are stored directly on `Permit.Description`, `Permit.StartDateTime`, `Permit.EndDateTime`.
+- `Permit.Title` is kept in sync with `Description` for grid display.
+- Right-side panel (edit): Approve/Reject, Export PDF, Mark as Closed, Certificates link.
+- Workflow history in collapsible BS accordion with entry count badge.
+- Created/last-updated info block below workflow history.
+- Attachments card: immediate upload (edit mode) via dedicated endpoint `POST /{company}/permits/{id}/attachments/upload`; staged upload (new permit) appended to FormData at save time. Uploaded file list with delete per row.
 
-### Phase 5 — PDF Export (Dual-engine)
+### Phase 5 — PDF Export (Dual-engine) ✅
 
 | Permit age | PDF engine | Template source |
 |---|---|---|
 | Old (before cutover date) | PuppeteerSharp + Scriban | Existing `PermitPdfService` — **unchanged** |
-| New (on/after cutover date) | **QuestPDF** | `FormTemplate.LayoutJson` + `PermitDataJson` |
+| New (on/after cutover date) | **QuestPDF** (`QuestPDF 2025.4.3`) | `FormTemplate.LayoutJson` + `Permit.PermitDataJson` |
 
-Both engines implement a shared `IPermitPdfService` interface (`GenerateAsync(Permit) → byte[]`). `PermitsController.ExportPdf` delegates to the appropriate implementation based on `IsNewSystemPermit`. PuppeteerSharp and Scriban are **not removed** — old permits continue to use them. QuestPDF document structure: header (from `HeaderConfigJson`), body (rows/columns matching layout), footer (from `FooterConfigJson`). `FileUpload` fields embed images inline in the PDF; other file types render as a filename list.
+`PermitsController.ExportPdf` delegates based on `IsNewSystemPermit`. QuestPDF document:
+- **Header** — company logo (`FitWidth`), custom text, company name, permit number, site name, date (all individually togglable via `HeaderConfigJson`).
+- **Body** — rows/columns from layout; each control type rendered appropriately (checkbox as filled square, multi-choice checklist, select shows matched label, datetime formatted, file upload lists filenames).
+- **Footer** — page numbers, print date, custom text (via `FooterConfigJson`).
+- Community licence set on startup.
 
-### Phase 6 — Certificate Form Customization
+### Phase 6 — Certificate Form Customization ✅
 
-Certificates gain the same form-builder treatment as permits.
+- `Certificate` entity: added `FormTemplateId` (nullable FK → `FormTemplates`, `SET NULL` on delete) and `CertificateDataJson`. Migration: `AddCertificateFormBuilder`.
+- `ICertificateService` / `CertificateService` — CRUD + `SaveDataAsync`.
+- Routes at `/{company}/permits/{permitId}/certificates/*`:
+  - `GET /` — list all certificates on a permit (table, add/delete)
+  - `GET /{id}` — fill certificate form; assign template if none set; template switcher in card header
+  - `POST /{id}/save` — saves `CertificateDataJson` via JSON body
+  - `POST /{id}/template` — assign a different template
+- Certificates link added to the right-side panel of `EditForm.cshtml`.
+- Old hardcoded certificate partials (`_HotWork.cshtml` etc.) preserved for pre-cutover permits.
+- **Templates** sidebar group added (collapsible): Form Controls, Form Templates, Certificate Templates — visible to Super Users.
 
-- `Certificate` entity gains `FormTemplateId` (nullable FK → `FormTemplates`) and `CertificateDataJson` (string?). Migration: `AddCertificateFormBuilder`.
-- Old hardcoded certificate partials (`_HotWork.cshtml`, `_ConfinedSpace.cshtml`, etc.) preserved for pre-cutover permits.
-- New-system permits render attached certificates from `CertificateDataJson` + the linked `FormTemplate`.
-- QuestPDF embeds certificates as sub-sections within the permit PDF export.
+### Phase 7 — Telerik (Kendo UI) Removal ⏳ In progress
 
-### Phase 7 — Telerik (Kendo UI) Removal
-
-Systematic replacement across all views, executed after Phase 4–6 features are live.
+New views (Phases 2–6) use no Telerik/Kendo. Old views still use Kendo Grid, DatePicker, Switch, Upload etc. Replacement strategy:
 
 | Kendo Component | Replacement |
 |---|---|
 | Kendo Grid | Plain `<table>` + server-side AJAX pagination |
-| Kendo DropDownList | Native `<select>` + Tom Select (for search/multi) |
-| Kendo DateTimePicker | Native `<input type="datetime-local">` |
-| Kendo Window/Dialog | Native `<dialog>` element |
-| Kendo Notification | Custom `wwwroot/js/toast.js` |
-| Kendo Chart | Chart.js (already in use on dashboard/workflow pages) |
-| Kendo Upload | Native `<input type="file">` + existing upload endpoint |
+| Kendo DropDownList | Native `<select>` |
+| Kendo DateTimePicker | **Flatpickr** (CDN, used in new forms) |
+| Kendo Upload | Custom dropzone (JS `File[]` array, no `<input type="file">` in form) |
+| Kendo Window/Dialog | BS5 modal |
+| Kendo Notification | Toast via `showToast()` helper |
+| Kendo Chart | Chart.js |
 
-Order: shared utilities first → Admin pages → Permits pages → remaining pages → remove Telerik NuGet packages and `Telerik/` DLL folder → remove `'unsafe-inline'` from CSP.
+Order: Admin pages (done for Phases 2–3) → Permits new-system pages (done for Phase 4) → remaining old-system pages → remove Telerik NuGet + `Telerik/` DLL folder → tighten CSP.
 
 ---
 
@@ -473,6 +502,8 @@ Entity Framework Core with SQL Server. Key entities (26 total):
 | `AppSettingCategory` | Per-company grouping for key-value settings |
 | `AppSetting` | Per-company key-value configuration (unique on CompanyId + CategoryId + Key) |
 | `HotWork` / `ConfinedSpace` | Certificate sub-entities (in `Entities/Certificates/`) |
+| `FormControl` | Reusable form field definition per company (`ControlType`, `OptionsJson`, `IsRequired`, etc.) |
+| `FormTemplate` | Drag-drop form layout (`LayoutJson`, `HeaderConfigJson`, `FooterConfigJson`, `TemplateType`, `IsActive`) |
 | `FormSectionInfo` | Permit form section metadata (in `Entities/Forms/`) |
 
 All core entities support soft-delete via `ISoftDeletable`. Hard deletes are not performed by the application by default (`UseSoftDelete = true`). `Role` (via ASP.NET Identity) also implements `ISoftDeletable` with full audit fields.
@@ -493,6 +524,9 @@ All core entities support soft-delete via `ISoftDeletable`. Hard deletes are not
 | `AddRoleIsUnlimitedUsers` | `IsUnlimitedUsers` flag on `Role` |
 | `AddGlobalSettingsSupport` | `IsUsingGlobal` flag on `AppSetting` + filtered unique indexes for global (`CompanyId IS NULL`) categories/settings |
 | `AddDataProtectionKeys` | `DataProtectionKeys` table — shared Data Protection key ring persisted to the database instead of per-machine storage |
+| `AddFormBuilderFoundation` | `FormControls` + `FormTemplates` tables; `Permit.PermitDataJson` column; filtered unique index for one active template per company+type |
+| `AddPermitTitleColumn` | `Permit.Title` column + SQL backfill from `PermitForm` JSON for existing permits |
+| `AddCertificateFormBuilder` | `Certificate.CertificateDataJson` + `Certificate.FormTemplateId` FK → `FormTemplates` (SET NULL on delete) |
 
 Run migrations:
 ```bash

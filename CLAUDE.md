@@ -47,7 +47,7 @@ All tenant routes follow the pattern `/{company}/{controller}/{action}/{id?}` wh
 
 Service registration is split across two extension classes:
 
-- **Core services** — `Core/Extensions/CommonExtensions.cs` → `AddPermitProServices()` registers domain services (`IPermitService`, `IUserService`, `IAppSettingsService`, etc.), EF Core interceptors, and Data Protection.
+- **Core services** — `Core/Extensions/CommonExtensions.cs` → `AddPermitProServices()` registers domain services (`IPermitService`, `IUserService`, `IAppSettingsService`, `IFormControlService`, `IFormTemplateService`, `ICertificateService`, `IQuestPdfService`, etc.), EF Core interceptors, and Data Protection.
 - **Web services** — `Web/Extensions/WebExtensions.cs` provides five focused extension methods:
   - `AddDatabase(connectionString)` — DbContext + developer exception filter
   - `AddIdentityConfiguration()` — ASP.NET Identity, password policy, cookie settings, token lifetime
@@ -81,8 +81,36 @@ New-system permits and certificates use a drag-drop form builder:
 - **`FormControl`** entity (`Core/Entities/FormControl.cs`) — reusable control definitions per company. `ControlType` enum: `TextBox`, `TextArea`, `Checkbox`, `MultiChoice`, `Select`, `DateTimeInput`, `FileUpload`.
 - **`FormTemplate`** entity (`Core/Entities/FormTemplate.cs`) — layout JSON (`LayoutJson`) defining rows and control placements. Each row has a `columnCount` (1, 2, or 3) — all columns in a row are equal width. A slot with `controlId: null` renders as empty. `TemplateType` enum: `Permit`, `Certificate`. One active template per company+type at a time.
 - **`Permit.PermitDataJson`** — filled field values for new-system permits, keyed by column UUID from `LayoutJson`. `Permit.PermitForm` (old field) unchanged.
-- Admin routes: `/admin/formcontrols` (manage controls), `/admin/formtemplates` (permit layout builder), `/admin/certificatetemplates` (certificate layout builder).
+- **`Permit.Title`** / **`Permit.Description`** / **`Permit.StartDateTime`** / **`Permit.EndDateTime`** — populated for both old and new system permits. Used by the grid to avoid JSON parsing. `Title` mirrors `Description` for new-system permits.
+- **`Certificate.CertificateDataJson`** / **`Certificate.FormTemplateId`** — new-system certificate fields. Old `SerializedData` field unchanged.
+- Admin routes: `/admin/formcontrols` · `/admin/formtemplates` · `/admin/certificatetemplates`
+- Tenant routes (Super User): `/{company}/formcontrols` · `/{company}/formtemplates` · `/{company}/certificatetemplates`
+- Certificate routes: `/{company}/permits/{permitId}/certificates/*`
 - Cutover date: `AppSetting` category `general`, key `new_permit_form_cutover_date`. Exposed as `ISystemConfigurationService.NewPermitFormCutoverDate`. Null = new system disabled.
+
+### New-System Permit Form
+
+- `PermitsController.IsNewSystemActive()` — true when cutover date is set and `DateTime.UtcNow >= cutoverDate`.
+- `PermitsController.IsNewSystemPermit(permit)` — true when `permit.CreatedWhen >= cutoverDate`.
+- `PermitsController.EnrichLayout(layoutJson, companyId)` — merges full control metadata into layout JSON server-side so the browser JS needs no extra fetch.
+- Views: `Views/Permits/NewForm.cshtml` and `EditForm.cshtml` — both use the shared `Views/Permits/Partials/_NewFormScript.cshtml` partial.
+- `_NewFormScript.cshtml` — renders all 7 control types, manages Flatpickr date pickers (start → end min-date constraint, default 00:00), custom dropzone (`pendingFiles` array; immediate upload in edit mode via `POST /{company}/permits/{id}/attachments/upload`), inline BS validation with per-field error messages.
+- Fixed required fields above the canvas: Description, Start date/time, End date/time.
+- `IPermitService.CreateNewSystemAsync` / `UpdateNewSystemAsync` — accept description, startDateTime, endDateTime, permitDataJson, files.
+
+### Certificates (New System)
+
+- `ICertificateService` / `CertificateService` (`Core/Services/CertificateService.cs`) — CRUD + `SaveDataAsync`.
+- `CertificatesController` — tenant-scoped at `/{company}/permits/{permitId}/certificates/*`.
+- `Views/Certificates/Index.cshtml` — list + add (BS modal) + delete.
+- `Views/Certificates/Form.cshtml` — fill certificate form; assign/switch template; Flatpickr for date controls; saves via JSON `POST`.
+- Attach/detach template via `POST /{id}/template`; save data via `POST /{id}/save` (`[IgnoreAntiforgeryToken]`, JSON body).
+
+### Attachment Upload
+
+- **New permit**: files staged in JS `pendingFiles` array; appended to `FormData` manually at submit (no `<input type="file">` inside the form — Kendo hijacks those). Field name: `permitFiles`.
+- **Existing permit**: immediate upload via `POST /{company}/permits/{id}/attachments/upload` (`IFormFileCollection files`); file list reloads automatically after each upload. Delete via existing `POST /{company}/permits/attachments/remove`.
+- `SaveAttachmentsAsync` filters zero-length entries; uses `Path.GetFileName` cross-platform; only registers uploaded filenames (not pre-existing folder contents).
 
 ### SignalR
 
