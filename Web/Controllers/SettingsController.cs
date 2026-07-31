@@ -89,7 +89,7 @@ public class SettingsController : AppControllerBase
 			.OrderByDescending(s => s.Count)
 			.ToList();
 
-		var connectionString = _configuration.GetConnectionString(_env.EnvironmentName) ?? string.Empty;
+		var connectionString = _configuration.GetConnectionString("MSSQLConnection") ?? string.Empty;
 		var csBuilder = new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(connectionString);
 
 		decimal? dbSizeMb = null;

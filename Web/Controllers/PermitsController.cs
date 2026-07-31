@@ -357,7 +357,7 @@ public class PermitsController : AppControllerBase
 			DateTime? dtmEnd = permit.EndDateTime;
 			List<string> certs = new();
 
-			if (permit.Title == null && !string.IsNullOrEmpty(permit.PermitForm))
+			if (!string.IsNullOrEmpty(permit.PermitForm))
 			{
 				try
 				{
@@ -398,7 +398,7 @@ public class PermitsController : AppControllerBase
 			{
 				Id = permit.Id,
 				PermitNumber = string.Format("PTW{0:000000}", permit.RunningNumber),
-				Description = GetTruncatedWords(permit.Title ?? description, 20),
+				Description = GetTruncatedWords(description, 20),
 				Location = permit.LocationName,
 				StartDate = dtmStart,
 				EndDate = dtmEnd,
