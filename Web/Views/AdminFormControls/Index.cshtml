@@ -40,7 +40,9 @@
 				<button type="submit" class="btn btn-sm btn-primary">
 					<i class="fa-solid fa-magnifying-glass me-1"></i> Filter
 				</button>
-				<a href="@resetUrl" class="btn btn-sm btn-outline-secondary">Reset</a>
+				<button type="button" class="btn btn-sm btn-outline-secondary" onclick="window.location.href='@resetUrl'">
+					Reset
+				</button>
 			</div>
 		</form>
 	</div>
@@ -53,8 +55,7 @@
 		{
 			<div class="text-center py-5 text-muted">
 				<i class="fa-solid fa-sliders fa-2x mb-3 d-block"></i>
-				No controls yet. <button type="button" class="btn btn-sm btn-link p-0" onclick="openCreateDialog()">Create the
-				first one.</button>
+				No controls yet. <a href="#" role="button" class="btn btn-sm btn-link p-0 no-loading" onclick="openCreateDialog(); return false;">Create the first one.</a>
 			</div>
 		}
 		else
@@ -227,7 +228,7 @@
 							<input type="number" id="fcSortOrder" name="SortOrder" class="form-control form-control-sm"
 									 value="0" min="0" max="9999" />
 						</div>
-						<div class="col-md-3 d-flex align-items-end pb-1">
+						<div class="col-md-3 d-flex align-items-end pb-1" id="rowRequired">
 							<div class="form-check">
 								<input class="form-check-input" type="checkbox" id="fcRequired" name="IsRequired"
 										 value="true" />
@@ -239,10 +240,23 @@
 							<input type="text" id="fcPlaceholder" name="Placeholder" class="form-control form-control-sm"
 									 maxlength="200" />
 						</div>
-						<div class="col-md-6">
+						<div class="col-md-6" id="rowHelpText">
 							<label class="form-label">Help Text</label>
 							<input type="text" id="fcHelpText" name="HelpText" class="form-control form-control-sm"
 									 maxlength="500" />
+						</div>
+
+						@* ── Label heading level ─────────────────────────────────── *@
+						<div class="col-md-6" id="panelLabelOptions" style="display:none;">
+							<label class="form-label">Heading Level</label>
+							<select id="fcHeadingLevel" class="form-select form-select-sm">
+								<option value="h1">H1 — largest</option>
+								<option value="h2">H2</option>
+								<option value="h3" selected>H3 (default)</option>
+								<option value="h4">H4</option>
+								<option value="h5">H5</option>
+								<option value="h6">H6 — smallest</option>
+							</select>
 						</div>
 
 						@* ── Options panel (Select / MultiChoice / FileUpload) ──── *@
@@ -309,6 +323,7 @@
 		const TYPE_SELECT = @((int)FormControlTypeEnum.Select);
 		const TYPE_MULTI = @((int)FormControlTypeEnum.MultiChoice);
 		const TYPE_FILE = @((int)FormControlTypeEnum.FileUpload);
+		const TYPE_LABEL = @((int)FormControlTypeEnum.Label);
 		const TYPES_WITH_PLACEHOLDER = [@((int)FormControlTypeEnum.TextBox), @((int)FormControlTypeEnum.TextArea)];
 
 		const BASE_URL = '@baseUrl';
@@ -374,6 +389,7 @@
 			document.getElementById('optionsList').innerHTML = '';
 			document.getElementById('fuMaxFiles').value = '1';
 			document.getElementById('fuAllowedTypes').value = '';
+			document.getElementById('fcHeadingLevel').value = 'h3';
 			optionRowCount = 0;
 			onTypeChange('0');
 		}
@@ -403,10 +419,17 @@
 					document.getElementById('fuAllowedTypes').value = cfg.allowedTypes ?? '';
 				} catch { }
 			}
+			if (type === TYPE_LABEL && data.optionsJson) {
+				try {
+					const cfg = JSON.parse(data.optionsJson);
+					document.getElementById('fcHeadingLevel').value = cfg.headingLevel ?? 'h3';
+				} catch { }
+			}
 		}
 
 		function onTypeChange(typeVal) {
 			const t = parseInt(typeVal);
+			const isLabel = t === TYPE_LABEL;
 			const showOpts = (t === TYPE_SELECT || t === TYPE_MULTI || t === TYPE_FILE);
 			const showChoices = (t === TYPE_SELECT || t === TYPE_MULTI);
 			const showFile = (t === TYPE_FILE);
@@ -416,6 +439,9 @@
 			document.getElementById('panelChoiceOptions').style.display = showChoices ? '' : 'none';
 			document.getElementById('panelFileOptions').style.display = showFile ? '' : 'none';
 			document.getElementById('rowPlaceholder').style.display = showPlaceholder ? '' : 'none';
+			document.getElementById('rowRequired').style.display = isLabel ? 'none' : '';
+			document.getElementById('rowHelpText').style.display = isLabel ? 'none' : '';
+			document.getElementById('panelLabelOptions').style.display = isLabel ? '' : 'none';
 		}
 
 		// ── Choice options rows ──────────────────────────────────────────────────
@@ -469,6 +495,14 @@
 				return true;
 			}
 
+			if (type === TYPE_LABEL) {
+				const headingLevel = document.getElementById('fcHeadingLevel').value || 'h3';
+				document.getElementById('fcOptionsJson').value = JSON.stringify({ headingLevel });
+				document.getElementById('fcOptionsJson').name = 'OptionsJson';
+				document.getElementById('fcFileOptionsJson').name = '';
+				return true;
+			}
+
 			// No options for other types
 			document.getElementById('fcOptionsJson').value = '';
 			document.getElementById('fcOptionsJson').name = 'OptionsJson';
@@ -500,6 +534,7 @@
 		FormControlTypeEnum.Select => "bg-warning-subtle text-warning-emphasis border border-warning-subtle",
 		FormControlTypeEnum.DateTimeInput => "bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle",
 		FormControlTypeEnum.FileUpload => "bg-primary-subtle text-primary-emphasis border border-primary-subtle",
+		FormControlTypeEnum.Label => "bg-dark text-white border",
 		_ => "bg-light text-dark border",
 	};
 }

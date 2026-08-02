@@ -81,6 +81,47 @@ public class QuestPdfService : IQuestPdfService
 
 		var logoPath = Path.Combine(_env.WebRootPath, "img", "app-logo.jpg");
 
+		// Load certificate controls for all new-system certificates attached to this permit
+		var certControlMap = new Dictionary<Guid, Dictionary<Guid, FormControl>>();
+		var newSystemCerts = permit.Certificates?
+			.Where(c => c.FormTemplate != null && !string.IsNullOrWhiteSpace(c.CertificateDataJson))
+			.ToList() ?? new();
+
+		if (newSystemCerts.Count > 0)
+		{
+			var certControlIds = newSystemCerts
+				.Where(c => c.FormTemplate?.LayoutJson != null)
+				.SelectMany(c =>
+				{
+					try
+					{
+						var l = JsonSerializer.Deserialize<LayoutRoot>(c.FormTemplate.LayoutJson, JsonOpts);
+						return l?.Rows.SelectMany(r => r.Columns).Where(col => col.ControlId.HasValue).Select(col => col.ControlId.Value) ?? Enumerable.Empty<Guid>();
+					}
+					catch { return Enumerable.Empty<Guid>(); }
+				})
+				.Distinct()
+				.ToList();
+
+			var certControls = certControlIds.Count > 0
+				? await _db.FormControls.AsNoTracking()
+					.Where(c => certControlIds.Contains(c.Id))
+					.ToDictionaryAsync(c => c.Id, ct)
+				: new Dictionary<Guid, FormControl>();
+
+			foreach (var cert in newSystemCerts)
+			{
+				if (cert.FormTemplate?.LayoutJson == null) continue;
+				try
+				{
+					var l = JsonSerializer.Deserialize<LayoutRoot>(cert.FormTemplate.LayoutJson, JsonOpts);
+					var ids = l?.Rows.SelectMany(r => r.Columns).Where(col => col.ControlId.HasValue).Select(col => col.ControlId.Value).ToHashSet() ?? new();
+					certControlMap[cert.Id] = certControls.Where(kv => ids.Contains(kv.Key)).ToDictionary(kv => kv.Key, kv => kv.Value);
+				}
+				catch { certControlMap[cert.Id] = new(); }
+			}
+		}
+
 		var doc = Document.Create(container =>
 		{
 			container.Page(page =>
@@ -129,6 +170,61 @@ public class QuestPdfService : IQuestPdfService
 				  // ── Footer ─────────────────────────────────────────────────
 				 page.Footer().Element(footer => RenderFooter(footer, footerCfg));
 			 });
+
+			// ── Certificate pages ──────────────────────────────────────────────
+			foreach (var cert in newSystemCerts)
+			{
+				if (!certControlMap.TryGetValue(cert.Id, out var certControls2)) continue;
+				LayoutRoot certLayout = null;
+				try { certLayout = JsonSerializer.Deserialize<LayoutRoot>(cert.FormTemplate.LayoutJson, JsonOpts); } catch { }
+				var certFields = ParseFields(cert.CertificateDataJson);
+
+				container.Page(page =>
+				{
+					page.Size(PageSizes.A4);
+					page.MarginTop(2f, Unit.Centimetre);
+					page.MarginBottom(1.5f, Unit.Centimetre);
+					page.MarginLeft(1.5f, Unit.Centimetre);
+					page.MarginRight(1.5f, Unit.Centimetre);
+
+					page.Header().BorderBottom(1).BorderColor(Colors.Grey.Lighten2)
+						.PaddingBottom(6).Column(col =>
+						{
+							col.Item().Text($"CERTIFICATE — {cert.Name.ToUpper()}").Bold().FontSize(13);
+							col.Item().Text($"Permit PTW{permit.RunningNumber:000000}").FontSize(9).FontColor(Colors.Grey.Darken1);
+						});
+
+					page.Content().Element(content =>
+					{
+						content.PaddingVertical(0.5f, Unit.Centimetre).Column(col =>
+						{
+							if (certLayout == null || !certLayout.Rows.Any())
+							{
+								col.Item().Text("No form layout defined for this certificate.")
+									.FontSize(10).FontColor(Colors.Grey.Medium);
+								return;
+							}
+
+							foreach (var row in certLayout.Rows)
+							{
+								col.Item().PaddingBottom(6).Row(rowContainer =>
+								{
+									var colCount = Math.Max(1, row.ColumnCount);
+									foreach (var colDef in row.Columns)
+									{
+										rowContainer.RelativeItem().PaddingHorizontal(3)
+											.Element(cell => RenderCell(cell, colDef, certControls2, certFields));
+									}
+									for (int i = row.Columns.Count; i < colCount; i++)
+										rowContainer.RelativeItem().Text("");
+								});
+							}
+						});
+					});
+
+					page.Footer().Element(footer => RenderFooter(footer, null));
+				});
+			}
 		});
 
 		return doc.GeneratePdf();
@@ -207,6 +303,14 @@ public class QuestPdfService : IQuestPdfService
 
 			var label = colDef.LabelOverride ?? ctrl.Label;
 			var req = colDef.IsRequiredOverride ?? ctrl.IsRequired;
+
+			if (ctrl.ControlType == FormControlTypeEnum.Label)
+			{
+				var fontSize = GetLabelFontSize(ctrl.OptionsJson);
+				col.Item().Text(label).Bold().FontSize(fontSize);
+				col.Item().PaddingTop(2).LineHorizontal(0.5f).LineColor(Colors.Grey.Lighten1);
+				return;
+			}
 
 			col.Item().Text(text =>
 			  {
@@ -304,6 +408,10 @@ public class QuestPdfService : IQuestPdfService
 					break;
 				}
 
+			case FormControlTypeEnum.Label:
+				container.Text("").FontSize(1);  // empty cell — label/hr is in the column header
+				break;
+
 			default: // TextBox, TextArea
 				{
 					var val = raw.ValueKind == JsonValueKind.String ? raw.GetString() : "";
@@ -384,6 +492,27 @@ public class QuestPdfService : IQuestPdfService
 		if (string.IsNullOrWhiteSpace(json)) return null;
 		try { return JsonSerializer.Deserialize<T>(json, JsonOpts); }
 		catch { return null; }
+	}
+
+	private static float GetLabelFontSize(string optionsJson)
+	{
+		if (string.IsNullOrWhiteSpace(optionsJson)) return 11;
+		try
+		{
+			using var doc = JsonDocument.Parse(optionsJson);
+			var level = doc.RootElement.TryGetProperty("headingLevel", out var el) ? el.GetString() : null;
+			return level switch
+			{
+				"h1" => 18,
+				"h2" => 15,
+				"h3" => 13,
+				"h4" => 11,
+				"h5" => 10,
+				"h6" => 9,
+				_ => 11,
+			};
+		}
+		catch { return 11; }
 	}
 
 	private static List<(string Value, string Label)> ParseOptions(string optionsJson)

@@ -9,4 +9,5 @@ public enum FormControlTypeEnum
     Select,
     DateTimeInput,
     FileUpload,
+    Label,
 }
