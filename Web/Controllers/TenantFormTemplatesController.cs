@@ -23,13 +23,13 @@ public class TenantFormTemplatesController : AppControllerBase
 	private readonly IFormControlService _controls;
 
 	public TenantFormTemplatesController(
-		 ApplicationDbContext dbContext,
-		 IHttpContextAccessor httpContextAccessor,
-		 SignInManager<UserInfo> signInManager,
-		 ISystemConfigurationService systemConfigurationService,
-		 IFormTemplateService templates,
-		 IFormControlService controls)
-		 : base(dbContext, httpContextAccessor, signInManager, systemConfigurationService)
+		ApplicationDbContext dbContext,
+		IHttpContextAccessor httpContextAccessor,
+		SignInManager<UserInfo> signInManager,
+		ISystemConfigurationService systemConfigurationService,
+		IFormTemplateService templates,
+		IFormControlService controls)
+		: base(dbContext, httpContextAccessor, signInManager, systemConfigurationService)
 	{
 		_templates = templates;
 		_controls = controls;

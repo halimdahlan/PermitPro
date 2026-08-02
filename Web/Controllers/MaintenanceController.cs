@@ -24,8 +24,8 @@ public class MaintenanceController : AppControllerBase
 		, SignInManager<UserInfo> signInManager
 		, ISystemConfigurationService systemConfigurationService
 		, UserManager<UserInfo> userManager
-		, ICurrentUserService currentUserService
-		) : base(dbContext, httpContextAccessor, signInManager, systemConfigurationService)
+		, ICurrentUserService currentUserService)
+		 : base(dbContext, httpContextAccessor, signInManager, systemConfigurationService)
 	{
 		_userManager = userManager;
 		_dbContext = dbContext;
