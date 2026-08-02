@@ -6,7 +6,7 @@ using PermitPro.Core.Helpers;
 var builder = WebApplication.CreateBuilder(args);
 var appConfig = builder.Configuration;
 
-var connectionString = appConfig.GetConnectionString("MSSQLConnection")!;
+var connectionString = appConfig.GetConnectionString("MSSQL")!;
 var ptwSettings = appConfig.GetSection("PTWSettings").Get<PTWSettings>()!;
 var jwtSettings = appConfig.GetSection("JwtSettings").Get<JwtSettings>()!;
 
