@@ -255,14 +255,13 @@ public class PermitsController : AppControllerBase
 	[Route("{company}/permits/new/form")]
 	public async Task<IActionResult> NewForm(Guid company, CancellationToken ct)
 	{
-		var template = await _formTemplates.GetActiveAsync(company, Core.Enums.FormTemplateTypeEnum.Permit, ct);
+		var allTemplates = await _formTemplates.GetAllAsync(company, Core.Enums.FormTemplateTypeEnum.Permit, ct);
+		var template = allTemplates.FirstOrDefault();
 		if (template == null)
 		{
-			TempData["ErrorMessage"] = "No active permit form template found. Please configure one in Admin → Form Templates.";
+			TempData["ErrorMessage"] = "No permit form template found. Please configure one in Admin → Form Templates.";
 			return RedirectToAction(nameof(Index), new { company });
 		}
-
-		var controls = await _formTemplates.GetAllAsync(company, Core.Enums.FormTemplateTypeEnum.Permit, ct);
 		var model = BuildNewFormViewModel(company, template, null, false, null);
 		return View(model);
 	}
@@ -289,7 +288,7 @@ public class PermitsController : AppControllerBase
 		var templateId = ExtractTemplateIdFromDataJson(permit.PermitDataJson);
 		var template = templateId != Guid.Empty
 			? await _formTemplates.GetByIdAsync(templateId, ct)
-			: await _formTemplates.GetActiveAsync(company, Core.Enums.FormTemplateTypeEnum.Permit, ct);
+			: (await _formTemplates.GetAllAsync(company, Core.Enums.FormTemplateTypeEnum.Permit, ct)).FirstOrDefault();
 
 		if (template == null) return NotFound("Form template not found.");
 

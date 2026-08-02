@@ -42,8 +42,16 @@ public class TenantFormTemplatesController : AppControllerBase
 	{
 		if (!IsSuperUserOrPortalAdmin()) return Forbid();
 
-		var isCert = Request.Path.Value?.Contains("certificate", StringComparison.OrdinalIgnoreCase) == true;
-		FormTemplateTypeEnum? typeFilter = isCert ? FormTemplateTypeEnum.Certificate : null;
+		var typeStr = Request.Query["type"].ToString();
+		FormTemplateTypeEnum? typeFilter = typeStr switch
+		{
+			"permit" => FormTemplateTypeEnum.Permit,
+			"certificate" => FormTemplateTypeEnum.Certificate,
+			_ when Request.Path.Value?.Contains("certificate", StringComparison.OrdinalIgnoreCase) == true
+				=> FormTemplateTypeEnum.Certificate,
+			_ => null,
+		};
+		var isCert = typeFilter == FormTemplateTypeEnum.Certificate;
 
 		var templates = await _templates.GetAllAsync(CompanyID, typeFilter, ct);
 
@@ -57,7 +65,6 @@ public class TenantFormTemplatesController : AppControllerBase
 				Name = t.Name,
 				Description = t.Description,
 				TemplateType = t.TemplateType,
-				IsActive = t.IsActive,
 				CreatedWhen = t.CreatedWhen,
 				UpdatedWhen = t.UpdatedWhen,
 			}).ToList(),
@@ -126,7 +133,6 @@ public class TenantFormTemplatesController : AppControllerBase
 			existing.LayoutJson = req.LayoutJson;
 			existing.HeaderConfigJson = NormaliseJson(req.HeaderConfigJson);
 			existing.FooterConfigJson = NormaliseJson(req.FooterConfigJson);
-			existing.IsActive = req.IsActive;
 			existing.UpdatedBy = GetCurrentUserId();
 
 			await _templates.UpdateAsync(existing, ct);
@@ -143,7 +149,6 @@ public class TenantFormTemplatesController : AppControllerBase
 				LayoutJson = req.LayoutJson,
 				HeaderConfigJson = NormaliseJson(req.HeaderConfigJson),
 				FooterConfigJson = NormaliseJson(req.FooterConfigJson),
-				IsActive = req.IsActive,
 				CreatedBy = GetCurrentUserId(),
 			};
 
@@ -155,22 +160,8 @@ public class TenantFormTemplatesController : AppControllerBase
 	}
 
 
-	[HttpPost("{company}/formtemplates/{id:guid}/setactive")]
-	[ValidateAntiForgeryToken]
-	public async Task<IActionResult> SetActive(Guid id, FormTemplateTypeEnum type, CancellationToken ct)
-	{
-		if (!IsSuperUserOrPortalAdmin()) return Forbid();
-
-		await _templates.SetActiveAsync(id, CompanyID, type, ct);
-		TempData["SuccessMessage"] = "Template set as active.";
-
-		return Redirect(type == FormTemplateTypeEnum.Certificate
-			 ? $"/{CompanyID}/certificatetemplates"
-			 : $"/{CompanyID}/formtemplates");
-	}
-
-
 	[HttpPost("{company}/formtemplates/{id:guid}/delete")]
+	[HttpPost("{company}/certificatetemplates/{id:guid}/delete")]
 	[ValidateAntiForgeryToken]
 	public async Task<IActionResult> Delete(Guid id, FormTemplateTypeEnum type, CancellationToken ct)
 	{
@@ -197,7 +188,6 @@ public class TenantFormTemplatesController : AppControllerBase
 			Name = template?.Name ?? string.Empty,
 			Description = template?.Description,
 			TemplateType = template?.TemplateType ?? type,
-			IsActive = template?.IsActive ?? false,
 			LayoutJson = template?.LayoutJson ?? "{\"rows\":[]}",
 			HeaderConfigJson = template?.HeaderConfigJson,
 			FooterConfigJson = template?.FooterConfigJson,

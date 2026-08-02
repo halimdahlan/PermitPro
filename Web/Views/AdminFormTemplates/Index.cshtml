@@ -2,162 +2,177 @@
 @model PermitPro.App.ViewModels.FormTemplatesIndexViewModel
 
 @{
-    var isTenant = ViewContext.RouteData.Values["company"] != null;
-    Layout = isTenant ? "_Layout" : "_LayoutAdmin";
-    var isCert = Model.TypeFilter == FormTemplateTypeEnum.Certificate;
-    var title = isCert ? "Certificate Templates" : "Form Templates";
-    var icon  = isCert ? "fa-certificate" : "fa-table-columns";
-    var newUrl = isTenant
-        ? (isCert ? $"/{Model.CompanyId}/certificatetemplates/new" : $"/{Model.CompanyId}/formtemplates/new")
-        : (isCert ? $"/admin/certificatetemplates/new?companyId={Model.CompanyId}" : $"/admin/formtemplates/new?companyId={Model.CompanyId}");
-    var editBase = isTenant
-        ? (isCert ? $"/{Model.CompanyId}/certificatetemplates" : $"/{Model.CompanyId}/formtemplates")
-        : (isCert ? "/admin/certificatetemplates" : "/admin/formtemplates");
-    ViewData["Title"] = title;
+	var isTenant = ViewContext.RouteData.Values["company"] != null;
+	Layout = isTenant ? "_Layout" : "_LayoutAdmin";
+	ViewData["Title"] = "Permit Form & Certificate Templates";
+
+	var baseListUrl = isTenant
+		 ? $"/{Model.CompanyId}/formtemplates"
+		 : $"/admin/formtemplates?companyId={Model.CompanyId}";
+
+	var filterAll = baseListUrl;
+	var filterPermit = isTenant ? $"/{Model.CompanyId}/formtemplates?type=permit" :
+$"/admin/formtemplates?companyId={Model.CompanyId}&type=permit";
+	var filterCert = isTenant ? $"/{Model.CompanyId}/formtemplates?type=certificate" :
+$"/admin/formtemplates?companyId={Model.CompanyId}&type=certificate";
+
+	var newPermitUrl = isTenant ? $"/{Model.CompanyId}/formtemplates/new" :
+$"/admin/formtemplates/new?companyId={Model.CompanyId}";
+	var newCertUrl = isTenant ? $"/{Model.CompanyId}/certificatetemplates/new" :
+$"/admin/certificatetemplates/new?companyId={Model.CompanyId}";
+
+	var editBase = isTenant ? $"/{Model.CompanyId}/formtemplates" : "/admin/formtemplates";
+	var certEditBase = isTenant ? $"/{Model.CompanyId}/certificatetemplates" : "/admin/certificatetemplates";
+
+	string ActiveTab(FormTemplateTypeEnum? f) => Model.TypeFilter == f ? "active" : "";
 }
 
 <div class="page-header d-flex align-items-center flex-row justify-content-end mb-3">
-    <a href="@newUrl" class="btn btn-primary btn-sm">
-        <i class="fa-solid fa-plus me-1"></i> New Template
-    </a>
+	<div class="dropdown">
+		<button class="btn btn-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown"
+				  aria-expanded="false">
+			<i class="fa-solid fa-plus me-1"></i> New Template
+		</button>
+		<ul class="dropdown-menu dropdown-menu-end">
+			<li>
+				<a class="dropdown-item" href="@newPermitUrl">
+					<i class="fa-solid fa-table-columns me-2 text-info"></i> Permit Form
+				</a>
+			</li>
+			<li>
+				<a class="dropdown-item" href="@newCertUrl">
+					<i class="fa-solid fa-certificate me-2 text-warning"></i> Certificate
+				</a>
+			</li>
+		</ul>
+	</div>
 </div>
 
+@* ── Type filter tabs ──────────────────────────────────────────────────────── *@
+<ul class="nav nav-tabs mb-3">
+	<li class="nav-item">
+		<a class="nav-link @ActiveTab(null)" href="@filterAll">All</a>
+	</li>
+	<li class="nav-item">
+		<a class="nav-link @ActiveTab(FormTemplateTypeEnum.Permit)" href="@filterPermit">
+			<i class="fa-solid fa-table-columns me-1"></i> Permits
+		</a>
+	</li>
+	<li class="nav-item">
+		<a class="nav-link @ActiveTab(FormTemplateTypeEnum.Certificate)" href="@filterCert">
+			<i class="fa-solid fa-certificate me-1"></i> Certificates
+		</a>
+	</li>
+</ul>
+
 <div class="card shadow-sm border-0">
-    <div class="card-body p-0">
-        @if (!Model.Templates.Any())
-        {
-            <div class="text-center py-5 text-muted">
-                <i class="fa-solid @icon fa-2x mb-3 d-block"></i>
-                No templates yet. <a href="@newUrl">Create the first one.</a>
-            </div>
-        }
-        else
-        {
-            <table class="table table-hover mb-0 align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th style="padding-left:1.25rem;">Name</th>
-                        <th>Type</th>
-                        <th class="text-center">Status</th>
-                        <th>Last Updated</th>
-                        <th class="text-end" style="padding-right:1.25rem;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var t in Model.Templates)
-                    {
-                        <tr>
-                            <td style="padding-left:1.25rem;">
-                                <div class="fw-500">@t.Name</div>
-                                @if (!string.IsNullOrEmpty(t.Description))
-                                {
-                                    <small class="text-muted">@t.Description</small>
-                                }
-                            </td>
-                            <td>
-                                <span class="badge @(t.TemplateType == FormTemplateTypeEnum.Certificate ? "bg-warning-subtle text-warning-emphasis border border-warning-subtle" : "bg-info-subtle text-info-emphasis border border-info-subtle")">
-                                    @t.TemplateType
-                                </span>
-                            </td>
-                            <td class="text-center">
-                                @if (t.IsActive)
-                                {
-                                    <span class="badge bg-success-soft text-success">Active</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-secondary-soft text-secondary">Inactive</span>
-                                }
-                            </td>
-                            <td>
-                                <small class="text-muted">
-                                    @((t.UpdatedWhen ?? t.CreatedWhen).ToString("dd MMM yyyy, HH:mm"))
-                                </small>
-                            </td>
-                            <td class="text-end" style="padding-right:1.25rem;">
-                                <a href="@editBase/@t.Id/edit" class="btn btn-sm btn-outline-secondary me-1" title="Edit in Builder">
-                                    <i class="fa-solid fa-pen-ruler"></i>
-                                </a>
-
-                                @if (!t.IsActive)
-                                {
-                                    <form method="post" action="@editBase/@t.Id/setactive" class="d-inline">
-                                        <input type="hidden" name="companyId" value="@Model.CompanyId" />
-                                        <input type="hidden" name="type" value="@((int)t.TemplateType)" />
-                                        @Html.AntiForgeryToken()
-                                        <button type="submit" class="btn btn-sm btn-outline-success me-1" title="Set as Active">
-                                            <i class="fa-solid fa-circle-check"></i>
-                                        </button>
-                                    </form>
-                                }
-
-                                @if (!t.IsActive)
-                                {
-                                    <button type="button" class="btn btn-sm btn-outline-danger" title="Delete"
-                                            onclick="confirmDelete('@editBase/@t.Id/delete', '@Html.Raw(t.Name.Replace("'", "\\'"))', @((int)t.TemplateType))">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
-                                }
-                                else
-                                {
-                                    <button type="button" class="btn btn-sm btn-outline-danger" disabled title="Cannot delete the active template">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
-                                }
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        }
-    </div>
+	<div class="card-body p-0">
+		@if (!Model.Templates.Any())
+		{
+			<div class="text-center py-5 text-muted">
+				<i class="fa-solid fa-table-columns fa-2x mb-3 d-block"></i>
+				No templates yet. Use <strong>New Template</strong> above to create one.
+			</div>
+		}
+		else
+		{
+			<table class="table table-hover mb-0 align-middle">
+				<thead class="table-light">
+					<tr>
+						<th style="padding-left:1.25rem;">Name</th>
+						<th>Type</th>
+						<th>Last Updated</th>
+						<th class="text-end" style="padding-right:1.25rem;">Actions</th>
+					</tr>
+				</thead>
+				<tbody>
+					@foreach (var t in Model.Templates)
+					{
+						var isCertRow = t.TemplateType == FormTemplateTypeEnum.Certificate;
+						var rowEditBase = isCertRow ? certEditBase : editBase;
+						var rowDeleteBase = isCertRow ? certEditBase : editBase;
+						<tr>
+							<td style="padding-left:1.25rem;">
+								<div class="fw-500">@t.Name</div>
+								@if (!string.IsNullOrEmpty(t.Description))
+								{
+									<small class="text-muted">@t.Description</small>
+								}
+							</td>
+							<td>
+								<span
+									class="badge @(isCertRow ? "bg-warning-subtle text-warning-emphasis border border-warning-subtle" : "bg-info-subtle text-info-emphasis border border-info-subtle")">
+									@t.TemplateType
+								</span>
+							</td>
+							<td>
+								<small class="text-muted">
+									@((t.UpdatedWhen ?? t.CreatedWhen).ToString("dd MMM yyyy, hh:mm tt"))
+								</small>
+							</td>
+							<td class="text-end" style="padding-right:1.25rem;">
+								<a href="@rowEditBase/@t.Id/edit" class="btn btn-sm btn-outline-secondary me-1"
+									title="Edit in Builder">
+									<i class="fa-solid fa-pen-ruler"></i>
+								</a>
+								<button type="button" class="btn btn-sm btn-outline-danger" title="Delete"
+										  onclick="confirmDelete('@rowDeleteBase/@t.Id/delete', '@Html.Raw(t.Name.Replace("'", "\\'"))', @((int)t.TemplateType))">
+									<i class="fa-solid fa-trash"></i>
+								</button>
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		}
+	</div>
 </div>
 
 <div class="mt-3 text-muted" style="font-size:.8rem;">
-    @Model.Templates.Count @(Model.Templates.Count == 1 ? "template" : "templates") total &bull;
-    @Model.Templates.Count(t => t.IsActive) active
+	@Model.Templates.Count @(Model.Templates.Count == 1 ? "template" : "templates") total
 </div>
 
 @* ── Delete confirm modal ─────────────────────────────────────────────────── *@
 <div class="modal fade" id="dlgDeleteConfirm" tabindex="-1" aria-labelledby="dlgDeleteConfirmTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h6 class="modal-title fw-semibold" id="dlgDeleteConfirmTitle">
-                    <i class="fa-solid fa-triangle-exclamation me-2"></i> Confirm Delete
-                </h6>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p class="mb-0">Are you sure you want to delete <strong id="dlgDeleteItemName"></strong>? This cannot be undone.</p>
-            </div>
-            <div class="modal-footer bg-light">
-                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <form id="frmDeleteConfirm" method="post" class="d-inline">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" id="hdnDeleteCompanyId" name="companyId" value="@Model.CompanyId" />
-                    <input type="hidden" id="hdnDeleteType" name="type" value="" />
-                    <button type="submit" class="btn btn-sm btn-danger">
-                        <i class="fa-solid fa-trash me-1"></i> Yes, delete
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header bg-danger text-white">
+				<h6 class="modal-title fw-semibold" id="dlgDeleteConfirmTitle">
+					<i class="fa-solid fa-triangle-exclamation me-2"></i> Confirm Delete
+				</h6>
+				<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<p class="mb-0">Are you sure you want to delete <strong id="dlgDeleteItemName"></strong>? This cannot be
+					undone.</p>
+				</div>
+				<div class="modal-footer bg-light">
+					<button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+					<form id="frmDeleteConfirm" method="post" class="d-inline">
+						@Html.AntiForgeryToken()
+						<input type="hidden" id="hdnDeleteCompanyId" name="companyId" value="@Model.CompanyId" />
+						<input type="hidden" id="hdnDeleteType" name="type" value="" />
+						<button type="submit" class="btn btn-sm btn-danger">
+							<i class="fa-solid fa-trash me-1"></i> Yes, delete
+						</button>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
 
-@section Scripts {
-<script>
-    let bsDeleteModal = null;
-    document.addEventListener('DOMContentLoaded', () => {
-        bsDeleteModal = new bootstrap.Modal(document.getElementById('dlgDeleteConfirm'));
-    });
+	@section Scripts {
+		<script>
+			let bsDeleteModal = null;
+			document.addEventListener('DOMContentLoaded', () => {
+				bsDeleteModal = new bootstrap.Modal(document.getElementById('dlgDeleteConfirm'));
+			});
 
-    function confirmDelete(actionUrl, itemName, templateType) {
-        document.getElementById('dlgDeleteItemName').textContent = itemName;
-        document.getElementById('frmDeleteConfirm').action = actionUrl;
-        document.getElementById('hdnDeleteType').value = templateType;
-        bsDeleteModal.show();
-    }
-</script>
-}
+			function confirmDelete(actionUrl, itemName, templateType) {
+				document.getElementById('dlgDeleteItemName').textContent = itemName;
+				document.getElementById('frmDeleteConfirm').action = actionUrl;
+				document.getElementById('hdnDeleteType').value = templateType;
+				bsDeleteModal.show();
+			}
+		</script>
+	}

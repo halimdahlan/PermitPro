@@ -1,5 +1,7 @@
 ﻿#nullable disable
 
+using Microsoft.EntityFrameworkCore;
+
 using PermitPro.Core.Data;
 using PermitPro.Core.Entities;
 using PermitPro.Core.Enums;
@@ -59,6 +61,7 @@ public class LogService : ILogService
 
 	private async Task LogMessageInternalAsync(LogTypeEnum logType, string category, string message, UserInfo user = null, string url = null, string serializedData = null, string entity = null)
 	{
+		var companyId = await ResolveCompanyIdAsync(user);
 		var log = new AuditLog
 		{
 			Id = Guid.NewGuid(),
@@ -69,6 +72,7 @@ public class LogService : ILogService
 			Url = url,
 			SerializedData = serializedData,
 			AuditLogUser = user,
+			CompanyId = companyId,
 			CreatedBy = user != null ? Guid.Parse(user.Id) : null,
 			CreatedWhen = DateTime.UtcNow.ToUniversalTime(),
 		};
@@ -80,6 +84,7 @@ public class LogService : ILogService
 
 	private void LogMessageInternal(LogTypeEnum logType, string category, string message, UserInfo user = null, string url = null, string serializedData = null, string entity = null)
 	{
+		var companyId = ResolveCompanyId(user);
 		var log = new AuditLog
 		{
 			Id = Guid.NewGuid(),
@@ -90,11 +95,32 @@ public class LogService : ILogService
 			Url = url,
 			SerializedData = serializedData,
 			AuditLogUser = user,
+			CompanyId = companyId,
 			CreatedBy = user != null ? Guid.Parse(user.Id) : null,
 			CreatedWhen = DateTime.UtcNow.ToUniversalTime(),
 		};
 
 		_dbContext.AuditLogs.Add(log);
 		_dbContext.SaveChanges();
+	}
+
+	private async Task<Guid?> ResolveCompanyIdAsync(UserInfo user)
+	{
+		if (user == null) return null;
+		if (user.UserCompany != null) return user.UserCompany.Id;
+		return await _dbContext.Users
+			.Where(u => u.Id == user.Id)
+			.Select(u => u.UserCompany != null ? (Guid?)u.UserCompany.Id : null)
+			.FirstOrDefaultAsync();
+	}
+
+	private Guid? ResolveCompanyId(UserInfo user)
+	{
+		if (user == null) return null;
+		if (user.UserCompany != null) return user.UserCompany.Id;
+		return _dbContext.Users
+			.Where(u => u.Id == user.Id)
+			.Select(u => u.UserCompany != null ? (Guid?)u.UserCompany.Id : null)
+			.FirstOrDefault();
 	}
 }

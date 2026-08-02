@@ -9,7 +9,6 @@ public class FormTemplateListViewModel
     public required string Name { get; set; }
     public string? Description { get; set; }
     public FormTemplateTypeEnum TemplateType { get; set; }
-    public bool IsActive { get; set; }
     public DateTime CreatedWhen { get; set; }
     public DateTime? UpdatedWhen { get; set; }
 }
@@ -32,7 +31,6 @@ public class FormBuilderViewModel
 
     public string? Description { get; set; }
     public FormTemplateTypeEnum TemplateType { get; set; }
-    public bool IsActive { get; set; }
     public string LayoutJson { get; set; } = "{\"rows\":[]}";
     public string? HeaderConfigJson { get; set; }
     public string? FooterConfigJson { get; set; }

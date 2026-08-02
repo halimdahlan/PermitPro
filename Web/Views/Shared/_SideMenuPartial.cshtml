@@ -25,15 +25,15 @@
 	var navAbout = currentRoute?.ToLower() == "settings" && currentAction?.ToLower() == "about" ? "active" : "";
 	var navFormControls  = currentRoute?.ToLower() == "tenantformcontrols"  ? "active" : "";
 	var navFormTemplates = currentRoute?.ToLower() == "tenantformtemplates" ? "active" : "";
-	var navCertTemplates = "";
+	//var navCertTemplates = "";
 
 	if (TempData["CurrentPage"]?.ToString()?.ToLower().Contains("certificate", StringComparison.OrdinalIgnoreCase) == true)
 	{
-		navCertTemplates = "active";
+		//navCertTemplates = "active";
 		navFormTemplates = "";
 	}
 	
-	var isTemplatesActive = navFormControls == "active" || navFormTemplates == "active" || navCertTemplates == "active";
+	var isTemplatesActive = navFormControls == "active" || navFormTemplates == "active";
 	var templatesShow    = isTemplatesActive ? " show" : "";
 	var navGeneral = currentRoute?.ToLower() == "dashboard" ? "active" : "";
 	var navRecycleBin = currentRoute?.ToLower() == "recyclebin" ? " active" : "";
@@ -178,12 +178,7 @@
 						</li>
 						<li class="nav-item">
 							<a href="/@companyId/formtemplates" class="nav-link @navFormTemplates">
-								<i class="fa-solid fa-table-columns fa-fw me-3"></i>Permit Forms
-							</a>
-						</li>
-						<li class="nav-item">
-							<a href="/@companyId/certificatetemplates" class="nav-link @navCertTemplates">
-								<i class="fa-solid fa-certificate fa-fw me-3"></i>Certificates
+								<i class="fa-solid fa-table-columns fa-fw me-3"></i>Permit/Certificate
 							</a>
 						</li>
 					</ul>

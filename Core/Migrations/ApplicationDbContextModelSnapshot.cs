@@ -442,6 +442,9 @@ namespace PermitPro.Core.Migrations
                     b.Property<string>("Category")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid?>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid?>("CreatedBy")
                         .HasColumnType("uniqueidentifier");
 
@@ -472,6 +475,9 @@ namespace PermitPro.Core.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AuditLogUserId");
+
+                    b.HasIndex("CompanyId", "LogType", "CreatedWhen")
+                        .HasDatabaseName("IX_AuditLogs_CompanyId_LogType_CreatedWhen");
 
                     b.ToTable("AuditLogs");
                 });
@@ -828,9 +834,6 @@ namespace PermitPro.Core.Migrations
                     b.Property<string>("HeaderConfigJson")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
@@ -853,10 +856,7 @@ namespace PermitPro.Core.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CompanyId", "TemplateType", "IsActive")
-                        .IsUnique()
-                        .HasDatabaseName("IX_FormTemplates_CompanyId_TemplateType_Active")
-                        .HasFilter("[IsActive] = 1");
+                    b.HasIndex("CompanyId");
 
                     b.ToTable("FormTemplates");
                 });

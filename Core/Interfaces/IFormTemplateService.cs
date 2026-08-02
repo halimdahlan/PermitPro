@@ -9,13 +9,9 @@ public interface IFormTemplateService
 
     Task<FormTemplate?> GetByIdAsync(Guid id, CancellationToken ct = default);
 
-    Task<FormTemplate?> GetActiveAsync(Guid companyId, FormTemplateTypeEnum type, CancellationToken ct = default);
-
     Task<FormTemplate> CreateAsync(FormTemplate template, CancellationToken ct = default);
 
     Task<FormTemplate> UpdateAsync(FormTemplate template, CancellationToken ct = default);
-
-    Task SetActiveAsync(Guid id, Guid companyId, FormTemplateTypeEnum type, CancellationToken ct = default);
 
     Task DeleteAsync(Guid id, Guid deletedBy, CancellationToken ct = default);
 }

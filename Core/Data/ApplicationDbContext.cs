@@ -241,13 +241,12 @@ public class ApplicationDbContext
 				   .WithMany()
 				   .HasForeignKey(x => x.CompanyId)
 				   .OnDelete(DeleteBehavior.Cascade);
+		});
 
-			// Enforce one active template per company+type at the application layer;
-			// filtered unique index covers only active=true rows.
-			options.HasIndex(x => new { x.CompanyId, x.TemplateType, x.IsActive })
-				   .IsUnique()
-				   .HasFilter("[IsActive] = 1")
-				   .HasDatabaseName("IX_FormTemplates_CompanyId_TemplateType_Active");
+		builder.Entity<AuditLog>(options =>
+		{
+			options.HasIndex(x => new { x.CompanyId, x.LogType, x.CreatedWhen })
+				   .HasDatabaseName("IX_AuditLogs_CompanyId_LogType_CreatedWhen");
 		});
 
 		builder.Entity<AppSettingCategory>(options =>

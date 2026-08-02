@@ -21,6 +21,8 @@ public class AuditLog
 
 	public string? SerializedData { get; set; }
 
+	public Guid? CompanyId { get; set; }
+
 	public UserInfo? AuditLogUser { get; set; }
 
 	public DateTime CreatedWhen { get; set; }

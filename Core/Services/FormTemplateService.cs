@@ -20,14 +20,13 @@ public class FormTemplateService : IFormTemplateService
     {
         var query = _db.FormTemplates
             .AsNoTracking()
-            .Where(x => x.CompanyId == companyId);
+            .Where(x => x.CompanyId == companyId && !x.IsDeleted);
 
         if (type.HasValue)
             query = query.Where(x => x.TemplateType == type.Value);
 
         return await query
-            .OrderByDescending(x => x.IsActive)
-            .ThenBy(x => x.Name)
+            .OrderBy(x => x.Name)
             .ToListAsync(ct);
     }
 
@@ -36,18 +35,10 @@ public class FormTemplateService : IFormTemplateService
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == id, ct);
 
-    public async Task<FormTemplate?> GetActiveAsync(Guid companyId, FormTemplateTypeEnum type, CancellationToken ct = default)
-        => await _db.FormTemplates
-            .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.CompanyId == companyId && x.TemplateType == type && x.IsActive, ct);
-
     public async Task<FormTemplate> CreateAsync(FormTemplate template, CancellationToken ct = default)
     {
         template.Id = Guid.NewGuid();
         template.CreatedWhen = DateTime.UtcNow;
-
-        if (template.IsActive)
-            await ClearActiveAsync(template.CompanyId, template.TemplateType, ct);
 
         _db.FormTemplates.Add(template);
         await _db.SaveChangesAsync(ct);
@@ -56,8 +47,6 @@ public class FormTemplateService : IFormTemplateService
 
     public async Task<FormTemplate> UpdateAsync(FormTemplate template, CancellationToken ct = default)
     {
-        // Fetch the tracked instance — the caller may hold a detached (AsNoTracking) copy,
-        // and attaching it via Update() would conflict with any rows ClearActiveAsync already loaded.
         var tracked = await _db.FormTemplates.FindAsync([template.Id], ct);
         if (tracked is null) return template;
 
@@ -67,27 +56,11 @@ public class FormTemplateService : IFormTemplateService
         tracked.LayoutJson       = template.LayoutJson;
         tracked.HeaderConfigJson = template.HeaderConfigJson;
         tracked.FooterConfigJson = template.FooterConfigJson;
-        tracked.IsActive         = template.IsActive;
         tracked.UpdatedWhen      = DateTime.UtcNow;
         tracked.UpdatedBy        = template.UpdatedBy;
 
-        if (tracked.IsActive)
-            await ClearActiveAsync(tracked.CompanyId, tracked.TemplateType, ct, excludeId: tracked.Id);
-
         await _db.SaveChangesAsync(ct);
         return tracked;
-    }
-
-    public async Task SetActiveAsync(Guid id, Guid companyId, FormTemplateTypeEnum type, CancellationToken ct = default)
-    {
-        await ClearActiveAsync(companyId, type, ct, excludeId: id);
-
-        var template = await _db.FormTemplates.FindAsync([id], ct);
-        if (template is null) return;
-
-        template.IsActive = true;
-        template.UpdatedWhen = DateTime.UtcNow;
-        await _db.SaveChangesAsync(ct);
     }
 
     public async Task DeleteAsync(Guid id, Guid deletedBy, CancellationToken ct = default)
@@ -99,18 +72,5 @@ public class FormTemplateService : IFormTemplateService
         template.DeletedWhen = DateTime.UtcNow;
         template.DeletedBy = deletedBy;
         await _db.SaveChangesAsync(ct);
-    }
-
-    private async Task ClearActiveAsync(Guid companyId, FormTemplateTypeEnum type, CancellationToken ct, Guid? excludeId = null)
-    {
-        var active = await _db.FormTemplates
-            .Where(x => x.CompanyId == companyId && x.TemplateType == type && x.IsActive)
-            .ToListAsync(ct);
-
-        foreach (var t in active.Where(t => t.Id != excludeId))
-        {
-            t.IsActive = false;
-            t.UpdatedWhen = DateTime.UtcNow;
-        }
     }
 }

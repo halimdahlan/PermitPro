@@ -22,7 +22,4 @@ public class FormTemplate : EntityBase
     public string? HeaderConfigJson { get; set; }
 
     public string? FooterConfigJson { get; set; }
-
-    // Only one active template per company+type at a time.
-    public bool IsActive { get; set; }
 }

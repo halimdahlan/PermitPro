@@ -122,12 +122,11 @@ public class DashboardController : AppControllerBase
 			})
 			.ToList();
 
-		// Recent activity from AuditLog (last 5 for this company)
+		// Recent activity from AuditLog (last 3 for this company)
 		var recentActivity = (await _dbContext.AuditLogs
 			.AsNoTracking()
 			.Include(e => e.AuditLogUser)
-			.ThenInclude(u => u.UserCompany)
-			.Where(e => e.LogType == LogTypeEnum.Information && e.AuditLogUser != null && e.AuditLogUser.UserCompany != null && e.AuditLogUser.UserCompany.Id == company)
+			.Where(e => e.CompanyId == company && e.LogType == LogTypeEnum.Information)
 			.OrderByDescending(e => e.CreatedWhen)
 			.Take(3)
 			.ToListAsync(cancellationToken))

@@ -45,7 +45,7 @@ public class QuestPdfService : IQuestPdfService
 			 ? await _db.FormTemplates.AsNoTracking().FirstOrDefaultAsync(t => t.Id == templateId, ct)
 			 : await _db.FormTemplates.AsNoTracking()
 				  .FirstOrDefaultAsync(t => t.CompanyId == permit.Company.Id
-						&& t.TemplateType == FormTemplateTypeEnum.Permit && t.IsActive, ct);
+						&& t.TemplateType == FormTemplateTypeEnum.Permit && !t.IsDeleted, ct);
 
 		var company = permit.Company
 			 ?? await _db.Companies.AsNoTracking().FirstOrDefaultAsync(c => c.Id == permit.Company.Id, ct);

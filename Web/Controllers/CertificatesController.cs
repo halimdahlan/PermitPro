@@ -87,7 +87,6 @@ public class CertificatesController : AppControllerBase
 				Name = t.Name,
 				Description = t.Description,
 				TemplateType = t.TemplateType,
-				IsActive = t.IsActive,
 				CreatedWhen = t.CreatedWhen,
 				UpdatedWhen = t.UpdatedWhen,
 			}).ToList(),

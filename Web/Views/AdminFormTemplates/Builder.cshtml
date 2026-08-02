@@ -360,13 +360,6 @@
         </div>
         <div class="tb-sep"></div>
         <div class="tb-group">
-            <div class="form-check form-check-inline mb-0">
-                <input class="form-check-input" type="checkbox" id="tbActive" @(Model.IsActive ? "checked" : "") />
-                <label class="form-check-label text-white" for="tbActive" style="font-size:.82rem;">Active</label>
-            </div>
-        </div>
-        <div class="tb-sep"></div>
-        <div class="tb-group">
             @if (!isCert) {
             <button type="button" class="btn btn-sm btn-outline-light" style="font-size:.78rem;padding:.2rem .55rem;" onclick="openHeaderFooterDialog()">
                 <i class="fa-solid fa-file-invoice me-1"></i> Header / Footer
@@ -501,7 +494,7 @@
 // State
 // ═══════════════════════════════════════════════════════════════════════════
 const COMPANY_ID   = '@Model.CompanyId';
-const TEMPLATE_ID  = '@(Model.TemplateId?.ToString() ?? "")';
+let TEMPLATE_ID  = '@(Model.TemplateId?.ToString() ?? "")';
 const TEMPLATE_TYPE = @((int)Model.TemplateType);
 // Tenant-facing controllers live under /{company}/formtemplates/save;
 // Super Admin controllers live under /admin/formtemplates/save.
@@ -1025,7 +1018,6 @@ async function saveTemplate() {
         name,
         description:    document.getElementById('tbDesc').value.trim() || null,
         templateType:   TEMPLATE_TYPE,
-        isActive:       document.getElementById('tbActive').checked,
         layoutJson:     JSON.stringify(layout),
         headerConfigJson: Object.keys(headerConfig).length ? JSON.stringify(headerConfig) : null,
         footerConfigJson: Object.keys(footerConfig).length ? JSON.stringify(footerConfig) : null,
@@ -1050,10 +1042,11 @@ async function saveTemplate() {
         setStatus('Saved ✓', 'saved');
         setTimeout(() => setStatus(''), 3000);
 
-        // Update URL without reload if this was a create
+        // On first create: store the new ID so subsequent saves update instead of create
         if (!TEMPLATE_ID && data.templateId) {
+            TEMPLATE_ID = data.templateId;
             const isCert = TEMPLATE_TYPE === 1;
-            const base = isCert ? '/admin/certificatetemplates' : '/admin/formtemplates';
+            const base = IS_TENANT ? `/${COMPANY_ID}/${isCert ? 'certificatetemplates' : 'formtemplates'}` : `/admin/${isCert ? 'certificatetemplates' : 'formtemplates'}`;
             history.replaceState(null, '', `${base}/${data.templateId}/edit`);
         }
     } catch (err) {
