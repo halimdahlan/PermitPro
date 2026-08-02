@@ -413,6 +413,11 @@ function buildField(col, savedFields, readonly) {
                            ${dis} />
                     ${helpEl}`;
         }
+        case 7: { // Label
+            let hlvl = 'h3';
+            try { hlvl = JSON.parse(ctrl.optionsJson || '{}').headingLevel || 'h3'; } catch {}
+            return `<div style="padding:.25rem 0;"><${hlvl}>${esc(label)}</${hlvl}><hr style="margin:.35rem 0;" /></div>`;
+        }
         default:
             return `<label class="form-label">${esc(label)}</label>
                     <input type="text" class="form-control form-control-sm" ${dis} />`;

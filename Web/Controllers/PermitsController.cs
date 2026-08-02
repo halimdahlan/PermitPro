@@ -836,6 +836,7 @@ public class PermitsController : AppControllerBase
 			.Include(p => p.Site)
 			.Include(p => p.PermitWorkflowStep)
 			.Include(p => p.WorkflowHistories)
+			.Include(p => p.Certificates.Where(c => !c.IsDeleted)).ThenInclude(c => c.FormTemplate)
 			.FirstOrDefaultAsync(p => p.Id == permitId, ct);
 
 		if (permitCheck == null) return NotFound();

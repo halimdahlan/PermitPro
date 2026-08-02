@@ -25,7 +25,14 @@
 	var navAbout = currentRoute?.ToLower() == "settings" && currentAction?.ToLower() == "about" ? "active" : "";
 	var navFormControls  = currentRoute?.ToLower() == "tenantformcontrols"  ? "active" : "";
 	var navFormTemplates = currentRoute?.ToLower() == "tenantformtemplates" ? "active" : "";
-	var navCertTemplates = currentRoute?.ToLower() == "certificates"        ? "active" : "";
+	var navCertTemplates = "";
+
+	if (TempData["CurrentPage"]?.ToString()?.ToLower().Contains("certificate", StringComparison.OrdinalIgnoreCase) == true)
+	{
+		navCertTemplates = "active";
+		navFormTemplates = "";
+	}
+	
 	var isTemplatesActive = navFormControls == "active" || navFormTemplates == "active" || navCertTemplates == "active";
 	var templatesShow    = isTemplatesActive ? " show" : "";
 	var navGeneral = currentRoute?.ToLower() == "dashboard" ? "active" : "";
@@ -156,7 +163,7 @@
 				</a>
 			</li>
 
-			<!--
+			<!---->
 			<li class="nav-item">
 				<a href="#" id="templatesDropdown" class="d-flex no-loading nav-link @(isTemplatesActive ? "active-light active" : "")">
 					<i class="fa-solid fa-list-ul fa-fw me-3 mt-1"></i>Templates
@@ -182,7 +189,7 @@
 					</ul>
 				</div>
 			</li>
-			-->
+			
 			
 		}
 	</ul>

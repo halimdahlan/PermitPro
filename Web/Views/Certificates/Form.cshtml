@@ -221,6 +221,10 @@ else
 		<input type="text" id="cf_${col.id}" data-col="${col.id}"
 		class="form-control form-control-sm cert-input cert-flatpickr"
 		value="${esc(val ? String(val).substring(0, 16) : '')}" placeholder="dd Mon yyyy  HH:mm" ${reqAttr} />${helpEl}`;
+		case 7: {
+			let hlvl = 'h3'; try { hlvl = JSON.parse(ctrl.optionsJson || '{}').headingLevel || 'h3'; } catch {}
+			return `<div style="padding:.25rem 0;"><${hlvl}>${esc(label)}</${hlvl}><hr style="margin:.35rem 0;" /></div>`;
+		}
 		default: return `<label class="form-label">${esc(label)}</label>
 		<input type="text" data-col="${col.id}" class="form-control form-control-sm cert-input" value="${esc(val ?? '')}" />`;
 		}

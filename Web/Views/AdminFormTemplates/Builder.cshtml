@@ -367,9 +367,11 @@
         </div>
         <div class="tb-sep"></div>
         <div class="tb-group">
+            @if (!isCert) {
             <button type="button" class="btn btn-sm btn-outline-light" style="font-size:.78rem;padding:.2rem .55rem;" onclick="openHeaderFooterDialog()">
                 <i class="fa-solid fa-file-invoice me-1"></i> Header / Footer
             </button>
+            }
             <button type="button" class="btn btn-sm btn-outline-info" style="font-size:.78rem;padding:.2rem .55rem;" onclick="openPreview()">
                 <i class="fa-solid fa-eye me-1"></i> Preview
             </button>
@@ -526,6 +528,7 @@ const TYPE_ICONS = {
     4: 'fa-chevron-down',   // Select
     5: 'fa-calendar',       // DateTimeInput
     6: 'fa-paperclip',      // FileUpload
+    7: 'fa-heading',        // Label
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -997,6 +1000,11 @@ function buildPreviewField(ctrl, label, req, help) {
             return `<label>${esc(label)}${reqMark}</label><input type="datetime-local" disabled />${helpEl}`;
         case 6: // FileUpload
             return `<label>${esc(label)}${reqMark}</label><input type="file" disabled />${helpEl}`;
+        case 7: { // Label
+            let hlvl = 'h3';
+            try { hlvl = JSON.parse(ctrl.optionsJson || '{}').headingLevel || 'h3'; } catch {}
+            return `<div style="padding:.25rem 0;"><${hlvl}>${esc(label)}</${hlvl}><hr style="margin:.3rem 0;" /></div>`;
+        }
         default:
             return `<label>${esc(label)}</label><input type="text" disabled />`;
     }

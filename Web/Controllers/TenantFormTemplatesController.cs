@@ -19,208 +19,218 @@ namespace PermitPro.App.Controllers;
 [Authorize]
 public class TenantFormTemplatesController : AppControllerBase
 {
-    private readonly IFormTemplateService _templates;
-    private readonly IFormControlService _controls;
+	private readonly IFormTemplateService _templates;
+	private readonly IFormControlService _controls;
 
-    public TenantFormTemplatesController(
-        ApplicationDbContext dbContext,
-        IHttpContextAccessor httpContextAccessor,
-        SignInManager<UserInfo> signInManager,
-        ISystemConfigurationService systemConfigurationService,
-        IFormTemplateService templates,
-        IFormControlService controls)
-        : base(dbContext, httpContextAccessor, signInManager, systemConfigurationService)
-    {
-        _templates = templates;
-        _controls = controls;
-    }
-
-
-    [HttpGet("{company}/formtemplates")]
-    [HttpGet("{company}/certificatetemplates")]
-    public async Task<IActionResult> Index(CancellationToken ct)
-    {
-        if (!IsSuperUserOrPortalAdmin()) return Forbid();
-
-        var isCert = Request.Path.Value?.Contains("certificate", StringComparison.OrdinalIgnoreCase) == true;
-        FormTemplateTypeEnum? typeFilter = isCert ? FormTemplateTypeEnum.Certificate : null;
-
-        var templates = await _templates.GetAllAsync(CompanyID, typeFilter, ct);
-
-        var vm = new FormTemplatesIndexViewModel
-        {
-            CompanyId = CompanyID,
-            TypeFilter = typeFilter,
-            Templates = templates.Select(t => new FormTemplateListViewModel
-            {
-                Id = t.Id,
-                Name = t.Name,
-                Description = t.Description,
-                TemplateType = t.TemplateType,
-                IsActive = t.IsActive,
-                CreatedWhen = t.CreatedWhen,
-                UpdatedWhen = t.UpdatedWhen,
-            }).ToList(),
-        };
-
-        return View("~/Views/AdminFormTemplates/Index.cshtml", vm);
-    }
+	public TenantFormTemplatesController(
+		 ApplicationDbContext dbContext,
+		 IHttpContextAccessor httpContextAccessor,
+		 SignInManager<UserInfo> signInManager,
+		 ISystemConfigurationService systemConfigurationService,
+		 IFormTemplateService templates,
+		 IFormControlService controls)
+		 : base(dbContext, httpContextAccessor, signInManager, systemConfigurationService)
+	{
+		_templates = templates;
+		_controls = controls;
+	}
 
 
-    [HttpGet("{company}/formtemplates/new")]
-    [HttpGet("{company}/certificatetemplates/new")]
-    public async Task<IActionResult> Builder(CancellationToken ct)
-    {
-        if (!IsSuperUserOrPortalAdmin()) return Forbid();
+	[HttpGet("{company}/formtemplates")]
+	[HttpGet("{company}/certificatetemplates")]
+	public async Task<IActionResult> Index(CancellationToken ct)
+	{
+		if (!IsSuperUserOrPortalAdmin()) return Forbid();
 
-        var isCert = Request.Path.Value?.Contains("certificate", StringComparison.OrdinalIgnoreCase) == true;
-        var vm = await BuildBuilderVmAsync(CompanyID, null, isCert ? FormTemplateTypeEnum.Certificate : FormTemplateTypeEnum.Permit, ct);
-        return View("~/Views/AdminFormTemplates/Builder.cshtml", vm);
-    }
+		var isCert = Request.Path.Value?.Contains("certificate", StringComparison.OrdinalIgnoreCase) == true;
+		FormTemplateTypeEnum? typeFilter = isCert ? FormTemplateTypeEnum.Certificate : null;
 
+		var templates = await _templates.GetAllAsync(CompanyID, typeFilter, ct);
 
-    [HttpGet("{company}/formtemplates/{id:guid}/edit")]
-    [HttpGet("{company}/certificatetemplates/{id:guid}/edit")]
-    public async Task<IActionResult> BuilderEdit(Guid id, CancellationToken ct)
-    {
-        if (!IsSuperUserOrPortalAdmin()) return Forbid();
+		var vm = new FormTemplatesIndexViewModel
+		{
+			CompanyId = CompanyID,
+			TypeFilter = typeFilter,
+			Templates = templates.Select(t => new FormTemplateListViewModel
+			{
+				Id = t.Id,
+				Name = t.Name,
+				Description = t.Description,
+				TemplateType = t.TemplateType,
+				IsActive = t.IsActive,
+				CreatedWhen = t.CreatedWhen,
+				UpdatedWhen = t.UpdatedWhen,
+			}).ToList(),
+		};
 
-        var template = await _templates.GetByIdAsync(id, ct);
-        if (template is null) return NotFound();
+		if (isCert)
+		{
+			TempData["CurrentPage"] = "Certificate Templates";
+		}
 
-        var vm = await BuildBuilderVmAsync(template.CompanyId, template, template.TemplateType, ct);
-        return View("~/Views/AdminFormTemplates/Builder.cshtml", vm);
-    }
-
-
-    [HttpPost("{company}/formtemplates/save")]
-    [IgnoreAntiforgeryToken]
-    public async Task<IActionResult> Save([FromBody] FormBuilderSaveRequest req, CancellationToken ct)
-    {
-        if (!IsSuperUserOrPortalAdmin()) return Forbid();
-
-        if (string.IsNullOrWhiteSpace(req?.Name))
-            return BadRequest("Template name is required.");
-
-        Guid templateId;
-
-        if (req.TemplateId.HasValue)
-        {
-            var existing = await _templates.GetByIdAsync(req.TemplateId.Value, ct);
-            if (existing is null) return NotFound();
-
-            existing.Name = req.Name.Trim();
-            existing.Description = req.Description?.Trim();
-            existing.TemplateType = req.TemplateType;
-            existing.LayoutJson = req.LayoutJson;
-            existing.HeaderConfigJson = NormaliseJson(req.HeaderConfigJson);
-            existing.FooterConfigJson = NormaliseJson(req.FooterConfigJson);
-            existing.IsActive = req.IsActive;
-            existing.UpdatedBy = GetCurrentUserId();
-
-            await _templates.UpdateAsync(existing, ct);
-            templateId = existing.Id;
-        }
-        else
-        {
-            var template = new FormTemplate
-            {
-                CompanyId = CompanyID,
-                Name = req.Name.Trim(),
-                Description = req.Description?.Trim(),
-                TemplateType = req.TemplateType,
-                LayoutJson = req.LayoutJson,
-                HeaderConfigJson = NormaliseJson(req.HeaderConfigJson),
-                FooterConfigJson = NormaliseJson(req.FooterConfigJson),
-                IsActive = req.IsActive,
-                CreatedBy = GetCurrentUserId(),
-            };
-
-            await _templates.CreateAsync(template, ct);
-            templateId = template.Id;
-        }
-
-        return Ok(new { templateId });
-    }
+		return View("~/Views/AdminFormTemplates/Index.cshtml", vm);
+	}
 
 
-    [HttpPost("{company}/formtemplates/{id:guid}/setactive")]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> SetActive(Guid id, FormTemplateTypeEnum type, CancellationToken ct)
-    {
-        if (!IsSuperUserOrPortalAdmin()) return Forbid();
+	[HttpGet("{company}/formtemplates/new")]
+	[HttpGet("{company}/certificatetemplates/new")]
+	public async Task<IActionResult> Builder(CancellationToken ct)
+	{
+		if (!IsSuperUserOrPortalAdmin()) return Forbid();
 
-        await _templates.SetActiveAsync(id, CompanyID, type, ct);
-        TempData["SuccessMessage"] = "Template set as active.";
+		var isCert = Request.Path.Value?.Contains("certificate", StringComparison.OrdinalIgnoreCase) == true;
+		var vm = await BuildBuilderVmAsync(CompanyID, null, isCert ? FormTemplateTypeEnum.Certificate : FormTemplateTypeEnum.Permit, ct);
 
-        return Redirect(type == FormTemplateTypeEnum.Certificate
-            ? $"/{CompanyID}/certificatetemplates"
-            : $"/{CompanyID}/formtemplates");
-    }
+		if (isCert)
+		{
+			TempData["CurrentPage"] = "Certificate Templates";
+		}
 
-
-    [HttpPost("{company}/formtemplates/{id:guid}/delete")]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Delete(Guid id, FormTemplateTypeEnum type, CancellationToken ct)
-    {
-        if (!IsSuperUserOrPortalAdmin()) return Forbid();
-
-        await _templates.DeleteAsync(id, GetCurrentUserId() ?? Guid.Empty, ct);
-        TempData["SuccessMessage"] = "Template deleted.";
-
-        return Redirect(type == FormTemplateTypeEnum.Certificate
-            ? $"/{CompanyID}/certificatetemplates"
-            : $"/{CompanyID}/formtemplates");
-    }
+		return View("~/Views/AdminFormTemplates/Builder.cshtml", vm);
+	}
 
 
-    private async Task<FormBuilderViewModel> BuildBuilderVmAsync(
-        Guid companyId, FormTemplate template, FormTemplateTypeEnum type, CancellationToken ct)
-    {
-        var controls = await _controls.GetAllAsync(companyId, ct);
+	[HttpGet("{company}/formtemplates/{id:guid}/edit")]
+	[HttpGet("{company}/certificatetemplates/{id:guid}/edit")]
+	public async Task<IActionResult> BuilderEdit(Guid id, CancellationToken ct)
+	{
+		if (!IsSuperUserOrPortalAdmin()) return Forbid();
 
-        return new FormBuilderViewModel
-        {
-            TemplateId = template?.Id,
-            CompanyId = companyId,
-            Name = template?.Name ?? string.Empty,
-            Description = template?.Description,
-            TemplateType = template?.TemplateType ?? type,
-            IsActive = template?.IsActive ?? false,
-            LayoutJson = template?.LayoutJson ?? "{\"rows\":[]}",
-            HeaderConfigJson = template?.HeaderConfigJson,
-            FooterConfigJson = template?.FooterConfigJson,
-            ControlLibrary = controls.Select(c => new FormControlLibraryItem
-            {
-                Id = c.Id,
-                Name = c.Name,
-                Label = c.Label,
-                ControlType = c.ControlType,
-                IsRequired = c.IsRequired,
-                Placeholder = c.Placeholder,
-                HelpText = c.HelpText,
-                OptionsJson = c.OptionsJson,
-            }).ToList(),
-        };
-    }
+		var template = await _templates.GetByIdAsync(id, ct);
+		if (template is null) return NotFound();
 
-    private bool IsSuperUserOrPortalAdmin()
-        => User.IsInRole("Super User") || User.IsInRole("SUPERUSER") || User.IsInRole("Portal Admin");
+		var vm = await BuildBuilderVmAsync(template.CompanyId, template, template.TemplateType, ct);
+		return View("~/Views/AdminFormTemplates/Builder.cshtml", vm);
+	}
 
-    private Guid? GetCurrentUserId()
-    {
-        var id = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        return Guid.TryParse(id, out var guid) ? guid : null;
-    }
 
-    private static string NormaliseJson(string json)
-    {
-        if (string.IsNullOrWhiteSpace(json)) return null;
-        try
-        {
-            using var doc = JsonDocument.Parse(json);
-            return JsonSerializer.Serialize(doc.RootElement);
-        }
-        catch { return null; }
-    }
+	[HttpPost("{company}/formtemplates/save")]
+	[IgnoreAntiforgeryToken]
+	public async Task<IActionResult> Save([FromBody] FormBuilderSaveRequest req, CancellationToken ct)
+	{
+		if (!IsSuperUserOrPortalAdmin()) return Forbid();
+
+		if (string.IsNullOrWhiteSpace(req?.Name))
+			return BadRequest("Template name is required.");
+
+		Guid templateId;
+
+		if (req.TemplateId.HasValue)
+		{
+			var existing = await _templates.GetByIdAsync(req.TemplateId.Value, ct);
+			if (existing is null) return NotFound();
+
+			existing.Name = req.Name.Trim();
+			existing.Description = req.Description?.Trim();
+			existing.TemplateType = req.TemplateType;
+			existing.LayoutJson = req.LayoutJson;
+			existing.HeaderConfigJson = NormaliseJson(req.HeaderConfigJson);
+			existing.FooterConfigJson = NormaliseJson(req.FooterConfigJson);
+			existing.IsActive = req.IsActive;
+			existing.UpdatedBy = GetCurrentUserId();
+
+			await _templates.UpdateAsync(existing, ct);
+			templateId = existing.Id;
+		}
+		else
+		{
+			var template = new FormTemplate
+			{
+				CompanyId = CompanyID,
+				Name = req.Name.Trim(),
+				Description = req.Description?.Trim(),
+				TemplateType = req.TemplateType,
+				LayoutJson = req.LayoutJson,
+				HeaderConfigJson = NormaliseJson(req.HeaderConfigJson),
+				FooterConfigJson = NormaliseJson(req.FooterConfigJson),
+				IsActive = req.IsActive,
+				CreatedBy = GetCurrentUserId(),
+			};
+
+			await _templates.CreateAsync(template, ct);
+			templateId = template.Id;
+		}
+
+		return Ok(new { templateId });
+	}
+
+
+	[HttpPost("{company}/formtemplates/{id:guid}/setactive")]
+	[ValidateAntiForgeryToken]
+	public async Task<IActionResult> SetActive(Guid id, FormTemplateTypeEnum type, CancellationToken ct)
+	{
+		if (!IsSuperUserOrPortalAdmin()) return Forbid();
+
+		await _templates.SetActiveAsync(id, CompanyID, type, ct);
+		TempData["SuccessMessage"] = "Template set as active.";
+
+		return Redirect(type == FormTemplateTypeEnum.Certificate
+			 ? $"/{CompanyID}/certificatetemplates"
+			 : $"/{CompanyID}/formtemplates");
+	}
+
+
+	[HttpPost("{company}/formtemplates/{id:guid}/delete")]
+	[ValidateAntiForgeryToken]
+	public async Task<IActionResult> Delete(Guid id, FormTemplateTypeEnum type, CancellationToken ct)
+	{
+		if (!IsSuperUserOrPortalAdmin()) return Forbid();
+
+		await _templates.DeleteAsync(id, GetCurrentUserId() ?? Guid.Empty, ct);
+		TempData["SuccessMessage"] = "Template deleted.";
+
+		return Redirect(type == FormTemplateTypeEnum.Certificate
+			 ? $"/{CompanyID}/certificatetemplates"
+			 : $"/{CompanyID}/formtemplates");
+	}
+
+
+	private async Task<FormBuilderViewModel> BuildBuilderVmAsync(
+		 Guid companyId, FormTemplate template, FormTemplateTypeEnum type, CancellationToken ct)
+	{
+		var controls = await _controls.GetAllAsync(companyId, ct);
+
+		return new FormBuilderViewModel
+		{
+			TemplateId = template?.Id,
+			CompanyId = companyId,
+			Name = template?.Name ?? string.Empty,
+			Description = template?.Description,
+			TemplateType = template?.TemplateType ?? type,
+			IsActive = template?.IsActive ?? false,
+			LayoutJson = template?.LayoutJson ?? "{\"rows\":[]}",
+			HeaderConfigJson = template?.HeaderConfigJson,
+			FooterConfigJson = template?.FooterConfigJson,
+			ControlLibrary = controls.Select(c => new FormControlLibraryItem
+			{
+				Id = c.Id,
+				Name = c.Name,
+				Label = c.Label,
+				ControlType = c.ControlType,
+				IsRequired = c.IsRequired,
+				Placeholder = c.Placeholder,
+				HelpText = c.HelpText,
+				OptionsJson = c.OptionsJson,
+			}).ToList(),
+		};
+	}
+
+	private bool IsSuperUserOrPortalAdmin() => User.IsInRole("Super User") || User.IsInRole("SUPERUSER");
+
+	private Guid? GetCurrentUserId()
+	{
+		var id = User.FindFirstValue(ClaimTypes.NameIdentifier);
+		return Guid.TryParse(id, out var guid) ? guid : null;
+	}
+
+	private static string NormaliseJson(string json)
+	{
+		if (string.IsNullOrWhiteSpace(json)) return null;
+		try
+		{
+			using var doc = JsonDocument.Parse(json);
+			return JsonSerializer.Serialize(doc.RootElement);
+		}
+		catch { return null; }
+	}
 }
