@@ -15,7 +15,6 @@ using PermitPro.Core.Enums;
 using PermitPro.Core.Helpers;
 using PermitPro.Core.Interfaces;
 
-using System.Collections;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -306,21 +305,29 @@ public class PermitsController : AppControllerBase
 
 	#region "Grid"
 
-	public async Task<JsonResult> GetGridData(Guid company, string filter)
+	public async Task<JsonResult> GetGridData(Guid company, string filter, CancellationToken ct)
 	{
 		var isContractor = await _currentUserService.IsContractor();
 
-		var query = _dbContext.Permits
+		IQueryable<Permit> query = _dbContext.Permits
 			.AsNoTracking()
-			.Include(e => e.Site)
-			.Include(e => e.PermitWorkflowStep).ThenInclude(e => e.WorkflowStepWorkflow)
-			.Where(e => e.Company.Id == company)
+			.Where(e => e.CompanyId == company);
+
+		if (isContractor)
+		{
+			var currentUserId = _currentUserService.GetCurrentUser().Id.ToLower();
+			query = query.Where(e => e.CreatedBy.ToString().ToLower() == currentUserId);
+		}
+
+		//var sw = System.Diagnostics.Stopwatch.StartNew();
+
+		// Exclude PermitForm — it's an nvarchar(max) LOB column; SQL Server reads its pages
+		// even inside a CASE expression, so it must be kept out of this query entirely.
+		var permits = await query
 			.OrderByDescending(e => e.CreatedWhen)
 			.Select(e => new
 			{
 				e.Id,
-				e.PermitForm,
-				e.PermitDataJson,
 				e.Title,
 				e.Description,
 				e.StartDateTime,
@@ -329,20 +336,28 @@ public class PermitsController : AppControllerBase
 				LocationName = e.Site != null ? e.Site.Name : "",
 				PermitStatus = e.PermitStatus.ToString().ToUpper(),
 				e.CreatedWhen,
-				e.CreatedBy,
-				SubmittedBy = _dbContext.Users
-					.Select(p => new { UserId = p.Id, FullName = $"{p.FirstName} {p.LastName}" })
-					.SingleOrDefault(u => u.UserId == e.CreatedBy.ToString().ToLower())
-					.FullName ?? "Unknown",
-			});
+				CreatedById = e.CreatedBy.ToString().ToLower(),
+			})
+			.ToListAsync(ct);
 
-		if (isContractor)
-		{
-			var _currentUser = _currentUserService.GetCurrentUser();
-			query = query.Where(e => e.CreatedBy.ToString().ToLower() == _currentUser.Id.ToLower());
-		}
+		//sw.Stop();
+		//Console.WriteLine($"[GetGridData] permits query: {sw.ElapsedMilliseconds}ms ({permits.Count} rows)");
 
-		var permits = query.ToList();
+		// Second fetch: only pull PermitForm for legacy rows that need it (Description not yet backfilled).
+		var legacyIds = permits.Where(p => p.Description == null).Select(p => p.Id).ToList();
+		var legacyForms = legacyIds.Count == 0
+			? new Dictionary<Guid, string>()
+			: await _dbContext.Permits
+				.Where(e => legacyIds.Contains(e.Id))
+				.Select(e => new { e.Id, e.PermitForm })
+				.ToDictionaryAsync(e => e.Id, e => e.PermitForm, ct);
+
+		// Batch-fetch all referenced users in one query instead of a correlated subquery per row
+		var createdByIds = permits.Select(p => p.CreatedById).Distinct().ToList();
+		var userNames = await _dbContext.Users
+			.Where(u => createdByIds.Contains(u.Id.ToLower()))
+			.Select(u => new { UserId = u.Id.ToLower(), FullName = u.FirstName + " " + u.LastName })
+			.ToDictionaryAsync(u => u.UserId, u => u.FullName, ct);
 
 		List<PermitListViewModel> result = new();
 
@@ -356,15 +371,19 @@ public class PermitsController : AppControllerBase
 			DateTime? dtmEnd = permit.EndDateTime;
 			List<string> certs = new();
 
-			if (!string.IsNullOrEmpty(permit.PermitForm))
+			legacyForms.TryGetValue(permit.Id, out var permitForm);
+			if (!string.IsNullOrEmpty(permitForm))
 			{
 				try
 				{
-					using var doc = JsonDocument.Parse(permit.PermitForm);
+					using var doc = JsonDocument.Parse(permitForm);
+
 					var general = doc.RootElement.GetProperty("general");
 					description = general.TryGetProperty("description", out var descEl) ? descEl.GetString() ?? "" : "";
+
 					var sStr = general.TryGetProperty("startDateTime", out var s) && s.ValueKind != JsonValueKind.Null ? s.GetString() : null;
 					var eStr = general.TryGetProperty("endDateTime", out var en) && en.ValueKind != JsonValueKind.Null ? en.GetString() : null;
+
 					if (sStr != null) dtmStart = DateTime.Parse(sStr).ToLocalTime();
 					if (eStr != null) dtmEnd = DateTime.Parse(eStr).ToLocalTime();
 
@@ -407,7 +426,7 @@ public class PermitsController : AppControllerBase
 				Status = permit.PermitStatus,
 				StatusBadge = GeneralHelper.GetStatusBadge(permit.PermitStatus.ToUpper()),
 				DateSubmitted = GeneralHelper.GetDateInTimeZone(permit.CreatedWhen),
-				SubmittedBy = permit.SubmittedBy,
+				SubmittedBy = userNames.GetValueOrDefault(permit.CreatedById, "Unknown"),
 			});
 		}
 
@@ -916,21 +935,6 @@ public class PermitsController : AppControllerBase
 
 		// Join the first N words and append ellipsis
 		return string.Join(" ", words.Take(wordCount)) + " ...";
-	}
-
-
-	private Hashtable GetCertificateIcons()
-	{
-		Hashtable ht = new();
-		ht.Add("hotwork", new CertificateIcon { Code = "A", Description = "Hot Work" });
-		ht.Add("confinedspace", new CertificateIcon { Code = "B", Description = "Confined Space" });
-		ht.Add("radiation", new CertificateIcon { Code = "C", Description = "Radiation" });
-		ht.Add("excavation", new CertificateIcon { Code = "D", Description = "Excavation" });
-		ht.Add("isolation", new CertificateIcon { Code = "E", Description = "Isolation" });
-		ht.Add("methodStatement", new CertificateIcon { Code = "F", Description = "Method Statement" });
-		ht.Add("liftingHoisting", new CertificateIcon { Code = "G", Description = "Lifting & Hoisting" });
-		ht.Add("override", new CertificateIcon { Code = "H", Description = "Override" });
-		return ht;
 	}
 
 

@@ -174,7 +174,8 @@ public class ApplicationDbContext
 					.WithOne(x => x.UserCompany);
 
 			options.HasMany(x => x.CompanyPermits)
-					.WithOne(x => x.Company);
+					.WithOne(x => x.Company)
+					.HasForeignKey(x => x.CompanyId);
 
 		});
 
@@ -191,6 +192,10 @@ public class ApplicationDbContext
 			options.HasMany(x => x.Certificates)
 					.WithMany(x => x.Permits)
 					.UsingEntity(x => x.ToTable("PermitsCertificates"));
+
+			// Covering index for the permits grid: filter by company + soft-delete, sort by date.
+			options.HasIndex("CompanyId", "IsDeleted", "CreatedWhen")
+				   .HasDatabaseName("IX_Permits_CompanyId_IsDeleted_CreatedWhen");
 		});
 
 		builder.Entity<Workflow>(options =>

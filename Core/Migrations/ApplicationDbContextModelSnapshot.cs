@@ -1014,13 +1014,14 @@ namespace PermitPro.Core.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CompanyId");
-
                     b.HasIndex("PermitWorkflowId");
 
                     b.HasIndex("PermitWorkflowStepId");
 
                     b.HasIndex("SiteId");
+
+                    b.HasIndex("CompanyId", "IsDeleted", "CreatedWhen")
+                        .HasDatabaseName("IX_Permits_CompanyId_IsDeleted_CreatedWhen");
 
                     b.ToTable("Permits");
                 });
