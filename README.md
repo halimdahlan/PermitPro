@@ -200,7 +200,7 @@ Response caching (HTTP layer) is applied to chart data and dropdown endpoints:
 - Reports permit-holder dropdown — 60-second `Cache-Control`
 
 ### Audit & Security
-- Application events logged via `ILogService.LogMessageAsync`/`LogMessage` to the `AuditLog` table (type, category, entity, description, URL, serialized data, acting user, timestamp)
+- Application events logged via `ILogService.LogMessageAsync`/`LogMessage` to the `AuditLog` table (type, category, entity, description, URL, serialized data, acting user, `CompanyId`, timestamp). `CompanyId` is stamped automatically by `LogService` — resolved from `user.UserCompany` or fetched from the DB if the nav property is not loaded. An index on `(CompanyId, LogType, CreatedWhen)` covers the dashboard recent-activity query and prevents timeouts on large tables.
 - Automatic audit-field stamping (`CreatedWhen`/`CreatedBy`/`UpdatedWhen`/`UpdatedBy`) via an EF Core `SaveChangesInterceptor`, applied to every `IAuditableEntity` — a separate mechanism from the explicit `AuditLog` entries above
 - Super admins can browse all `AuditLog` entries at `/admin/logs` (paginated, filterable by type/search, with a detail modal) — see **Super Admin Portal**
 - Session-based access control with multi-tenant data isolation
@@ -262,8 +262,8 @@ Phases 1–6 of a seven-phase enhancement have been implemented. Phase 7 (Teleri
 
 New entities and migration (`AddFormBuilderFoundation`):
 
-- **`FormControl`** — reusable UI control definition per company. Fields: `Id`, `CompanyId`, `Name`, `Label`, `ControlType` (enum: `TextBox`, `TextArea`, `Checkbox`, `MultiChoice`, `Select`, `DateTimeInput`, `FileUpload`), `OptionsJson` (Select/MultiChoice/FileUpload config), `IsRequired`, `Placeholder`, `HelpText`, `SortOrder`. Soft-deletable.
-- **`FormTemplate`** — drag-drop layout for a permit or certificate form. Fields: `Id`, `CompanyId`, `Name`, `Description`, `TemplateType` (enum: `Permit`, `Certificate`), `LayoutJson` (rows/columns/control references), `HeaderConfigJson`, `FooterConfigJson`, `IsActive`. Auditable + soft-deletable.
+- **`FormControl`** — reusable UI control definition per company. Fields: `Id`, `CompanyId`, `Name`, `Label`, `ControlType` (enum: `TextBox`, `TextArea`, `Checkbox`, `MultiChoice`, `Select`, `DateTimeInput`, `FileUpload`, `Label`), `OptionsJson` (Select/MultiChoice/FileUpload config; for `Label` type: `{"headingLevel":"h3"}`), `IsRequired`, `Placeholder`, `HelpText`, `SortOrder`. Soft-deletable.
+- **`FormTemplate`** — drag-drop layout for a permit or certificate form. Fields: `Id`, `CompanyId`, `Name`, `Description`, `TemplateType` (enum: `Permit`, `Certificate`), `LayoutJson` (rows/columns/control references), `HeaderConfigJson`, `FooterConfigJson`. No `IsActive` — all templates are always selectable. Auditable + soft-deletable.
 - **`Permit.PermitDataJson`** (new nullable column) — stores filled form field values for new-system permits. Existing `PermitForm` column retained and untouched for old-system permits.
 - New DbSets: `FormControls`, `FormTemplates`.
 - New services registered in `CommonExtensions.AddPermitProServices()`: `IFormControlService`, `IFormTemplateService`.
@@ -305,20 +305,22 @@ New entities and migration (`AddFormBuilderFoundation`):
 Routes: `/admin/formcontrols?companyId=<guid>` (Super Admin) · `/{company}/formcontrols` (tenant, Super User only).
 
 - Plain HTML table + BS5 modal for create/edit. No Telerik.
-- `ControlType` dropdown reveals Options panel (dynamic value/label rows) for `Select`/`MultiChoice`; switches to `maxFiles`/`allowedTypes` config for `FileUpload`.
+- `ControlType` dropdown reveals Options panel (dynamic value/label rows) for `Select`/`MultiChoice`; switches to `maxFiles`/`allowedTypes` config for `FileUpload`; shows Heading Level selector (H1–H6, stored in `OptionsJson`) for `Label`.
+- `Label` type hides the Required and Help Text fields — they are not applicable.
 - Search by name/label, filter by type, 20-per-page pagination.
 - Bootstrap Modal replaces all `confirm()`/`alert()` dialogs.
 
 ### Phase 3 — Form Template Builder ✅
 
-Routes: `/admin/formtemplates` · `/{company}/formtemplates` · `/admin/certificatetemplates` · `/{company}/certificatetemplates`.
+Routes: `/admin/formtemplates` · `/{company}/formtemplates` (consolidated — permit and certificate templates shown together with type-filter tabs; `?type=permit|certificate` to filter).
 
 - Three-panel builder: Library (Sortable.js drag source) → Canvas (rows with 1/2/3 column selector) → Properties (label/required overrides).
-- Save via JSON `POST`. URL updated on first create via `history.replaceState`.
-- Header/Footer config modal: logo, permit number, site name, date, custom text — stored in `HeaderConfigJson`/`FooterConfigJson`.
-- Preview modal renders all 7 control types with live values.
-- Certificate templates use the same builder pre-filtered to `TemplateType.Certificate`.
+- Save via JSON `POST`. `TEMPLATE_ID` is `let` — updated after first create so subsequent saves on the same page perform an update instead of creating duplicates. URL updated via `history.replaceState`.
+- Header/Footer config modal (permit templates only — hidden for certificate templates): logo, permit number, site name, date, custom text — stored in `HeaderConfigJson`/`FooterConfigJson`.
+- Preview modal renders all 8 control types with live values.
+- Index page "New Template" is a dropdown: Permit Form / Certificate — routes to the correct builder.
 - Both Admin and tenant routes share the same views; layout (`_Layout` vs `_LayoutAdmin`) and save URL resolved at runtime from route data.
+- No `IsActive` state — templates are simply created/deleted; delete is always allowed.
 
 ### Phase 4 — New-System Permit Form Rendering ✅
 
@@ -333,7 +335,8 @@ private bool IsNewSystemPermit(Permit permit) =>
 
 - `New` and `Edit` actions redirect to `NewForm`/`EditForm` for new-system permits; old-system paths untouched.
 - `EnrichLayout()` embeds full control metadata into `LayoutJson` server-side so the browser needs no extra API calls.
-- New views (`NewForm.cshtml`, `EditForm.cshtml`) use `_NewFormScript.cshtml` partial — shared JS renders all 7 control types, handles Flatpickr date pickers, custom dropzone upload, inline validation with `is-invalid` per field.
+- New views (`NewForm.cshtml`, `EditForm.cshtml`) use `_NewFormScript.cshtml` partial — shared JS renders all 8 control types (incl. `Label`), handles Flatpickr date pickers, custom dropzone upload, inline validation with `is-invalid` per field.
+- Attachments card is hidden on `NewForm.cshtml` — attachments are only available after the permit is first saved (edit mode).
 - Fixed fields above the canvas: **Description** (required), **Start date/time** (required), **End date/time** (required). All three are stored directly on `Permit.Description`, `Permit.StartDateTime`, `Permit.EndDateTime`.
 - `Permit.Title` is kept in sync with `Description` for grid display.
 - Right-side panel (edit): Approve/Reject, Export PDF, Mark as Closed, Certificates link.
@@ -350,9 +353,10 @@ private bool IsNewSystemPermit(Permit permit) =>
 
 `PermitsController.ExportPdf` delegates based on `IsNewSystemPermit`. QuestPDF document:
 - **Header** — company logo (`FitWidth`), custom text, company name, permit number, site name, date (all individually togglable via `HeaderConfigJson`).
-- **Body** — rows/columns from layout; each control type rendered appropriately (checkbox as filled square, multi-choice checklist, select shows matched label, datetime formatted, file upload lists filenames).
+- **Body** — rows/columns from layout; each control type rendered appropriately (checkbox as filled square, multi-choice checklist, select shows matched label, datetime formatted, file upload lists filenames, `Label` renders bold text + horizontal rule).
 - **Footer** — page numbers, print date, custom text (via `FooterConfigJson`).
 - Community licence set on startup.
+- Attached certificates are appended as additional pages. `ExportPdf` includes `Certificates` (non-deleted) with `ThenInclude(c => c.FormTemplate)`; `QuestPdfService` iterates new-system certificates and appends one page each (certificate name + permit number in header; same row/cell rendering; no footer config).
 
 ### Phase 6 — Certificate Form Customization ✅
 
@@ -503,7 +507,7 @@ Entity Framework Core with SQL Server. Key entities (26 total):
 | `AppSetting` | Per-company key-value configuration (unique on CompanyId + CategoryId + Key) |
 | `HotWork` / `ConfinedSpace` | Certificate sub-entities (in `Entities/Certificates/`) |
 | `FormControl` | Reusable form field definition per company (`ControlType`, `OptionsJson`, `IsRequired`, etc.) |
-| `FormTemplate` | Drag-drop form layout (`LayoutJson`, `HeaderConfigJson`, `FooterConfigJson`, `TemplateType`, `IsActive`) |
+| `FormTemplate` | Drag-drop form layout (`LayoutJson`, `HeaderConfigJson`, `FooterConfigJson`, `TemplateType`) — no IsActive |
 | `FormSectionInfo` | Permit form section metadata (in `Entities/Forms/`) |
 
 All core entities support soft-delete via `ISoftDeletable`. Hard deletes are not performed by the application by default (`UseSoftDelete = true`). `Role` (via ASP.NET Identity) also implements `ISoftDeletable` with full audit fields.
@@ -524,9 +528,12 @@ All core entities support soft-delete via `ISoftDeletable`. Hard deletes are not
 | `AddRoleIsUnlimitedUsers` | `IsUnlimitedUsers` flag on `Role` |
 | `AddGlobalSettingsSupport` | `IsUsingGlobal` flag on `AppSetting` + filtered unique indexes for global (`CompanyId IS NULL`) categories/settings |
 | `AddDataProtectionKeys` | `DataProtectionKeys` table — shared Data Protection key ring persisted to the database instead of per-machine storage |
-| `AddFormBuilderFoundation` | `FormControls` + `FormTemplates` tables; `Permit.PermitDataJson` column; filtered unique index for one active template per company+type |
+| `AddFormBuilderFoundation` | `FormControls` + `FormTemplates` tables; `Permit.PermitDataJson` column |
 | `AddPermitTitleColumn` | `Permit.Title` column + SQL backfill from `PermitForm` JSON for existing permits |
 | `AddCertificateFormBuilder` | `Certificate.CertificateDataJson` + `Certificate.FormTemplateId` FK → `FormTemplates` (SET NULL on delete) |
+| `AddAuditLogCompanyId` | `AuditLog.CompanyId` column (nullable FK) |
+| `AddAuditLogCompanyIndex` | Composite index `(CompanyId, LogType, CreatedWhen)` on `AuditLogs` — covers the dashboard recent-activity query |
+| `RemoveFormTemplateIsActive` | Drops `IsActive` column and the filtered unique index from `FormTemplates` |
 
 Run migrations:
 ```bash

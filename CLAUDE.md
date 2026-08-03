@@ -78,15 +78,16 @@ Two engines coexist:
 ### Form Builder
 
 New-system permits and certificates use a drag-drop form builder:
-- **`FormControl`** entity (`Core/Entities/FormControl.cs`) — reusable control definitions per company. `ControlType` enum: `TextBox`, `TextArea`, `Checkbox`, `MultiChoice`, `Select`, `DateTimeInput`, `FileUpload`.
-- **`FormTemplate`** entity (`Core/Entities/FormTemplate.cs`) — layout JSON (`LayoutJson`) defining rows and control placements. Each row has a `columnCount` (1, 2, or 3) — all columns in a row are equal width. A slot with `controlId: null` renders as empty. `TemplateType` enum: `Permit`, `Certificate`. One active template per company+type at a time.
+- **`FormControl`** entity (`Core/Entities/FormControl.cs`) — reusable control definitions per company. `ControlType` enum: `TextBox`, `TextArea`, `Checkbox`, `MultiChoice`, `Select`, `DateTimeInput`, `FileUpload`, `Label`. The `Label` type renders a heading + `<hr>` separator (no input); its heading level (H1–H6) is stored in `OptionsJson` as `{"headingLevel":"h3"}`.
+- **`FormTemplate`** entity (`Core/Entities/FormTemplate.cs`) — layout JSON (`LayoutJson`) defining rows and control placements. Each row has a `columnCount` (1, 2, or 3) — all columns in a row are equal width. A slot with `controlId: null` renders as empty. `TemplateType` enum: `Permit`, `Certificate`. There is no `IsActive` concept — all templates are selectable.
 - **`Permit.PermitDataJson`** — filled field values for new-system permits, keyed by column UUID from `LayoutJson`. `Permit.PermitForm` (old field) unchanged.
 - **`Permit.Title`** / **`Permit.Description`** / **`Permit.StartDateTime`** / **`Permit.EndDateTime`** — populated for both old and new system permits. Used by the grid to avoid JSON parsing. `Title` mirrors `Description` for new-system permits.
 - **`Certificate.CertificateDataJson`** / **`Certificate.FormTemplateId`** — new-system certificate fields. Old `SerializedData` field unchanged.
-- Admin routes: `/admin/formcontrols` · `/admin/formtemplates` · `/admin/certificatetemplates`
-- Tenant routes (Super User): `/{company}/formcontrols` · `/{company}/formtemplates` · `/{company}/certificatetemplates`
+- Admin routes: `/admin/formcontrols` · `/admin/formtemplates` (consolidated — includes certificate templates with type filter tabs)
+- Tenant routes (Super User): `/{company}/formcontrols` · `/{company}/formtemplates` (consolidated)
 - Certificate routes: `/{company}/permits/{permitId}/certificates/*`
 - Cutover date: `AppSetting` category `general`, key `new_permit_form_cutover_date`. Exposed as `ISystemConfigurationService.NewPermitFormCutoverDate`. Null = new system disabled.
+- Builder duplicate-create bug: `TEMPLATE_ID` is `let` (not `const`) so after the first save it is updated in-place; subsequent saves on the same page update the existing record instead of creating a new one.
 
 ### New-System Permit Form
 
@@ -94,7 +95,8 @@ New-system permits and certificates use a drag-drop form builder:
 - `PermitsController.IsNewSystemPermit(permit)` — true when `permit.CreatedWhen >= cutoverDate`.
 - `PermitsController.EnrichLayout(layoutJson, companyId)` — merges full control metadata into layout JSON server-side so the browser JS needs no extra fetch.
 - Views: `Views/Permits/NewForm.cshtml` and `EditForm.cshtml` — both use the shared `Views/Permits/Partials/_NewFormScript.cshtml` partial.
-- `_NewFormScript.cshtml` — renders all 7 control types, manages Flatpickr date pickers (start → end min-date constraint, default 00:00), custom dropzone (`pendingFiles` array; immediate upload in edit mode via `POST /{company}/permits/{id}/attachments/upload`), inline BS validation with per-field error messages.
+- `_NewFormScript.cshtml` — renders all 8 control types (including `Label`), manages Flatpickr date pickers (start → end min-date constraint, default 00:00), custom dropzone (`pendingFiles` array; immediate upload in edit mode via `POST /{company}/permits/{id}/attachments/upload`), inline BS validation with per-field error messages.
+- Attachments card is hidden (`d-none`) on `NewForm.cshtml` — files can only be attached after the permit is first saved (edit mode).
 - Fixed required fields above the canvas: Description, Start date/time, End date/time.
 - `IPermitService.CreateNewSystemAsync` / `UpdateNewSystemAsync` — accept description, startDateTime, endDateTime, permitDataJson, files.
 
@@ -105,6 +107,7 @@ New-system permits and certificates use a drag-drop form builder:
 - `Views/Certificates/Index.cshtml` — list + add (BS modal) + delete.
 - `Views/Certificates/Form.cshtml` — fill certificate form; assign/switch template; Flatpickr for date controls; saves via JSON `POST`.
 - Attach/detach template via `POST /{id}/template`; save data via `POST /{id}/save` (`[IgnoreAntiforgeryToken]`, JSON body).
+- Certificate PDF pages are appended to the permit PDF on export. `PermitsController.ExportPdf` includes `Certificates` (filtered `!IsDeleted`) with `ThenInclude(c => c.FormTemplate)`. `QuestPdfService` appends one QuestPDF page per new-system certificate (those with both `FormTemplate` and `CertificateDataJson` set).
 
 ### Attachment Upload
 
