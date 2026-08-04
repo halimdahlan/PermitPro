@@ -113,12 +113,6 @@
 @section CustomCss {
 	<link rel="stylesheet" href="~/css/permits.css" />
 
-	<!-- DataTables -->
-	<link rel="stylesheet" href="~/lib/DataTables/datatables.min.css" />
-	<script nonce="3xecut3" src="~/lib/DataTables/datatables.min.js"></script>
-
-	<link rel="stylesheet" href="~/lib/DataTables/Responsive-2.5.0/css/responsive.dataTables.min.css" />
-	<script nonce="3xecut3" src="~/lib/DataTables/Responsive-2.5.0/js/dataTables.responsive.min.js"></script>
 }
 
 @section Scripts {
@@ -128,7 +122,6 @@
 		const UPLOAD_MAX_FILE_COUNT = parseInt('@Model.EditPermitViewModel.UploadMaxFileCount');
 
 		const selectedCerts = [];
-		var tblFiles = null;
 		var selectedLocation = null;
 
 		// Form A
@@ -180,30 +173,7 @@
 				const panel = elem.data('panelName');
 
 				if (panel == 'fileAttachments') {
-					if (tblFiles == null) {
-						tblFiles = $('#tblFiles').DataTable({
-							responsive: true,
-							order: [[2, 'desc']],
-							columns: [
-								{ 
-									data: 'fileName',
-									render: (data, type, row) => {
-										return '<a href="/attachments/permits/' + row.permitId + '/' + data + '" target="_blank">' + data + '</a>';
-									},
-								},
-								{ data: 'fileSize' },
-								{ data: 'createdWhen' },
-								{
-									data: 'id',
-									render: (data, type, row) => {
-										return '';
-									},
-								}
-							],
-						});
-					} else {
-						tblFiles.draw();
-					}
+					// No files on a new unsaved permit — table stays empty
 				}
 			});
 
@@ -1997,35 +1967,6 @@
 		};
 
 
-		const onUploadSelect = (e) => {
-			PermitModule.fileUploadOnSelect(e);
-		};
-
-
-		const onUploadClear = (e) => {
-			PermitModule.fileUploadOnClear(e);
-		};
-
-
-		const onUploadCancel = (e) => {
-			PermitModule.fileUploadOnCancel(e);
-		};
-
-
-		const onUploadRemove = (e) => {
-			PermitModule.fileUploadOnRemove(e);
-		};
-
-
-		const onUploadSuccess = (e) => {
-			//console.log(e);
-		};
-
-
-		const onUploadError = (e) => {
-			//console.log('OnError');
-			//console.log(e);
-		};
 
 
 		const hotWorkOnChange = (e) => {

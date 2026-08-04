@@ -333,6 +333,7 @@ public class PermitsController : AppControllerBase
 				e.StartDateTime,
 				e.EndDateTime,
 				e.RunningNumber,
+				e.PermitForm,
 				LocationName = e.Site != null ? e.Site.Name : "",
 				PermitStatus = e.PermitStatus.ToString().ToUpper(),
 				e.CreatedWhen,
@@ -344,13 +345,13 @@ public class PermitsController : AppControllerBase
 		//Console.WriteLine($"[GetGridData] permits query: {sw.ElapsedMilliseconds}ms ({permits.Count} rows)");
 
 		// Second fetch: only pull PermitForm for legacy rows that need it (Description not yet backfilled).
-		var legacyIds = permits.Where(p => p.Description == null).Select(p => p.Id).ToList();
-		var legacyForms = legacyIds.Count == 0
-			? new Dictionary<Guid, string>()
-			: await _dbContext.Permits
-				.Where(e => legacyIds.Contains(e.Id))
-				.Select(e => new { e.Id, e.PermitForm })
-				.ToDictionaryAsync(e => e.Id, e => e.PermitForm, ct);
+		// var legacyIds = permits.Where(p => p.Description == null).Select(p => p.Id).ToList();
+		// var legacyForms = legacyIds.Count == 0
+		// 	? new Dictionary<Guid, string>()
+		// 	: await _dbContext.Permits
+		// 		.Where(e => legacyIds.Contains(e.Id))
+		// 		.Select(e => new { e.Id, e.PermitForm })
+		// 		.ToDictionaryAsync(e => e.Id, e => e.PermitForm, ct);
 
 		// Batch-fetch all referenced users in one query instead of a correlated subquery per row
 		var createdByIds = permits.Select(p => p.CreatedById).Distinct().ToList();
@@ -371,11 +372,13 @@ public class PermitsController : AppControllerBase
 			DateTime? dtmEnd = permit.EndDateTime;
 			List<string> certs = new();
 
-			legacyForms.TryGetValue(permit.Id, out var permitForm);
+			//legacyForms.TryGetValue(permit.Id, out var permitForm);
+			string permitForm = permit.PermitForm ?? "";
+
 			if (!string.IsNullOrEmpty(permitForm))
 			{
-				try
-				{
+				//try
+				//{
 					using var doc = JsonDocument.Parse(permitForm);
 
 					var general = doc.RootElement.GetProperty("general");
@@ -408,8 +411,8 @@ public class PermitsController : AppControllerBase
 							certs.Add($"<img title=\"({selectedCert.Code}) {selectedCert.Description}\" src=\"/img/icons/certs/{certName.ToLower()}.png\" style=\"width:32px;height:32px;margin-right:3px;\" />");
 						}
 					}
-				}
-				catch { /* malformed JSON — leave defaults */ }
+				//}
+				//catch { /* malformed JSON — leave defaults */ }
 			}
 
 			result.Add(new PermitListViewModel

@@ -303,6 +303,26 @@
 <!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
 
 
+<!-- Modal: DELETE ATTACHMENT -->
+<div class="modal fade" id="dlgDeleteAttachment" tabindex="-1" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered modal-sm">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h6 class="modal-title">Delete attachment?</h6>
+				<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+			</div>
+			<div class="modal-body">
+				<p class="mb-0 small">Remove <strong id="dlgDeleteAttachmentName"></strong>? This cannot be undone.</p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal"><span class="mx-2">Cancel</span></button>
+				<button type="button" class="btn btn-sm btn-danger" id="dlgDeleteAttachmentConfirm"><span class="mx-2">Delete</span></button>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- ///// -->
+
 <div class="modal fade" id="dlgInputError" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="dlgInputErrorLabel" aria-hidden="true">
 	<div class="modal-dialog modal-dialog-centered">
 		<div class="modal-content">
@@ -328,14 +348,15 @@
 @section CustomCss {
 	<link rel="stylesheet" href="~/css/permits.css" />
 
-	<!-- DataTables -->
-	<link rel="stylesheet" href="~/lib/DataTables/datatables.min.css" />
-	<script nonce="3xecut3" src="~/lib/DataTables/datatables.min.js"></script>
-
-	<link rel="stylesheet" href="~/lib/DataTables/Responsive-2.5.0/css/responsive.dataTables.min.css" />
-	<script nonce="3xecut3" src="~/lib/DataTables/Responsive-2.5.0/js/dataTables.responsive.min.js"></script>
-
 	<script src="~/lib/FileSaver/FileSaver.min.js"></script>
+
+	<style>
+	.pf-dropzone { border:2px dashed #cbd5e1; border-radius:.5rem; padding:1.25rem; text-align:center; cursor:pointer; transition:border-color .15s,background .15s; background:#f9fafb; user-select:none; }
+	.pf-dropzone.drag-over { border-color:#3b82f6; background:#eff6ff; }
+	.pf-dropzone .dz-icon  { font-size:1.6rem; color:#94a3b8; margin-bottom:.4rem; }
+	.pf-dropzone .dz-label { font-size:.85rem; color:#64748b; }
+	.pf-dropzone .dz-hint  { font-size:.75rem; color:#94a3b8; margin-top:.2rem; }
+	</style>
 }
 
 @section Scripts {
@@ -343,7 +364,8 @@
 	<script>
 		const currentPermitStatus = '@Model.PermitStatus';
 		const selectedCerts = [];
-		var tblFiles = null;
+		const PERMIT_ID_FILES = '@Model.PermitId';
+		const COMPANY_ID_FILES = '@Model.CompanyId';
 
 		// Global data modification flag
 		var hotWorkDataIsDirty = false;
@@ -1187,48 +1209,7 @@
 				const permitStatus = '@Model.PermitStatus';
 
 				if (panel == 'fileAttachments') {
-					if (tblFiles == null) {
-						tblFiles = $('#tblFiles')
-							.on('preXhr.dt', function (e, settings, data) {
-        						$('.attachment-list-loading').css('display', 'grid');
-    						})
-							.on('xhr.dt', function (e, settings, data) {
-        						$('.attachment-list-loading').css('display', 'none');
-    						})
-							.DataTable({
-								ajax: '/@Model.CompanyId/permits/permit/@Model.PermitId/files',
-								responsive: true,
-								ordering: false,
-								searching: false,
-								columns: [
-									{
-										data: 'fileName',
-										render: (data, type, row) => {
-											return '<a href="/attachments/permits/' + row.permitId + '/' + data + '" target="_blank">' + data + '</a>';
-										},
-									},
-									{
-										data: 'fileSize',
-										render: (data, type, row) => {
-											return '<div class="text-right">' + data + '</div>';
-										},
-									},
-									{ data: 'createdWhen' },
-									{
-										data: 'id',
-										render: (data, type, row) => {
-											if (permitStatus == 'Draft') {
-												return '<a href="javascript:;" onclick="removeFile(\'' + data + '\')"><i class="fa-solid fa-trash-can text-danger"></i></a>';
-											}
-
-											return '';
-										},
-									}
-								],
-						});
-					} else {
-						tblFiles.draw();
-					}
+					loadAttachments();
 				}
 			});
 
@@ -3352,60 +3333,206 @@
 		};
 
 
-		const onUploadSelect = (e) => {
-			PermitModule.fileUploadOnSelect(e);
-		};
+		// ── Attachment helpers ────────────────────────────────────────────────
+		const PERMIT_ID = PERMIT_ID_FILES;
 
+		async function loadAttachments() {
+			const loading = document.getElementById('filesLoading');
+			const empty   = document.getElementById('filesEmpty');
+			const table   = document.getElementById('tblAttachments');
 
-		const onUploadClear = (e) => {
-			PermitModule.fileUploadOnClear(e);
-		};
+			if (loading) loading.classList.remove('d-none');
+			if (table)   table.classList.add('d-none');
+			if (empty)   empty.classList.add('d-none');
 
+			try {
+				const res  = await fetch(`/${COMPANY_ID_FILES}/permits/permit/${PERMIT_ID_FILES}/files`);
+				const json = await res.json();
+				renderAttachments(Array.isArray(json) ? json : []);
+			} catch {
+				if (loading) loading.classList.add('d-none');
+			}
+		}
 
-		const onUploadCancel = (e) => {
-			PermitModule.fileUploadOnCancel(e);
-		};
+		function renderAttachments(files) {
+			const loading = document.getElementById('filesLoading');
+			const empty   = document.getElementById('filesEmpty');
+			const table   = document.getElementById('tblAttachments');
+			const tbody   = document.getElementById('tblAttachmentsBody');
 
+			if (loading) loading.classList.add('d-none');
+			if (!tbody) return;
+			tbody.innerHTML = '';
 
-		const onUploadRemove = (e) => {
-			PermitModule.fileUploadOnRemove(e);
-		};
+			if (!files.length) {
+				if (empty) empty.classList.remove('d-none');
+				return;
+			}
 
-
-		const onUploadSuccess = (e) => {
-			//console.log(e);
-		};
-
-
-		const onUploadError = (e) => {
-			//console.log('OnError');
-			//console.log(e);
-		};
-
-
-		const removeFile = (id) => {
-			let formData = new FormData();
-			formData.append('FileId', id);
-
-			//$('.attachment-list-loading').css('display', 'grid');
-
-			const xhr = $.ajax({
-				type: 'POST',
-				url: '/@Model.CompanyId/permits/attachments/remove',
-				data: formData,
-				contentType: false,
-				processData: false,
-				cache: false,
+			files.forEach(f => {
+				const tr = document.createElement('tr');
+				const deleteBtn = currentPermitStatus === 'Draft'
+					? `<td class="text-end">
+						<button type="button" class="btn btn-sm btn-outline-danger"
+								onclick="confirmDeleteAttachment('${f.Id}', '${escAttr(f.FileName)}')" title="Delete">
+							<i class="fa-solid fa-trash fa-xs"></i>
+						</button>
+					   </td>`
+					: '';
+				tr.innerHTML = `
+					<td>
+						<a href="/attachments/permits/${f.PermitId}/${escAttr(f.FileName)}"
+						   target="_blank" class="text-decoration-none">
+							<i class="fa-solid fa-file me-1 text-muted"></i>${escHtml(f.FileName)}
+						</a>
+					</td>
+					<td class="text-end text-muted small">${escHtml(f.FileSize)}</td>
+					<td class="text-muted small">${escHtml(f.CreatedWhen)}</td>
+					${deleteBtn}`;
+				tbody.appendChild(tr);
 			});
 
-			xhr.done((response) => {
-				tblFiles.ajax.reload();
-			});
+			if (table) table.classList.remove('d-none');
+		}
 
-			xhr.always(() => {
-				//$('.attachment-list-loading').css('display', 'none');
+		function escHtml(s) {
+			if (s == null) return '';
+			return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+		}
+
+		function escAttr(s) {
+			if (s == null) return '';
+			return String(s).replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+		}
+
+		let _bsDeleteModal = null;
+		function confirmDeleteAttachment(id, name) {
+			document.getElementById('dlgDeleteAttachmentName').textContent = name;
+			document.getElementById('dlgDeleteAttachmentConfirm').onclick = () => {
+				_bsDeleteModal.hide();
+				deleteAttachment(id);
+			};
+			_bsDeleteModal.show();
+		}
+
+		async function deleteAttachment(id) {
+			const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+			const fd = new FormData();
+			fd.append('FileId', id);
+			const res = await fetch(`/${COMPANY_ID_FILES}/permits/attachments/remove`, {
+				method: 'POST',
+				headers: { 'RequestVerificationToken': token },
+				body: fd,
 			});
-		};
+			if (res.ok) loadAttachments();
+		}
+
+		// ── Dropzone (mirrors _NewFormScript.cshtml) ───────────────────────
+		function initDropzone() {
+			const el = document.getElementById('dropzone');
+			if (!el) return;
+
+			const maxFiles = parseInt(el.dataset.maxFiles || '5');
+			const maxBytes = parseInt(el.dataset.maxSize  || '3145728');
+			const accept   = (el.dataset.accept || '').split(',').map(s => s.trim().replace('.', '').toLowerCase()).filter(Boolean);
+
+			el.innerHTML = `
+				<div class="pf-dropzone" id="dzInner">
+					<div class="dz-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+					<div class="dz-label">Drag &amp; drop files here, or
+						<span style="color:#3b82f6;text-decoration:underline;cursor:pointer;" id="dzBrowse">browse</span>
+					</div>
+					<div class="dz-hint">Max ${maxFiles} files · ${Math.round(maxBytes / 1024 / 1024)} MB each · ${accept.join(', ').toUpperCase()}</div>
+					<div class="pf-file-list" id="dzFileList"></div>
+				</div>`;
+
+			const hiddenInput = document.createElement('input');
+			hiddenInput.type = 'file';
+			hiddenInput.multiple = true;
+			hiddenInput.accept = el.dataset.accept || '';
+			hiddenInput.style.display = 'none';
+			hiddenInput.addEventListener('change', () => {
+				uploadFilesNow(Array.from(hiddenInput.files), maxFiles, maxBytes, accept);
+				hiddenInput.value = '';
+			});
+			document.body.appendChild(hiddenInput);
+
+			const inner = document.getElementById('dzInner');
+			el.addEventListener('click', () => hiddenInput.click());
+			inner.addEventListener('dragover', e => { e.preventDefault(); inner.classList.add('drag-over'); });
+			inner.addEventListener('dragleave', () => inner.classList.remove('drag-over'));
+			inner.addEventListener('drop', e => {
+				e.preventDefault();
+				inner.classList.remove('drag-over');
+				uploadFilesNow(Array.from(e.dataTransfer.files), maxFiles, maxBytes, accept);
+			});
+		}
+
+		async function uploadFilesNow(newFiles, maxFiles, maxBytes, accept) {
+			const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+
+			for (const file of newFiles) {
+				if (!validateFile(file, maxBytes, accept)) continue;
+
+				const fd = new FormData();
+				fd.append('files', file, file.name);
+
+				const tmpId = 'tmp_' + Date.now();
+				appendUploadingRow(tmpId, file.name);
+
+				try {
+					const res = await fetch(`/${COMPANY_ID_FILES}/permits/${PERMIT_ID_FILES}/attachments/upload`, {
+						method: 'POST',
+						headers: { 'RequestVerificationToken': token },
+						body: fd,
+					});
+					if (!res.ok) throw new Error(await res.text());
+					removeUploadingRow(tmpId);
+					loadAttachments();
+				} catch (err) {
+					removeUploadingRow(tmpId);
+					showAttachToast(`Failed to upload "${file.name}": ${err.message}`);
+				}
+			}
+		}
+
+		function validateFile(file, maxBytes, accept) {
+			const ext = file.name.split('.').pop().toLowerCase();
+			if (accept.length && !accept.includes(ext)) {
+				showAttachToast(`"${file.name}" is not an allowed file type.`); return false;
+			}
+			if (file.size > maxBytes) {
+				showAttachToast(`"${file.name}" exceeds the ${Math.round(maxBytes / 1024 / 1024)} MB limit.`); return false;
+			}
+			return true;
+		}
+
+		function appendUploadingRow(id, name) {
+			const tbody = document.getElementById('tblAttachmentsBody');
+			if (!tbody) return;
+			const tr = document.createElement('tr');
+			tr.id = id;
+			tr.innerHTML = `<td colspan="4" class="text-muted small">
+				<i class="fa-solid fa-spinner fa-spin me-1"></i> Uploading ${escHtml(name)}…
+			</td>`;
+			tbody.prepend(tr);
+			document.getElementById('tblAttachments')?.classList.remove('d-none');
+			document.getElementById('filesEmpty')?.classList.add('d-none');
+		}
+
+		function removeUploadingRow(id) {
+			document.getElementById(id)?.remove();
+		}
+
+		function showAttachToast(msg) {
+			if (typeof showToast === 'function') showToast(msg, 'danger');
+			else alert(msg);
+		}
+
+		document.addEventListener('DOMContentLoaded', () => {
+			_bsDeleteModal = new bootstrap.Modal(document.getElementById('dlgDeleteAttachment'));
+			initDropzone();
+		});
 
 
 		const hotWorkOnChange = (e) => {

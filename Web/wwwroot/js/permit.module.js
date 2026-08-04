@@ -321,15 +321,6 @@
 			_permitInfo.precautions.permitValidity = $('#permitValidity').data('kendoCheckBox').value();
 
 			var formData = new FormData();
-			const files = $('#files').data('kendoUpload').getFiles();
-
-			for (var i = 0; i < files.length; i++) {
-				const file = files[i];
-
-				if (file.validationErrors == undefined) {
-					formData.append('files', files[i].rawFile);
-				}
-			}
 
 			formData.append('PermitForm', JSON.stringify(_permitInfo));
 			formData.append('SubmissionType', submissionType);
@@ -466,28 +457,6 @@
 			}
 
 			return;
-		},
-
-		fileUploadOnSelect: (e) => {
-			var upload = $('#files').data('kendoUpload');
-			//console.log('OnSelect');
-		},
-
-		fileUploadOnClear: (e) => {
-			var upload = $('#files').data('kendoUpload');
-			//console.log('OnClear');
-		},
-
-		fileUploadOnCancel: (e) => {
-			var upload = $('#files').data('kendoUpload');
-			//console.log('OnCancel');
-		},
-
-		fileUploadOnRemove: (e) => {
-			var upload = $('#files').data('kendoUpload');
-
-			upload.clearAllFiles();
-			e.files = [];
 		},
 
 	};
