@@ -112,7 +112,17 @@ public static class GeneralHelper
 
 		if (date.HasValue)
 		{
-			formatted = date.Value.Ticks;
+			if (TimeZoneInfo.Local.Id == "Asia/Kuala_Lumpur")
+			{
+				formatted = date.Value.Ticks;
+			}
+			else
+			{
+				var _tzi = TimeZoneInfo.FindSystemTimeZoneById("Asia/Kuala_Lumpur");
+				var convertedDate = TimeZoneInfo.ConvertTimeFromUtc(date.Value, _tzi);
+				
+				formatted = convertedDate.Ticks;
+			}
 		}
 
 		return formatted;
