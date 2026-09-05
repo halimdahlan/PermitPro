@@ -993,18 +993,18 @@ public class PermitService : IPermitService
 		await _dbContext.SaveChangesAsync(ct);
 
 		var currentUser = _currentUserService.GetCurrentUser();
-		await _logService.LogMessageAsync(LogTypeEnum.Information, "UPDATE_PERMIT",
-			$"New-system permit [PTW{permit.PermitNo}] updated by {currentUser.FirstName} {currentUser.LastName}.", currentUser);
+		var message = $"Permit [PTW{permit.PermitNo}] updated by {currentUser.FirstName} {currentUser.LastName}.";
+
+		await _logService.LogMessageAsync(LogTypeEnum.Information, "UPDATE_PERMIT", message, currentUser);
 	}
 
 	private static string BuildPermitDataJson(Guid templateId, string fieldsJson)
 	{
-		return System.Text.Json.JsonSerializer.Serialize(new
+		return JsonSerializer.Serialize(new
 		{
 			templateId,
 			savedAt = DateTime.UtcNow,
-			fields = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(
-				string.IsNullOrWhiteSpace(fieldsJson) ? "{}" : fieldsJson),
+			fields = JsonSerializer.Deserialize<JsonElement>(string.IsNullOrWhiteSpace(fieldsJson) ? "{}" : fieldsJson),
 		});
 	}
 
@@ -1013,7 +1013,7 @@ public class PermitService : IPermitService
 		if (string.IsNullOrWhiteSpace(permitDataJson)) return Guid.Empty;
 		try
 		{
-			using var doc = System.Text.Json.JsonDocument.Parse(permitDataJson);
+			using var doc = JsonSerializer.Deserialize<JsonDocument>(permitDataJson);
 			if (doc.RootElement.TryGetProperty("templateId", out var el) && el.TryGetGuid(out var id))
 				return id;
 		}
