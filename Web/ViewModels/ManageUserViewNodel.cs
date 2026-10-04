@@ -51,6 +51,8 @@ public class ManageUserViewNodel
 
 	public bool OriginFromContractors { get; set; }
 
+	public string DefaultContractorRole { get; set; }
+
 }
 
 

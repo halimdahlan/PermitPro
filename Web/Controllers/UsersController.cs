@@ -109,7 +109,7 @@ public class UsersController : AppControllerBase
 
 
 	[HttpGet("{company}/users/new")]
-	public IActionResult New(Guid company, string org)
+	public async Task<IActionResult> New(Guid company, string org)
 	{
 		var model = new NewUserViewModel
 		{
@@ -128,6 +128,13 @@ public class UsersController : AppControllerBase
 		model.NoRolesAvailable = noRolesAvailable;
 		model.OriginFromContractors = !string.IsNullOrEmpty(org) && org == "c";
 
+		if (org == "c")
+		{
+			var selectedRole = await _dbContext.Roles.FirstOrDefaultAsync(e => e.NormalizedName == "CONTRACTOR");
+			model.UserRole = selectedRole?.Id ?? string.Empty;
+			model.DefaultContractorRole = selectedRole?.Id ?? string.Empty;
+		}
+
 		return View(model);
 	}
 
@@ -136,6 +143,16 @@ public class UsersController : AppControllerBase
 	[ValidateAntiForgeryToken]
 	public async Task<IActionResult> New(Guid company, NewUserViewModel model)
 	{
+		if (model.OriginFromContractors)
+		{
+			var contractorRole = await _dbContext.Roles.FirstOrDefaultAsync(e => e.NormalizedName == "CONTRACTOR");
+			if (contractorRole != null)
+			{
+				model.UserRole = contractorRole.Id;
+				ModelState.Remove(nameof(model.UserRole));
+			}
+		}
+
 		if (!ModelState.IsValid)
 			return View(model);
 
