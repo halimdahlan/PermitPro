@@ -68,7 +68,7 @@ Two-tier key-value system in `AppSettingCategory` / `AppSetting` tables. Global 
 ### PDF Generation
 
 Two engines coexist:
-- **Old-system permits** (created before `new_permit_form_cutover_date`) — `PermitPdfService` using PuppeteerSharp (headless Chrome) + Scriban templates. `ITemplateService` → `RazorViewsTemplateService`. PDF-specific layout: `Views/Shared/_LayoutPdf.cshtml`. Do not modify or remove this path.
+- **Old-system permits** (created before `new_permit_form_cutover_date`) — `PermitPdfService` using PuppeteerSharp (headless Chrome) + Scriban templates. `ITemplateService` → `RazorViewsTemplateService`. PDF-specific layout: `Views/Shared/_LayoutPdf.cshtml`. Do not modify or remove this path without explicit approval. Certificates are read from `PermitForm.general.certificates` (matched by name against `PTWSettings.Certificates` in `appsettings.json`) and rendered from `wwwroot/templates/html/certificates/{name}.html` into the `__FORM_A__`…`__FORM_H__` placeholders of `permit-main.html`. A certificate ticked but never filled in is stored as just `{"name":"..."}`, so all certificate field access must stay null-safe (`cert["x"]?["y"]`, `IsChecked(token)` instead of `(bool)` casts).
 - **New-system permits** (on/after cutover date) — `QuestPdfService` using QuestPDF, driven by `FormTemplate.LayoutJson` and `Permit.PermitDataJson`. Both implement `IPermitPdfService`; `PermitsController.ExportPdf` selects the correct implementation via `IsNewSystemPermit(permit)`.
 
 ### UI Framework

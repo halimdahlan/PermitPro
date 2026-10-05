@@ -348,7 +348,7 @@ private bool IsNewSystemPermit(Permit permit) =>
 
 | Permit age | PDF engine | Template source |
 |---|---|---|
-| Old (before cutover date) | PuppeteerSharp + Scriban | Existing `PermitPdfService` — **unchanged** |
+| Old (before cutover date) | PuppeteerSharp + Scriban | Existing `PermitPdfService` — unchanged apart from null-safe certificate parsing (see below) |
 | New (on/after cutover date) | **QuestPDF** (`QuestPDF 2025.4.3`) | `FormTemplate.LayoutJson` + `Permit.PermitDataJson` |
 
 `PermitsController.ExportPdf` delegates based on `IsNewSystemPermit`. QuestPDF document:
@@ -357,6 +357,8 @@ private bool IsNewSystemPermit(Permit permit) =>
 - **Footer** — page numbers, print date, custom text (via `FooterConfigJson`).
 - Community licence set on startup.
 - Attached certificates are appended as additional pages. `ExportPdf` includes `Certificates` (non-deleted) with `ThenInclude(c => c.FormTemplate)`; `QuestPdfService` iterates new-system certificates and appends one page each (certificate name + permit number in header; same row/cell rendering; no footer config).
+
+**Old-system certificate parsing is null-safe.** Ticking a certificate (A–H) on the old-system form stores only `{"name":"hotwork"}` in `PermitForm.general.certificates`; field data is merged in only when the certificate dialog is opened and saved. `PermitPdfService` previously assumed every field existed, so `(bool)cert["workChecklist"][0]["value"]` threw a `NullReferenceException` and the whole export returned 500. All certificate field access now uses null-conditional indexers (`cert["x"]?["y"]`) and checkbox values go through `IsChecked(JToken)` (missing/null → `false`). An unfilled certificate now prints as a blank form (empty checkboxes, "—" values) instead of breaking the export.
 
 ### Phase 6 — Certificate Form Customization ✅
 
