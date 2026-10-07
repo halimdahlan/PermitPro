@@ -16,7 +16,7 @@ builder.Services.AddSingleton(jwtSettings);
 builder.Services.AddDatabase(connectionString);
 builder.Services.AddIdentityConfiguration();
 builder.Services.AddJwtAuthentication(jwtSettings);
-builder.Services.AddCloudflareForwardedHeaders();
+builder.Services.AddCloudflareClientIp();
 builder.Services.AddRateLimiting();
 builder.Services.AddWebServices(connectionString);
 builder.Services.AddPermitProServices();
@@ -24,7 +24,7 @@ builder.Services.AddPermitProServices();
 var app = builder.Build();
 
 // First, so everything downstream (rate limiter, logging) sees the real client IP.
-app.UseForwardedHeaders();
+app.UseCloudflareClientIp();
 
 //await PermitPro.Core.Services.AppSettingsSeed.SeedDefaultsAsync(app.Services, appConfig);
 

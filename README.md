@@ -39,7 +39,7 @@ PermitPro-1.2/
 │   │   ├── MaintenanceController.cs
 │   │   ├── ScheduledTaskController.cs
 │   │   └── ToolsController.cs      # System menu management
-│   ├── Extensions/             # Web-layer DI extensions (AddDatabase, AddIdentityConfiguration, AddJwtAuthentication, AddCloudflareForwardedHeaders, AddRateLimiting, AddWebServices)
+│   ├── Extensions/             # Web-layer DI extensions (AddDatabase, AddIdentityConfiguration, AddJwtAuthentication, AddCloudflareClientIp, AddRateLimiting, AddWebServices)
 │   ├── Hubs/                   # SignalR hubs (NotificationHub)
 │   ├── Models/                 # AJAX request/response models, chart models, typed permit request models
 │   ├── Services/               # Web-layer services (NotificationPushService)
@@ -581,7 +581,7 @@ Both profiles set `<AllowUntrustedCertificate>True</AllowUntrustedCertificate>` 
 - JWT `SecretKey` must be stored securely and never committed to source control
 - The Super Admin portal (`/admin/*`) is protected by the `SUPERUSER` role check on every action — regular tenant users are rejected at login, not just redirected
 - Authentication endpoints (login, forgot/reset password, API token, admin login) are rate-limited: **20 requests per 1-minute window per client IP** (policy: `"auth"`, HTTP 429 on breach) — applied via ASP.NET Core's built-in `UseRateLimiter` middleware, which must run after `UseRouting()`. Until 2026-10-07 it ran before routing, so the policy was never applied.
-- The client IP is taken from Cloudflare's `CF-Connecting-IP` header, trusted only when the connection comes from a Cloudflare edge range (`AddCloudflareForwardedHeaders`). Without this, every request appears to come from a Cloudflare IP. The 20/min limit leaves headroom for many workers sharing one site Wi-Fi or mobile carrier IP at shift start.
+- The client IP is taken from Cloudflare's `CF-Connecting-IP` header, trusted only when the connection comes from a Cloudflare edge range (`AddCloudflareClientIp`, `Web/Services/CloudflareClientIp.cs`). Without this, every request appears to come from a Cloudflare IP. The trusted ranges refresh automatically from `https://api.cloudflare.com/client/v4/ips` at startup and every 24 hours, so Cloudflare IP changes need no redeploy. The server needs outbound HTTPS to `api.cloudflare.com`; if that is blocked or fails, the built-in list is used and a warning is logged. The 20/min limit leaves headroom for many workers sharing one site Wi-Fi or mobile carrier IP at shift start.
 - ASP.NET Core Data Protection keys are persisted to the `DataProtectionKeys` table (shared across every environment pointed at the same database) rather than the per-machine default — without this, encrypted `AppSetting` values (e.g. `email_password`) only decrypt on whichever single machine originally encrypted them
 
 ---

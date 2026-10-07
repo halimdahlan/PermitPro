@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
@@ -121,42 +120,27 @@ public static class WebExtensions
 		return services;
 	}
 
-	// Cloudflare's published edge ranges (https://www.cloudflare.com/ips-v4 and /ips-v6, fetched 2026-10-07).
-	// Re-check occasionally — Cloudflare changes these rarely but does change them.
-	private static readonly string[] CloudflareNetworks =
-	[
-		"173.245.48.0/20", "103.21.244.0/22", "103.22.200.0/22", "103.31.4.0/22",
-		"141.101.64.0/18", "108.162.192.0/18", "190.93.240.0/20", "188.114.96.0/20",
-		"197.234.240.0/22", "198.41.128.0/17", "162.158.0.0/15", "104.16.0.0/13",
-		"104.24.0.0/14", "172.64.0.0/13", "131.0.72.0/22",
-		"2400:cb00::/32", "2606:4700::/32", "2803:f800::/32", "2405:b500::/32",
-		"2405:8100::/32", "2a06:98c0::/29", "2c0f:f248::/32",
-	];
-
-	public static IServiceCollection AddCloudflareForwardedHeaders(this IServiceCollection services)
+	public static IServiceCollection AddCloudflareClientIp(this IServiceCollection services)
 	{
-		// The site is proxied through Cloudflare, so without this every request appears to come
-		// from a Cloudflare edge IP. Restore the real client IP from CF-Connecting-IP — but only
-		// when the connection actually comes from Cloudflare: the origin IP is public, and a client
-		// connecting directly could otherwise spoof the header.
-		services.Configure<ForwardedHeadersOptions>(options =>
-		{
-			options.ForwardedHeaders = ForwardedHeaders.XForwardedFor;
-			options.ForwardedForHeaderName = "CF-Connecting-IP";
-
-			foreach (var network in CloudflareNetworks)
-				options.KnownIPNetworks.Add(System.Net.IPNetwork.Parse(network));
-		});
+		// Restores the real client IP from CF-Connecting-IP for requests that come from Cloudflare.
+		// The trusted Cloudflare ranges refresh themselves from Cloudflare's API (startup + every 24h),
+		// so no code change or redeploy is needed when Cloudflare changes them. See CloudflareClientIp.cs.
+		services.AddSingleton<CloudflareIpRanges>();
+		services.AddHttpClient(nameof(CloudflareIpRangesRefresher), client => client.Timeout = TimeSpan.FromSeconds(15));
+		services.AddHostedService<CloudflareIpRangesRefresher>();
 
 		return services;
 	}
+
+	public static IApplicationBuilder UseCloudflareClientIp(this IApplicationBuilder app)
+		=> app.UseMiddleware<CloudflareClientIpMiddleware>();
 
 	public static IServiceCollection AddRateLimiting(this IServiceCollection services)
 	{
 		// Rate-limit auth endpoints: 20 requests per 1-minute window per client IP.
 		// Identity's per-account lockout (3 attempts) handles brute-force per user;
 		// this policy handles distributed/credential-stuffing attacks at the IP level.
-		// Partitioned per IP (via AddCloudflareForwardedHeaders) rather than one shared bucket —
+		// Partitioned per IP (via AddCloudflareClientIp) rather than one shared bucket —
 		// a shared bucket would throttle every user at once. The limit allows for many workers
 		// behind one site Wi-Fi / mobile carrier IP logging in together at shift start.
 		services.AddRateLimiter(options =>
