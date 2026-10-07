@@ -16,11 +16,15 @@ builder.Services.AddSingleton(jwtSettings);
 builder.Services.AddDatabase(connectionString);
 builder.Services.AddIdentityConfiguration();
 builder.Services.AddJwtAuthentication(jwtSettings);
+builder.Services.AddCloudflareForwardedHeaders();
 builder.Services.AddRateLimiting();
 builder.Services.AddWebServices(connectionString);
 builder.Services.AddPermitProServices();
 
 var app = builder.Build();
+
+// First, so everything downstream (rate limiter, logging) sees the real client IP.
+app.UseForwardedHeaders();
 
 //await PermitPro.Core.Services.AppSettingsSeed.SeedDefaultsAsync(app.Services, appConfig);
 
@@ -36,7 +40,6 @@ else
 
 app.UseStatusCodePagesWithReExecute("/error/{0}");
 
-app.UseRateLimiter();
 app.UseResponseCaching();
 
 app.Use(async (context, next) =>
@@ -77,6 +80,10 @@ app.UseStaticFiles();
 
 app.UseHttpsRedirection();
 app.UseRouting();
+
+// Must come after UseRouting: [EnableRateLimiting("auth")] is endpoint metadata, and before
+// routing there is no endpoint yet, so the policy was silently never applied.
+app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();

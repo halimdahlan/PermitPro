@@ -83,11 +83,9 @@ public class AccountController : Controller
 		{
 			Guid.TryParse(routeValue.ToString(), out company);
 
+			// Redirect only — never sign out on a malformed URL (see AppControllerBase).
 			if (company == Guid.Empty)
-			{
-				_signInManager.SignOutAsync();
 				_httpContextAccessor!.HttpContext!.Response.Redirect("/account/login");
-			}
 		}
 	}
 

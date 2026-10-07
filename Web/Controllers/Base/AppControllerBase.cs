@@ -15,13 +15,13 @@ namespace PermitPro.App.Controllers.Base
 	{
 		private readonly ApplicationDbContext _dbContext;
 		private readonly IHttpContextAccessor _httpContextAccessor;
-		private readonly SignInManager<UserInfo> _signInManager;
 		private readonly ISystemConfigurationService _systemConfigService;
 		private Guid _companyId;
 
-		// Set in constructor when the company route segment is present but unparseable.
-		// Acted on in OnActionExecutionAsync so we can await and properly short-circuit.
-		private bool _shouldSignOut;
+		// Set in constructor from the company route segment.
+		// Acted on in OnActionExecutionAsync so we can properly short-circuit.
+		private bool _isInvalidCompany;   // segment is not a GUID, e.g. "/android-chrome-192x192.png"
+		private bool _isEmptyCompany;     // Guid.Empty, e.g. the site root "/" (route default)
 
 		public Guid CompanyID
 		{
@@ -37,7 +37,6 @@ namespace PermitPro.App.Controllers.Base
 		{
 			_dbContext = dbContext;
 			_httpContextAccessor = httpContextAccessor;
-			_signInManager = signInManager;
 			_systemConfigService = systemConfigurationService;
 
 			_companyId = Guid.Empty;
@@ -46,22 +45,32 @@ namespace PermitPro.App.Controllers.Base
 
 			if (routeValue != null)
 			{
-				_ = Guid.TryParse(routeValue.ToString(), out _companyId);
-
-				if (_companyId == Guid.Empty)
-					_shouldSignOut = true;
+				if (!Guid.TryParse(routeValue.ToString(), out _companyId))
+					_isInvalidCompany = true;
+				else if (_companyId == Guid.Empty)
+					_isEmptyCompany = true;
 			}
 		}
 
 		private static readonly TimeSpan CompanyMetaCacheDuration = TimeSpan.FromMinutes(15);
 
-		// Async entry point: handles sign-out/redirect before action executes.
+		// Async entry point: handles the not-found/redirect cases before the action executes.
 		// base.OnActionExecutionAsync calls OnActionExecuting (ViewData setup) then next().
+		//
+		// Never sign out here. Any missing single-segment URL falls through to
+		// {company}/landing/index — browsers and bots request these routinely (manifest icons,
+		// apple-touch-icon probes) — and signing out on them kicked users out right after login.
 		public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
 		{
-			if (_shouldSignOut)
+			if (_isInvalidCompany)
 			{
-				await _signInManager.SignOutAsync();
+				context.Result = NotFound();
+				return;
+			}
+
+			if (_isEmptyCompany)
+			{
+				// /account/login forwards an already-authenticated user to their own dashboard.
 				context.Result = new RedirectResult("/account/login");
 				return;
 			}

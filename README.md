@@ -39,7 +39,7 @@ PermitPro-1.2/
 │   │   ├── MaintenanceController.cs
 │   │   ├── ScheduledTaskController.cs
 │   │   └── ToolsController.cs      # System menu management
-│   ├── Extensions/             # Web-layer DI extensions (AddDatabase, AddIdentityConfiguration, AddJwtAuthentication, AddRateLimiting, AddWebServices)
+│   ├── Extensions/             # Web-layer DI extensions (AddDatabase, AddIdentityConfiguration, AddJwtAuthentication, AddCloudflareForwardedHeaders, AddRateLimiting, AddWebServices)
 │   ├── Hubs/                   # SignalR hubs (NotificationHub)
 │   ├── Models/                 # AJAX request/response models, chart models, typed permit request models
 │   ├── Services/               # Web-layer services (NotificationPushService)
@@ -473,8 +473,9 @@ Then restore via `sqlcmd` or SQL Server Management Studio.
 - Default cookie lifetime: 3 hours (sliding expiration)
 - Persistent "Remember Me" cookie: 30 days
 - Session timeout: 60 minutes
-- Cookies: HttpOnly, SameSite=Strict
+- Cookies: HttpOnly, SameSite=Lax. Strict was dropped because it withheld the auth cookie when users opened links from other apps (email, WhatsApp), so they appeared logged out.
 - Data protection tokens expire after 30 minutes
+- A request whose first URL segment is not a company GUID returns 404 and never signs the user out. Previously, Android Chrome's fetch of the manifest icons (which pointed at non-existent root paths) fell through to `{company}/landing` and signed users out right after login.
 
 ### PTW Certificate Types (`appsettings.json` → `PTWSettings`)
 Configurable certificate types mapped to permit form workflows.
@@ -579,7 +580,8 @@ Both profiles set `<AllowUntrustedCertificate>True</AllowUntrustedCertificate>` 
 - All audit events are written to `AuditLog` and are non-deletable by application users
 - JWT `SecretKey` must be stored securely and never committed to source control
 - The Super Admin portal (`/admin/*`) is protected by the `SUPERUSER` role check on every action — regular tenant users are rejected at login, not just redirected
-- Authentication endpoints are rate-limited: **10 requests per 5-minute window per IP** (policy: `"auth"`, HTTP 429 on breach) — applied via ASP.NET Core's built-in `UseRateLimiter` middleware
+- Authentication endpoints (login, forgot/reset password, API token, admin login) are rate-limited: **20 requests per 1-minute window per client IP** (policy: `"auth"`, HTTP 429 on breach) — applied via ASP.NET Core's built-in `UseRateLimiter` middleware, which must run after `UseRouting()`. Until 2026-10-07 it ran before routing, so the policy was never applied.
+- The client IP is taken from Cloudflare's `CF-Connecting-IP` header, trusted only when the connection comes from a Cloudflare edge range (`AddCloudflareForwardedHeaders`). Without this, every request appears to come from a Cloudflare IP. The 20/min limit leaves headroom for many workers sharing one site Wi-Fi or mobile carrier IP at shift start.
 - ASP.NET Core Data Protection keys are persisted to the `DataProtectionKeys` table (shared across every environment pointed at the same database) rather than the per-machine default — without this, encrypted `AppSetting` values (e.g. `email_password`) only decrypt on whichever single machine originally encrypted them
 
 ---

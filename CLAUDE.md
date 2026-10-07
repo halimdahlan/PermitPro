@@ -38,7 +38,8 @@ All tenant routes follow the pattern `/{company}/{controller}/{action}/{id?}` wh
 
 ### Key Abstractions
 
-- **`AppControllerBase`** — All tenant controllers inherit from this. Sets `CompanyID` from route, populates `ViewData` with company name/logo (cached 15 min), signs out if the GUID is invalid.
+- **`AppControllerBase`** — All tenant controllers inherit from this. Sets `CompanyID` from route, populates `ViewData` with company name/logo (cached 15 min). A non-GUID company segment returns 404; `Guid.Empty` (the site root `/`) redirects to `/account/login`. It must **never sign out**: any missing single-segment URL (e.g. `/android-chrome-192x192.png`) falls through to `{company}/landing/index`, and signing out there kicked users out right after login (Android Chrome fetches manifest icons on page load).
+- **Auth cookie** — `SameSite=Lax` (not Strict, which made users appear logged out when opening links from email/WhatsApp; not None, which would expose the many POST actions lacking `[ValidateAntiForgeryToken]` to CSRF). Web manifest at `wwwroot/img/icons/site.webmanifest` — icon `src` paths must point at `/img/icons/…`.
 - **`ICurrentUserService`** — Resolves the acting user's company ID. Normal users get their `UserCompany.Id`; super admins resolve from the `{company}` route value.
 - **`ISoftDeletable`** — All core entities support soft-delete. Hard deletes are never performed by the application.
 - **`IAuditableEntity`** — Auto-stamped (`CreatedWhen`/`CreatedBy`/`UpdatedWhen`/`UpdatedBy`) via `UpdateAuditableEntitiesInterceptor` on `SaveChanges`.
@@ -48,11 +49,12 @@ All tenant routes follow the pattern `/{company}/{controller}/{action}/{id?}` wh
 Service registration is split across two extension classes:
 
 - **Core services** — `Core/Extensions/CommonExtensions.cs` → `AddPermitProServices()` registers domain services (`IPermitService`, `IUserService`, `IAppSettingsService`, `IFormControlService`, `IFormTemplateService`, `ICertificateService`, `IQuestPdfService`, etc.), EF Core interceptors, and Data Protection.
-- **Web services** — `Web/Extensions/WebExtensions.cs` provides five focused extension methods:
+- **Web services** — `Web/Extensions/WebExtensions.cs` provides six focused extension methods:
   - `AddDatabase(connectionString)` — DbContext + developer exception filter
   - `AddIdentityConfiguration()` — ASP.NET Identity, password policy, cookie settings, token lifetime
   - `AddJwtAuthentication(jwtSettings)` — JWT Bearer scheme
-  - `AddRateLimiting()` — fixed-window auth rate limiter
+  - `AddCloudflareForwardedHeaders()` — restores the real client IP from `CF-Connecting-IP`, trusted only from Cloudflare's published edge ranges (hard-coded list; origin IP is public, so the header is spoofable otherwise). `app.UseForwardedHeaders()` is the first middleware.
+  - `AddRateLimiting()` — `"auth"` policy: 20 requests/minute **per client IP** (partitioned, not one shared bucket). `app.UseRateLimiter()` must stay **after** `UseRouting()` — before it, `[EnableRateLimiting]` endpoint metadata isn't available and the policy silently never applies (it was inactive until 2026-10-07).
   - `AddWebServices(connectionString)` — health checks, response caching, session, MVC/Razor/Kendo/SignalR, `NotificationPushService`
 
 `Program.cs` calls these extension methods in sequence — no DI registration logic lives in `Program.cs` directly.
