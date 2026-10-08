@@ -76,6 +76,8 @@ Outgoing email uses MailKit with SMTP settings from `AppSettings` category `emai
 
 `MessageService` BCCs every email to `workflow@permitpro.app`, so password-reset emails must not be sent through it.
 
+Links in emails (password reset, workflow approvals) are built from the incoming request: `{Request.Scheme}://{Request.Host}`. Don't use the `application_domain` setting for links: its seed default is `uat.permitpro.app`. Building links from the request is only safe because `AllowedHosts` in `appsettings.json` is restricted to `permitpro.app;*.permitpro.app;localhost`. Never set it back to `*`, because a forged `Host` header would then put a valid reset token in a link to an attacker's site (password-reset poisoning). Requests with any other host get 400, including requests by bare IP address, so use `localhost`, not `127.0.0.1`, locally.
+
 ### PDF Generation
 
 Two engines coexist:
