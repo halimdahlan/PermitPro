@@ -268,10 +268,14 @@ public class AccountController : Controller
 		var htmlTemplate = System.IO.File.ReadAllText(Path.Combine(_webHostEnvironment.WebRootPath, "templates", "html", "reset-password.html"));
 		var template = Template.Parse(htmlTemplate);
 
+		// Link back to whichever host this request came in on (production, UAT or localhost), like the
+		// workflow email links in PermitService. Safe only because AllowedHosts (appsettings.json) restricts
+		// the Host header to our own domains — otherwise a forged Host would put the reset token in a link
+		// to an attacker's site (password-reset poisoning).
 		var templateData = new
 		{
 			RecipientName = $"{user.FirstName} {user.LastName}",
-			ResetLink = $"https://{_systemConfigurationService.ApplicationDomain}/account/reset-password?token={Base64UrlEncoder.Encode(token)}&id={WebUtility.UrlEncode(user.Id)}",
+			ResetLink = $"{Request.Scheme}://{Request.Host}/account/reset-password?token={Base64UrlEncoder.Encode(token)}&id={WebUtility.UrlEncode(user.Id)}",
 			ExpiryMinutes = (int)tokenLifespan.TotalMinutes,
 		};
 
