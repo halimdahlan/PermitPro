@@ -67,6 +67,15 @@ Service registration is split across two extension classes:
 
 Two-tier key-value system in `AppSettingCategory` / `AppSetting` tables. Global rows (`CompanyId IS NULL`) are inherited by all tenants; company rows override globals. Resolved via `IAppSettingsService.GetValueAsync`. Settings with `IsEncrypted = true` use ASP.NET Core Data Protection (purpose `"AppSettings"`, keys in `DataProtectionKeys` table).
 
+### Email (SMTP)
+
+Outgoing email uses MailKit with SMTP settings from `AppSettings` category `email` (`smtp_server`, `smtp_port`, `email_username`, `email_password` [encrypted], `sender_email`, `sender_name`). Company rows override the global row. Workflow emails (`MessageService`) use the company's settings; forgot-password uses the global ones. Every SMTP connection must go through `Core/Helpers/SmtpHelper.ConnectAsync`: port 465 uses implicit TLS, and other ports use STARTTLS when the server offers it. The provider is **Cloudflare Email Service**:
+- host `smtp.mx.cloudflare.net`, port `465` with implicit TLS (plaintext and STARTTLS are rejected)
+- username: the literal text `api_token`; password: a Cloudflare API token with **Email Sending: Edit**
+- the `sender_email` domain must be onboarded for Email Sending, or Cloudflare rejects the message with `550 5.7.1`
+
+`MessageService` BCCs every email to `workflow@permitpro.app`, so password-reset emails must not be sent through it.
+
 ### PDF Generation
 
 Two engines coexist:

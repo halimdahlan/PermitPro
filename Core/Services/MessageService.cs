@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using MimeKit;
 
 using PermitPro.Core.Data;
+using PermitPro.Core.Helpers;
 using PermitPro.Core.Interfaces;
 using PermitPro.Core.Models;
 
@@ -65,7 +66,7 @@ public class MessageService : IMessageService
 
 		try
 		{
-			await client.ConnectAsync(server!, port, false);
+			await SmtpHelper.ConnectAsync(client, server!, port);
 			await client.AuthenticateAsync(userName!, password!);
 
 			await client.SendAsync(mailMessage);
@@ -121,7 +122,7 @@ public class MessageService : IMessageService
 
 		try
 		{
-			await client.ConnectAsync(server!, port, false);
+			await SmtpHelper.ConnectAsync(client, server!, port);
 			await client.AuthenticateAsync(userName!, password!);
 
 			await client.SendAsync(mailMessage);

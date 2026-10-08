@@ -297,7 +297,7 @@ public class AccountController : Controller
 
 			using var client = new SmtpClient();
 
-			await client.ConnectAsync(smtpServer, smtpPort, false);
+			await SmtpHelper.ConnectAsync(client, smtpServer, smtpPort);
 			await client.AuthenticateAsync(smtpUser, smtpPass);
 
 			await client.SendAsync(message);
