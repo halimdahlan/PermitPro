@@ -5,7 +5,8 @@ namespace PermitPro.App.ViewModels;
 public class ForgotPasswordViewModel
 {
 	[Required(ErrorMessage = "This field is required")]
-	[DataType(DataType.EmailAddress, ErrorMessage = "Please enter a valid email address")]
+	[EmailAddress(ErrorMessage = "Please enter a valid email address")]
+	[DataType(DataType.EmailAddress)]
 	[Display(Name = "Email address")]
 	public required string Email { get; set; }
 

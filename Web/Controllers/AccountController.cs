@@ -242,34 +242,37 @@ public class AccountController : Controller
 			return View(model);
 		}
 
-		var user = await _userManager.FindByNameAsync(model.Email);
+		// Look up by email, not user name: a user name isn't always the email address
+		// (FindByNameAsync left such users unable to reset). Emails are unique (RequireUniqueEmail).
+		var user = await _userManager.FindByEmailAsync(model.Email.Trim());
 
+		// Every outcome below shows the same message, so this form can't be used to discover
+		// which emails have accounts. The real outcome goes to the audit log only.
 		if (user == null)
 		{
 			await _logService.LogMessageAsync(Core.Enums.LogTypeEnum.Error, "FORGOT_PASSWORD", $"User not found.", null);
-
-			model.ErrorMessage = "User not found. Please try another.";
-			return View(model);
+			return ForgotPasswordSent(model);
 		}
 
 		if (!user.IsActive)
 		{
 			await _logService.LogMessageAsync(Core.Enums.LogTypeEnum.Error, "FORGOT_PASSWORD", $"Account is not active.", user);
-
-			model.ErrorMessage = "Your account is not active. Please contact the system administrator.";
-			return View(model);
+			return ForgotPasswordSent(model);
 		}
 
 		var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+		var tokenLifespan = HttpContext.RequestServices
+			.GetRequiredService<Microsoft.Extensions.Options.IOptions<DataProtectionTokenProviderOptions>>().Value.TokenLifespan;
 
 		// Get email template
-		var htmlTemplate = System.IO.File.ReadAllText(Path.Combine(_webHostEnvironment.WebRootPath, "templates\\html\\reset-password.html"));
+		var htmlTemplate = System.IO.File.ReadAllText(Path.Combine(_webHostEnvironment.WebRootPath, "templates", "html", "reset-password.html"));
 		var template = Template.Parse(htmlTemplate);
 
 		var templateData = new
 		{
 			RecipientName = $"{user.FirstName} {user.LastName}",
-			ResetLink = $"https://{_systemConfigurationService.ApplicationDomain}/account/reset-password?token={Base64UrlEncoder.Encode(token)}&id={user.Id}&email={user.Email}",
+			ResetLink = $"https://{_systemConfigurationService.ApplicationDomain}/account/reset-password?token={Base64UrlEncoder.Encode(token)}&id={WebUtility.UrlEncode(user.Id)}",
+			ExpiryMinutes = (int)tokenLifespan.TotalMinutes,
 		};
 
 		var renderedHtml = template.Render(templateData);
@@ -277,36 +280,56 @@ public class AccountController : Controller
 		var bodyBuilder = new BodyBuilder();
 		bodyBuilder.HtmlBody = renderedHtml;
 
-		var smtpServer = await _appSettings.GetValueAsync(Guid.Empty, "email", "smtp_server");
-		var smtpPort = int.TryParse(await _appSettings.GetValueAsync(Guid.Empty, "email", "smtp_port"), out var p) ? p : 25;
-		var senderName = await _appSettings.GetValueAsync(Guid.Empty, "email", "sender_name");
-		var senderEmail = await _appSettings.GetValueAsync(Guid.Empty, "email", "sender_email");
-		var smtpUser = await _appSettings.GetValueAsync(Guid.Empty, "email", "email_username");
-		var smtpPass = await _appSettings.GetValueAsync(Guid.Empty, "email", "email_password");
+		try
+		{
+			var smtpServer = await _appSettings.GetValueAsync(Guid.Empty, "email", "smtp_server");
+			var smtpPort = int.TryParse(await _appSettings.GetValueAsync(Guid.Empty, "email", "smtp_port"), out var p) ? p : 25;
+			var senderName = await _appSettings.GetValueAsync(Guid.Empty, "email", "sender_name");
+			var senderEmail = await _appSettings.GetValueAsync(Guid.Empty, "email", "sender_email");
+			var smtpUser = await _appSettings.GetValueAsync(Guid.Empty, "email", "email_username");
+			var smtpPass = await _appSettings.GetValueAsync(Guid.Empty, "email", "email_password");
 
-		var message = new MimeMessage();
-		message.From.Add(new MailboxAddress(senderName, senderEmail));
-		message.To.Add(new MailboxAddress($"{user.FirstName} {user.LastName}", user.Email));
-		message.Subject = "Request for password reset";
-		message.Body = bodyBuilder.ToMessageBody();
+			var message = new MimeMessage();
+			message.From.Add(new MailboxAddress(senderName, senderEmail));
+			message.To.Add(new MailboxAddress($"{user.FirstName} {user.LastName}", user.Email));
+			message.Subject = "Request for password reset";
+			message.Body = bodyBuilder.ToMessageBody();
 
-		using var client = new SmtpClient();
+			using var client = new SmtpClient();
 
-		await client.ConnectAsync(smtpServer, smtpPort, false);
-		await client.AuthenticateAsync(smtpUser, smtpPass);
+			await SmtpHelper.ConnectAsync(client, smtpServer, smtpPort);
+			await client.AuthenticateAsync(smtpUser, smtpPass);
 
-		await client.SendAsync(message);
-		await client.DisconnectAsync(true);
+			await client.SendAsync(message);
+			await client.DisconnectAsync(true);
+		}
+		catch (Exception ex)
+		{
+			// Still show the generic message: an error shown only for real accounts would reveal they exist.
+			_logger.LogError(ex, "Failed to send password reset email for user {UserId}", user.Id);
+			await _logService.LogMessageAsync(Core.Enums.LogTypeEnum.Error, "FORGOT_PASSWORD", $"Failed to send reset password email: {ex.Message}", user);
+			return ForgotPasswordSent(model);
+		}
 
+		await _logService.LogMessageAsync(Core.Enums.LogTypeEnum.Information, "FORGOT_PASSWORD", $"Reset password link has been sent successfully.", user);
+
+		return ForgotPasswordSent(model);
+	}
+
+
+	private IActionResult ForgotPasswordSent(ForgotPasswordViewModel model)
+	{
 		model.Email = string.Empty;
 		model.ErrorMessage = string.Empty;
 		model.EmailSent = true;
-		model.Message = "Your reset password link has been successfully sent to your email.";
+		model.Message = "If an account exists for that email, a password reset link has been sent to it. Please check your inbox (and spam folder).";
 
-		await _logService.LogMessageAsync(Core.Enums.LogTypeEnum.Information, "FORGOT_PASSWORD", $"Reset password link has been successfully.", user);
-
-		return View(model);
+		return View(nameof(ForgotPassword), model);
 	}
+
+
+	private const string InvalidResetLinkMessage =
+		"This password reset link is invalid or has expired. Please <a href=\"/account/forgot\">request a new one</a>.";
 
 
 	[HttpGet("account/reset-password")]
@@ -317,7 +340,8 @@ public class AccountController : Controller
 			Password = string.Empty,
 			ConfirmPassword = string.Empty,
 			Id = id,
-			ResetToken = token
+			ResetToken = token,
+			ErrorMessage = string.IsNullOrEmpty(id) || string.IsNullOrEmpty(token) ? InvalidResetLinkMessage : string.Empty,
 		};
 
 		return View(model);
@@ -334,34 +358,59 @@ public class AccountController : Controller
 			return View(model);
 		}
 
+		// Always re-render with the model on failure: the view reads Model, and the hidden
+		// Id/ResetToken fields must survive so the user can retry (e.g. after a too-weak password).
+		if (string.IsNullOrEmpty(model.Id) || string.IsNullOrEmpty(model.ResetToken))
+		{
+			model.ErrorMessage = InvalidResetLinkMessage;
+			return View(model);
+		}
+
 		var user = await _userManager.FindByIdAsync(model.Id);
 
 		if (user == null)
 		{
 			await _logService.LogMessageAsync(Core.Enums.LogTypeEnum.Error, "RESET_PASSWORD", $"User not found.", null);
 
-			model.ErrorMessage = "User not found. Please try again.";
+			model.ErrorMessage = InvalidResetLinkMessage;
 			return View(model);
 		}
 
-		var _result = await _userManager.ResetPasswordAsync(user, Base64UrlEncoder.Decode(model.ResetToken), model.ConfirmPassword);
+		string token;
+		try
+		{
+			token = Base64UrlEncoder.Decode(model.ResetToken);
+		}
+		catch (Exception ex) when (ex is FormatException or ArgumentException)
+		{
+			await _logService.LogMessageAsync(Core.Enums.LogTypeEnum.Error, "RESET_PASSWORD", $"Reset password failed: malformed token.", user);
+
+			model.ErrorMessage = InvalidResetLinkMessage;
+			return View(model);
+		}
+
+		var _result = await _userManager.ResetPasswordAsync(user, token, model.Password);
 
 		if (!_result.Succeeded)
 		{
 			foreach (var error in _result.Errors)
 			{
-				ModelState.TryAddModelError(error.Code, error.Description);
+				if (error.Code == nameof(IdentityErrorDescriber.InvalidToken))
+					model.ErrorMessage = InvalidResetLinkMessage;
+				else
+					// Empty key so the view's ModelOnly validation summary shows it (e.g. password policy errors).
+					ModelState.AddModelError(string.Empty, error.Description);
 			}
 
-			await _logService.LogMessageAsync(Core.Enums.LogTypeEnum.Error, "RESET_PASSWORD", $"Reset password failed.", null);
+			await _logService.LogMessageAsync(Core.Enums.LogTypeEnum.Error, "RESET_PASSWORD", $"Reset password failed: {string.Join(", ", _result.Errors.Select(e => e.Code))}.", user);
 
-			return View();
+			return View(model);
 		}
 
 		model.ResetOK = true;
 		model.Message = "Your password has been reset successfully.";
 
-		await _logService.LogMessageAsync(Core.Enums.LogTypeEnum.Error, "RESET_PASSWORD", $"Password has been reset successfully.", user);
+		await _logService.LogMessageAsync(Core.Enums.LogTypeEnum.Information, "RESET_PASSWORD", $"Password has been reset successfully.", user);
 
 		return View(model);
 	}
