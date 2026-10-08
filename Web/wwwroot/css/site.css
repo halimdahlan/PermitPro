@@ -50,6 +50,10 @@ html, a, div, nav, ul, li, input[type='text'], input[type='radio'], input[type='
 	}
 }
 
+#grid .k-toolbar .k-input {
+  width: unset !important;
+}
+
 .col-header-elem {
 	width: 75px;
 	text-align: center;

@@ -42,6 +42,7 @@
 		@(Html.Kendo()
 			.Grid<SitesGridViewModel>()
 			.Name("grid")
+			.ToolBar(tb => tb.Search())
 			.NoRecords()
 			.Pageable()
 			.Sortable()
