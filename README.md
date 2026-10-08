@@ -65,7 +65,7 @@ PermitPro-1.2/
 │   ├── Migrations/             # EF Core database migrations
 │   └── PTW/                    # Permit-to-Work template data
 ├── Telerik/                    # Kendo UI / Telerik DLL references
-├── .github/workflows/          # GitHub Actions CI/CD
+├── .github/workflows/          # GitHub Actions (currently empty — no CI/CD)
 └── PermitPro.sln
 ```
 
@@ -209,7 +209,7 @@ Response caching (HTTP layer) is applied to chart data and dropdown endpoints:
 - **Super Admin** (`/admin/about`) — cross-tenant snapshot: total/active/inactive users, permit counts (Total/Open/Closed/Rejected + full per-status breakdown), app version, masked DB connection string, DB size, and live DB health (reuses the same `HealthCheckService` that backs the `/health` endpoint)
 - **Tenant** (`/{company}/settings/about`, `Portal Admin`/`Super User`) — same shape scoped to the current company only; the DB card shows server/database/user individually instead of a connection string (via `SqlConnectionStringBuilder`, password never rendered), plus DB size and state (`DATABASEPROPERTYEX(..., 'Status')`, e.g. `ONLINE`). Currently only linked from the sidebar for Super Users, though the route itself also authorizes Portal Admins
 - App version is sourced differently on each page: Super Admin reads the in-memory assembly version (`Assembly.GetExecutingAssembly().GetName().Version`); the tenant page reads the compiled DLL's file version resource directly (`FileVersionInfo.GetVersionInfo`), so it reflects whatever binary is actually running on disk
-- Both ultimately reflect the `<Version>` MSBuild property in `Web/App.csproj` (`1.0.0` by default) — CI overrides it per deploy with `-p:Version=1.0.<github.run_number>`, so the version shown increments automatically on every merge-triggered deploy with no manual bump needed
+- Both ultimately reflect the `<Version>` MSBuild property in `Web/App.csproj` (`1.0.0`). CI used to override it per deploy; with no CI, every build reports `1.0.0` unless you pass `-p:Version=…` to `dotnet publish` (e.g. `-p:Version=1.0.42`; each part must be ≤ 65535, so a full date like `20261008` won't work as one part)
 
 ---
 
@@ -548,16 +548,27 @@ dotnet ef database update --project Core --startup-project Web
 
 ## Deployment
 
-### CI/CD (GitHub Actions)
+### Current hosting: dedicated Windows server behind Cloudflare
 
-The workflow at `.github/workflows/deploy-on-merge.yml` triggers when a pull request is merged into `master`:
+- **Server:** a dedicated Windows Server running IIS, with the app hosted in-process. IIS binds `http:80` and `https:443` for `permitpro.app`.
+- **TLS:** a Cloudflare Origin Certificate on the server. Cloudflare's SSL/TLS mode must be Full or Full (strict) for this to work.
+- **DNS:** managed in Cloudflare and proxied. `permitpro.app` and `*.permitpro.app` resolve to the origin through Cloudflare.
+- **Redirect rule** (Cloudflare): any hostname other than `permitpro.app` gets a 301 redirect to `https://permitpro.app` plus the request path. See issue #4: it currently drops the query string.
+- **Client IP:** every request arrives from a Cloudflare edge IP. The app restores the real client IP from `CF-Connecting-IP` (`Web/Services/CloudflareClientIp.cs`), which the per-IP login rate limiter depends on.
+- **Outbound access the server needs:** HTTPS to `api.cloudflare.com` (refreshes Cloudflare's IP ranges at startup and every 24 hours), plus SMTP for email. The old-system PDF export also needs internet access: PuppeteerSharp downloads headless Chrome on first use, and the rendered page loads its CSS and images from the app's own domain.
+- **Deploys are manual.** There's no CI/CD (see below), so merging to `master` doesn't change the live site. Publish, then copy the `publish` folder to the server:
 
-1. Checkout code
-2. Setup .NET 10.0
-3. Restore → Build (Release, `-p:Version=1.0.<github.run_number>`) → Publish (self-contained, win-x64, ReadyToRun, same `Version` override)
-4. Deploy to **SmarterASP.NET** via WebDeploy
+  ```bash
+  dotnet publish Web/App.csproj --configuration Release --framework net10.0 --output ./publish --runtime win-x64 --self-contained -p:PublishReadyToRun=true
+  ```
 
-`github.run_number` increments on every run of this workflow, giving each merge-triggered deploy a distinct, ever-increasing app version (surfaced on the **About** pages — see **System Information** above). Deployment secrets are stored in GitHub repository settings (not in source).
+The **WebDeploy (SmarterASP.NET)** and **AWS EC2** sections below describe previous hosting and are no longer used. They are kept for reference.
+
+### CI/CD (GitHub Actions) — currently none
+
+There is **no automated deployment at the moment**. The `deploy-on-merge.yml` workflow was removed on 2026-08-01 (commit `7f866e2`), so merging a pull request into `master` does not deploy anything. Deploys are done manually.
+
+For reference, the removed workflow ran on every merged PR into `master`. It restored, built and published (Release, self-contained win-x64, ReadyToRun, `-p:Version=1.0.<github.run_number>`), then deployed to SmarterASP.NET via WebDeploy.
 
 ### WebDeploy (Manual)
 

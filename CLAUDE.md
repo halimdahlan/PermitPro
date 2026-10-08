@@ -61,7 +61,7 @@ Service registration is split across two extension classes:
 
 ### Connection String Resolution
 
-The connection string key matches the environment name: `appConfig.GetConnectionString(builder.Environment.EnvironmentName)` — so `appsettings.Development.json` uses `"Development"`, Production uses `"Production"`, etc.
+`Program.cs` always reads the `"MSSQL"` key: `appConfig.GetConnectionString("MSSQL")`. Each `appsettings.{Environment}.json` overrides that same key (e.g. `appsettings.Development.json`, `appsettings.Staging.json`). `appsettings.Development.json` also holds an unused alternative `"XMSSQL"` entry.
 
 ### App Settings (Database-Stored Config)
 
@@ -133,5 +133,6 @@ Hangfire packages are installed and registered but the seed/execution is current
 - JSON serialization uses `System.Text.Json` everywhere except PDF template mapping (Newtonsoft).
 - The `Html/` folder contains static HTML prototypes — not part of the compiled app.
 - The `SqlScripts/` folder holds ad-hoc SQL scripts for manual DB operations.
-- CI/CD: `.github/workflows/deploy-on-merge.yml` triggers on merged PRs to `master`, publishes self-contained win-x64, deploys via WebDeploy.
-- App version is set by CI via `-p:Version=1.0.<run_number>` — never bump `<Version>` in the csproj manually.
+- Hosting: a dedicated Windows Server (IIS, in-process) behind Cloudflare: proxied DNS, a Cloudflare Origin Certificate, and a redirect rule sending non-apex hostnames to `permitpro.app`. SmarterASP.NET and AWS EC2 are no longer used; README keeps their old deployment sections for reference.
+- Deployment: **no automated deployment at the moment.** `.github/workflows/deploy-on-merge.yml` was removed on 2026-08-01, so merging a PR to `master` does **not** deploy — the user deploys manually (self-contained win-x64 publish, see the publish command above). Never tell the user a merge will put a change live.
+- App version: `Web/App.csproj` has `<Version>1.0.0</Version>`, shown on the About/Settings pages. CI used to override it with `-p:Version=1.0.<run_number>`; with manual deploys every build reports 1.0.0 unless `-p:Version=…` is passed to `dotnet publish`.
