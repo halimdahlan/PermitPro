@@ -3,21 +3,10 @@
 		width: 300px !important;
 	}
 
-	.k-input {
-		width: 300px;
-	}
 }
 
 .column-avatar {
 	width: 100%;
-}
-
-.form-control.k-input, .k-picker, .k-button {
-	font-family: 'Cerebri Sans';
-	font-size: 15px;
-}
-
-.k-input {
 }
 
 .no-image {

@@ -223,31 +223,6 @@ public class SitesController : AppControllerBase
 	}
 
 
-	[HttpGet("{company}/sites/hierarchical")]
-	public JsonResult GetLocationsHierarchical(Guid company, Guid? id)
-	{
-		Guid? parentId = Guid.Empty;
-		if (id != null) parentId = id;
-
-		var data = _dbContext.Sites
-			.Include(e => e.SiteCompany)
-			.Where(e => e.SiteType == SiteTypeEnum.Site && e.SiteCompany.Id == company && e.ParentId == parentId)
-			.OrderBy(e => e.ParentId)
-			.OrderBy(e => e.Name)
-			.Select(e => new
-			{
-				id = e.Id,
-				name = e.Name,
-				hasChildren = _dbContext.Sites.Any(f => f.SiteType == SiteTypeEnum.Site && f.SiteCompany.Id == company && f.ParentId == e.Id)
-			});
-
-		return new JsonResult(data, new JsonSerializerOptions
-		{
-			PropertyNamingPolicy = null,
-		});
-	}
-
-
 	//[HttpGet("{companyId}/sites/{parentId?}")]
 	//public IActionResult GetSites(Guid companyId, string parentId = null)
 	//{

@@ -17,7 +17,7 @@ PermitPro is a multi-tenant Permit-to-Work (PTW) SaaS web app.
 - ASP.NET Core 10.0 MVC
 - Entity Framework Core 10 with SQL Server
 - ASP.NET Identity with custom `Role : IdentityRole` (string Id) and `UserInfo : IdentityUser`
-- Kendo UI for ASP.NET MVC (Telerik) — Grids, DropDownLists, DropDownTree, DateRangePicker, RadioButtons
+- Bootstrap 5.3.8, DataTables 2, Tom Select, Flatpickr, Treeselect.js (Telerik/Kendo removed)
 - Chart.js 4.4.4 (CDN: `https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js`)
 - Bootstrap 5 tabs (`data-bs-toggle="tab"`)
 - Font Awesome Pro 6.x (`fa-loader fa-spin` for inline spinners)

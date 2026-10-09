@@ -4,66 +4,16 @@
 	vertical-align: middle;
 }
 
-.k-picker-outline {
-	border-color: rgb(210, 221, 236) !important;
-	/*color: #212529;*/
-	background-color: #fff !important;
-}
-
-	.k-picker-outline.k-hover, .k-picker-outline:hover {
-		/*border-color: #212529;*/
-		color: #12263f !important;
-		background-color: #fff !important;
-	}
-
-	.k-picker-outline.k-focus,
-	.k-picker-outline:focus,
-	.k-input-solid.k-focus,
-	.k-input-solid:focus,
-	.k-input-outline.k-focus,
-	.k-input-outline:focus,
-	.k-checkbox.k-checked.k-focus,
-	.k-checkbox:checked:focus,
-	.k-switch:focus {
-		/*box-shadow: 0 0 0 .25rem rgba(228,231,235,.5);*/
-		/*background-color: #fff !important;*/
-		border-color: #2c7be5 !important;
-		box-shadow: none !important;
-		color: #12263f !important;
-		outline: 0 !important;
-	}
-
-.k-input-solid.k-focus, .k-input-solid:focus {
-	/*border-color: #86b7fe;
-	color: #495057;
-	background-color: #fff;
-	box-shadow: 0 0 0 .25rem rgba(13,110,253,.25);*/
-}
-
-.k-input-outline {
-	border-color: rgb(210, 221, 236) !important;
-	background-color: #fff !important;
-}
-
-.form-control, .k-input-outline, .k-picker-outline {
+.form-control {
 	font-family: 'Poppins' !important;
 	font-size: 14px !important;
-}
-
-.k-checkbox.k-focus, .k-checkbox:focus {
-	border-color: #d2ddec;
-	box-shadow: none !important;
 }
 
 .attached-certs {
 	min-width: 100%;
 }
 
-.k-input-label {
-	margin-bottom: 3px !important;
-}
-
-#grid, #grid .k-input-inner {
+#grid {
 	font-family: 'Poppins';
 	font-size: 14px;
 }
@@ -71,14 +21,6 @@
 	#grid table thead th {
 		color: #95aac9;
 		font-weight: 600;
-	}
-
-		#grid table thead th.text-center .k-column-title {
-			margin: 0 auto;
-		}
-
-	#grid .k-grid-norecords-template {
-		border: 0;
 	}
 
 	a:link, a:visited {
@@ -89,15 +31,3 @@ a:hover {
 	color: var(--bs-btn-disabled-bg);
 }
 
-.k-grid a {
-	text-decoration: none !important;
-	color: rgba(var(--bs-link-color-rgb), var(--bs-link-opacity,1));
-}
-
-.k-grid a:hover {
-	color: var(--bs-btn-disabled-bg);
-}
-
-.k-calendar, .k-title, .k-button {
-	font-family: 'Poppins', sans-serif !important;
-}

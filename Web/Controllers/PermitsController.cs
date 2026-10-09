@@ -293,13 +293,6 @@ public class PermitsController : AppControllerBase
 	}
 
 
-	[Route("{company}/permits/formview")]
-	public IActionResult FormView()
-	{
-		return View();
-	}
-
-
 	#region "Grid"
 
 	public async Task<JsonResult> GetGridData(Guid company, string filter, CancellationToken ct)

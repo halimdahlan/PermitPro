@@ -36,7 +36,7 @@ input[type="text"].form-control {
 	opacity: 1;
 }
 
-#grid, #grid .k-input-inner {
+#grid {
 	font-family: 'Poppins', sans-serif;
 	font-size: 14px;
 }
@@ -46,45 +46,3 @@ input[type="text"].form-control {
 		font-weight: 600;
 	}
 
-		#grid table thead th.text-center .k-link {
-			justify-content: center;
-		}
-
-	#grid .k-grid-norecords-template {
-		border: 0;
-	}
-
-.k-input-outline {
-	border: 1px solid #d2ddec;
-}
-
-	.k-input-outline:focus {
-		background-color: #fff;
-		border-color: #2c7be5;
-		box-shadow: none;
-		color: #12263f;
-		outline: 0;
-	}
-
-.k-treeview-leaf {
-	font-family: 'Poppins', sans-serif;
-	font-size: 14px;
-}
-
-.k-chip {
-	font-family: 'Poppins', sans-serif;
-	font-size: 12px;
-}
-
-.k-column-title {
-  font-size: 14px !important;
-}
-
-.k-grid a {
-	text-decoration: none !important;
-	color: rgba(var(--bs-link-color-rgb), var(--bs-link-opacity,1));
-}
-
-.k-grid a:hover {
-	color: var(--bs-btn-disabled-bg);
-}

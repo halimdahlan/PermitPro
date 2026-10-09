@@ -164,7 +164,7 @@ function initDropzone() {
         </div>
         <div class="pf-file-list" id="dzFileList"></div>`;
 
-    // Hidden input placed outside any form — Kendo scans forms, not document.body
+    // Hidden file input, kept outside the form; the files are sent from pendingFiles instead.
     const hiddenInput = document.createElement('input');
     hiddenInput.type          = 'file';
     hiddenInput.multiple      = true;
@@ -580,8 +580,8 @@ async function submitPermit(submissionType) {
     const form  = document.getElementById('frmNewPermit');
     const token = form.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
 
-    // Build FormData manually — never use new FormData(form) because Kendo may
-    // have mutated or hidden the file input. Append each field explicitly.
+    // Build FormData manually rather than new FormData(form): the staged files live in
+    // pendingFiles, not in a form input. Append each field explicitly.
     const formData = new FormData();
     formData.append('__RequestVerificationToken', token);
 

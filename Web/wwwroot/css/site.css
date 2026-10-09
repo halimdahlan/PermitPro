@@ -31,8 +31,6 @@
 
     --header-h:   64px;
     --font:       'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-
-	 --kendo-font-size: 14px !important;
 }
 
 html {
@@ -48,10 +46,6 @@ html, a, div, nav, ul, li, input[type='text'], input[type='radio'], input[type='
 	html {
 		font-size: 17px;
 	}
-}
-
-#grid .k-toolbar .k-input {
-  width: unset !important;
 }
 
 .col-header-elem {
@@ -161,7 +155,6 @@ html, a, div, nav, ul, li, input[type='text'], input[type='radio'], input[type='
 			color: #ffffff;
 		}
 
-
 	.navbar-light .navbar-user {
 		border-top-color: #152e4d;
 	}
@@ -243,7 +236,6 @@ table.table thead tr td {
 	width: 32px !important;
 	height: 16px !important;
 }
-
 
 /* ============================================================
    Design tokens & new layout components (mock UI)
@@ -782,27 +774,10 @@ a:hover {
 	color: var(--bs-btn-disabled-bg);
 }
 
-.k-grid a {
-	text-decoration: none !important;
-	color: rgba(var(--bs-link-color-rgb), var(--bs-link-opacity,1));
-}
-
-.k-grid a:hover {
-	color: var(--bs-btn-disabled-bg);
-}
-
-.k-calendar, .k-title, .k-button {
-	font-family: 'Poppins', sans-serif !important;
-}
-
-.k-pager-numbers li {
-	margin-inline-start: 0 !important;
-}
-
 h1, h2, h3, h4, h5, h6 {
 	font-family: var(--font) !important;
 }
 
-li.list-group-item, li.nav-item, li.k-list-item, .dropdown-menu li {
+li.list-group-item, li.nav-item, .dropdown-menu li {
 	margin-inline-start: unset !important;
 }
