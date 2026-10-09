@@ -1,5 +1,3 @@
-﻿@using Kendo.Mvc.UI
-
 @{
 	ViewData["Title"] = "Settings / Workflow";
 	ViewData["SubTitle"] = "Summary";
@@ -11,15 +9,14 @@
 
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
 	<div class="d-flex flex-row align-items-center">
-		<div class="me-3">View by</div>
-		<button type="button" class="btn btn-sm btn-dark rounded-pill me-2 btn-filter">ALL</button>
-		<button type="button" class="btn btn-sm btn-secondary rounded-pill me-2 btn-filter">ACTIVE</button>
-		<button type="button" class="btn btn-sm btn-secondary rounded-pill me-2 btn-filter">INACTIVE</button>
-		<!--
-		<span class="badge rounded-pill text-bg-secondary me-2 active">ALL</span>
-		<span class="badge rounded-pill text-bg-secondary me-2">ACTIVE</span>
-		<span class="badge rounded-pill text-bg-secondary me-2">INACTIVE</span>
-		-->
+		<label for="ddlFilter" class="me-3">View by</label>
+		<div class="grid-filter">
+			<select id="ddlFilter" autocomplete="off">
+				<option value="" selected>All workflows</option>
+				<option value="Active">Active</option>
+				<option value="Inactive">Inactive</option>
+			</select>
+		</div>
 	</div>
 	<div>
 		<a href="#dlgNew" class="btn btn-sm btn-primary no-loading" data-bs-toggle="modal" data-bs-target="#dlgNew">
@@ -28,97 +25,24 @@
 	</div>
 </div>
 
-<div class="mt-5">
-	@Html.AntiForgeryToken()
-	@(Html.Kendo()
-		.Grid<WorkflowGridViewModel>()
-		.Name("grid")
-		.ToolBar(tb => tb
-			.Search()
-		)
-		.NoRecords()
-		.Pageable()
-		.Sortable()
-		.DataSource(ds => ds
-			.Custom()
-			.Schema(s => s
-				.Model(m =>
-				{
-					m.Id(i => i.Id);
-				})
-			)
-			.Transport(t =>
-			{
-				t.Read(r => r.Url($"/{companyId}/workflow/grid").Type(HttpVerbs.Get));
-			})
-			.PageSize(20)
-		)
-		.Columns(c =>
-		{
-			c.Bound(f => f.Name)
-				.ClientTemplate(
-			$"<a href=\"/{companyId}/workflow/edit/#=Id#\">#=Name#</a>"
-				);
-
-			c.Bound(f => f.Description);
-
-			c.Bound(f => f.IsActive)
-				.Sortable(false)
-				.ClientTemplate(
-					"# if (IsActive) { #" +
-					"    <i class=\"fa-sharp fa-solid fa-circle-check fa-lg text-success\"></i>" +
-					"# } else { #" +
-					"    <i class=\"fa-sharp fa-solid fa-circle-check fa-lg text-warning\"></i>" +
-					"# } #"
-				).HeaderHtmlAttributes(new { @class = "grid-header text-center" })
-				.HtmlAttributes(new { @class = "text-center" })
-				.Width(120);
-
-			c.Bound(f => f.HasCertificates)
-				.Sortable(false)
-				.ClientTemplate(
-					"# if (HasCertificates) { #" +
-					"    <i class=\"fa-sharp fa-solid fa-circle-check fa-lg text-success\"></i>" +
-					"# } else { #" +
-					"    &nbsp;" +
-					"# } #"
-				)
-				.HeaderHtmlAttributes(new { @class = "grid-header text-center" })
-				.HtmlAttributes(new { @class = "text-center" })
-				.Width(200);
-
-			c.Bound(f => f.CreatedWhen)
-				.Format("{0:dd MMM, yyyy}")
-				.Width(150);
-
-			c.Bound(f => f.ActionIcons)
-				.Sortable(false)
-				.Encoded(false)
-				.HeaderHtmlAttributes(new { @class = "grid-header text-center" })
-				.HtmlAttributes(new { @class = "text-center" })
-				.Width(110);
-		})
-	)
-</div>
-
-<!--
-<div class="d-flex flex-row mt-5 justify-content-start align-items-center">
-	<div class="flex-grow-1">
-		<table id="tbl" class="table table-striped display pt-5 mb-3">
+<div class="mt-4 card data-grid">
+	<div class="card-body">
+		<div class="grid-error alert alert-danger d-none" role="alert"></div>
+		<table id="tblWorkflows" class="table table-sm table-hover align-middle w-100">
 			<thead>
 				<tr>
-					<th>WORKFLOW NAME</th>
-					<th>DESCRIPTION</th>
-					<th data-class-name="text-center" style="width: 73px;">IS ACTIVE?</th>
-					<th data-class-name="text-center" style="width: 180px;">PTW WITH CERTIFICATE?</th>
-					<th style="width: 100px;">DATE CREATED</th>
-					<th style="width: 78px;" data-orderable="false">&nbsp;</th>
+					<th>Workflow Name</th>
+					<th>Description</th>
+					<th class="text-center">Is Active?</th>
+					<th class="text-center">PTW With Certificate?</th>
+					<th>Created When</th>
+					<th class="text-center">Action</th>
 				</tr>
 			</thead>
 		</table>
 	</div>
+	@Html.AntiForgeryToken()
 </div>
--->
 
 <!-- Modal -->
 <div class="modal fade" id="dlgNew" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="dlgNewLabel" aria-hidden="true">
@@ -139,19 +63,13 @@
 						<label for="workflowDescription" class="form-label">Description</label>
 						<textarea id="workflowDescription" rows="2" class="form-control"></textarea>
 					</div>
-					<div class="form-group mb-3">
-						<label class="form-label me-2" for="workflowActive">Is active?</label>
-						@(Html.Kendo().Switch()
-							.Name("workflowActive")
-							.Size(ComponentSize.Small)
-							.Messages(x => x.Checked("YES").Unchecked("NO")))
+					<div class="form-check form-switch mb-3">
+						<input class="form-check-input" type="checkbox" role="switch" id="workflowActive" />
+						<label class="form-check-label" for="workflowActive">Is active?</label>
 					</div>
-					<div class="form-group mb-3">
-						<label class="form-label me-2" for="workflowActive">For PTW with certificate?</label>
-						@(Html.Kendo().Switch()
-							.Name("workflowCertificate")
-							.Size(ComponentSize.Small)
-							.Messages(x => x.Checked("YES").Unchecked("NO")))
+					<div class="form-check form-switch mb-3">
+						<input class="form-check-input" type="checkbox" role="switch" id="workflowCertificate" />
+						<label class="form-check-label" for="workflowCertificate">For PTW with certificate?</label>
 					</div>
 				</div>
 				<div class="modal-footer">
@@ -165,51 +83,56 @@
 </div>
 
 @section CustomCss {
-	<!-- DataTables -->
-	<link rel="stylesheet" href="~/lib/DataTables/datatables.min.css" />
-	<script src="~/lib/DataTables/datatables.min.js"></script>
-
+	<partial name="_DataGridStyles" />
 	<link rel="stylesheet" href="~/css/workflow.css" />
 }
 
 @section Scripts {
-	<script>
-		var validator = null;
-		var tbl = null;
+	<partial name="_DataGridScripts" />
 
-		var currentFilter = null;
-		var btnFilters = null;
+	<script>
+		var tbl = null;
 
 		const companyId = '@companyId';
 
+		// Column index used by the "View by" filter.
+		const COL_ACTIVE = 2;
+
 		$(document).ready(() => {
 
-			btnFilters = $('.btn-filter');
-			currentFilter = btnFilters[0];
+			tbl = DataGrid.create('#tblWorkflows', `/${companyId}/workflow/grid`, {
+				pageLength: 20,
+				language: {
+					emptyTable: 'No workflows found.',
+					zeroRecords: 'No matching workflows found.',
+				},
+				columns: [
+					{
+						data: 'Name',
+						render: (data, type, row) => type === 'display'
+							? `<a href="/${companyId}/workflow/edit/${row.Id}">${DataGrid.escapeHtml(data)}</a>`
+							: data,
+					},
+					{ data: 'Description', render: DataGrid.renderText },
+					{ data: 'IsActive', className: 'text-center', render: DataGrid.renderActive },
+					{
+						data: 'HasCertificates',
+						className: 'text-center',
+						render: (data, type) => type === 'display'
+							? (data ? '<i class="fa-sharp fa-solid fa-circle-check fa-lg text-success" title="Yes"></i>' : '')
+							: (data ? 'Yes' : 'No'),
+					},
+					{ data: 'CreatedWhen', className: 'dt-left text-nowrap', render: DataGrid.renderDate },
+					DataGrid.htmlColumn('ActionIcons', { className: 'text-center' }),
+				],
+			});
 
-			var grid = $("#grid").data("kendoGrid");
 
-			grid.dataSource.transport.options.read.beforeSend = (req) => {
-				req.setRequestHeader('RequestVerificationToken', $('input:hidden[name="__RequestVerificationToken"]').val());
-			};
-
-
-			$('.btn-filter').click((e) => {
-				var btn = $(e.currentTarget);
-
-				if (btn[0] != currentFilter) {
-					$(currentFilter).removeClass('btn-dark').addClass('btn-secondary');
-					$(e.currentTarget).removeClass('btn-secondary').addClass('btn-dark');
-
-					if ($(e.currentTarget).text() == 'ALL') {
-						grid.dataSource.filter(null);
-					} else {
-						var state = $(e.currentTarget).text() == 'ACTIVE';
-						grid.dataSource.filter({ field: 'IsActive', operator: 'eq', value: state });
-					}
-				}
-
-				currentFilter = btn[0];
+			new TomSelect('#ddlFilter', {
+				allowEmptyOption: true,
+				// Search box inside the dropdown, so the control keeps its height.
+				plugins: ['dropdown_input'],
+				onChange: (value) => DataGrid.filterExact(tbl, COL_ACTIVE, value),
 			});
 
 
@@ -223,17 +146,9 @@
 				if (frm.checkValidity()) {
 					const workflowName = $('#workflowName').val();
 					const workflowDescription = $('#workflowDescription').val();
-					const workflowActive = $('#workflowActive').data('kendoSwitch').value();
-					const workflowCertificate = $('#workflowCertificate').data('kendoSwitch').value();
+					const workflowActive = $('#workflowActive').prop('checked');
+					const workflowCertificate = $('#workflowCertificate').prop('checked');
 					const companyId = $('#companyId').val();
-
-					const postData = {
-						name: workflowName,
-						description: workflowDescription,
-						isActive: workflowActive,
-						hasCertificate: workflowCertificate,
-						companyId,
-					};
 
 					var formData = new FormData();
 					formData.append('Name', workflowName);
@@ -251,20 +166,14 @@
 						contentType: false,
 						processData: false,
 						cache: false,
-						beforeSend: (xhr) => {
-							xhr.setRequestHeader('RequestVerificationToken', $('input:hidden[name="__RequestVerificationToken"]').val());
-						},
+						headers: { 'RequestVerificationToken': DataGrid.antiForgeryToken() },
 					});
 
-					xhr.done((response, status) => {
+					xhr.done((response) => {
 						if (!response.hasError) {
 							$('#dlgNew').modal('hide');
 							document.location.href = `/${companyId}/workflow/edit/${response.workflowId}`;
-							//tbl.ajax.reload();
 						}
-					});
-
-					xhr.fail((response, status) => {
 					});
 
 					xhr.always(() => {
@@ -282,8 +191,8 @@
 				$('#frmNew').removeClass('was-validated').addClass('needs-validation');
 				$('#workflowName').val(null);
 				$('#workflowDescription').val(null);
-				$('#workflowActive').data('kendoSwitch').value(false);
-				$('#workflowCertificate').data('kendoSwitch').value(false);
+				$('#workflowActive').prop('checked', false);
+				$('#workflowCertificate').prop('checked', false);
 			});
 
 
@@ -296,18 +205,15 @@
 				var xhr = $.ajax({
 					method: 'DELETE',
 					url: `/${companyId}/workflow/workflows/${id}`,
+					headers: { 'RequestVerificationToken': DataGrid.antiForgeryToken() },
 				});
 
 				xhr.done((response, status) => {
 					if (status == 'success') {
 						if (response.success) {
-							grid.dataSource.read();
+							tbl.ajax.reload(null, false);
 						}
 					}
-				});
-
-				xhr.fail(() => {
-					//$('#dlgConfirmDeleteItem').modal('hide');
 				});
 
 				xhr.always(() => {
@@ -319,29 +225,7 @@
 		});
 
 
-		const deleteWorkflow = (e) => {
-			$('.loading').show();
-
-			var xhr = $.ajax({
-				method: 'DELETE',
-				url: `/${companyId}/workflow/workflows/${e}`,
-			});
-
-			xhr.done((response, status) => {
-				if (!response.hasError) {
-					//tbl.ajax.reload();
-				}
-			});
-
-			xhr.fail((response, status) => {
-			});
-
-			xhr.always(() => {
-				$('.loading').hide();
-			});
-		};
-
-
+		// Called by the delete icon in the server-built ActionIcons column.
 		const deleteItem = (id) => {
 			$('#btnDeleteItem').data('itemId', id);
 			$('#dlgConfirmDeleteItem').modal('show');

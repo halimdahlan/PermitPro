@@ -1,4 +1,4 @@
-﻿#nullable disable
+#nullable disable
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -193,28 +193,33 @@ public class SitesController : AppControllerBase
 	}
 
 
-	[HttpGet("{company}/sites/hierarchical")]
-	public JsonResult GetLocationsHierarchical(Guid company, Guid? id)
+	// Whole location tree in one call, shaped for Treeselect.js (user New/Edit "Locations",
+	// Reports "Location" filter): [{ name, value, children: [...] }]. Values are lowercase
+	// GUID strings, matching how a user's locations are stored (UserInfoForm.Locations).
+	[HttpGet("{company}/sites/tree")]
+	public async Task<JsonResult> GetLocationsTree(Guid company, CancellationToken cancellationToken)
 	{
-		Guid? parentId = Guid.Empty;
-		if (id != null) parentId = id;
-
-		var data = _dbContext.Sites
-			.Include(e => e.SiteCompany)
-			.Where(e => e.SiteType == SiteTypeEnum.Site && e.SiteCompany.Id == company && e.ParentId == parentId)
-			.OrderBy(e => e.ParentId)
+		var sites = await _dbContext.Sites
+			.AsNoTracking()
+			.Where(e => e.SiteType == SiteTypeEnum.Site && e.SiteCompany.Id == company)
 			.OrderBy(e => e.Name)
-			.Select(e => new
-			{
-				id = e.Id,
-				name = e.Name,
-				hasChildren = _dbContext.Sites.Any(f => f.SiteType == SiteTypeEnum.Site && f.SiteCompany.Id == company && f.ParentId == e.Id)
-			});
+			.Select(e => new { e.Id, e.Name, e.ParentId })
+			.ToListAsync(cancellationToken);
 
-		return new JsonResult(data, new JsonSerializerOptions
-		{
-			PropertyNamingPolicy = null,
-		});
+		var byParent = sites.ToLookup(e => e.ParentId);
+		var visited = new HashSet<Guid>();
+
+		List<object> Build(Guid parentId) => byParent[parentId]
+			.Where(e => visited.Add(e.Id)) // guards against a cycle in bad data
+			.Select(e => (object)new
+			{
+				name = e.Name,
+				value = e.Id.ToString(),
+				children = Build(e.Id),
+			})
+			.ToList();
+
+		return new JsonResult(Build(Guid.Empty));
 	}
 
 

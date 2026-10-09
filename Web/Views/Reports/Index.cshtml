@@ -1,5 +1,3 @@
-﻿@using Kendo.Mvc.UI
-@using PermitPro.App.Models.Reports
 
 @{
 	ViewData["Title"] = "Reports";
@@ -10,71 +8,31 @@
 
 @model ReportsViewModel
 
-<div>
+<div class="report-filters">
 	<div class="d-flex flex-row align-items-center mb-2">
 		<div class="me-3 label-width">
-			@(Html.Kendo().RadioButton()
-				.Name("option1")
-				.Checked(true)
-				.HtmlAttributes(new { @name = "filterOption" })
-				.Label("Month/Year")
-				.Events(events => events
-					.Change("onOptionChange")
-				)
-			)
+			<div class="form-check mb-0">
+				<input class="form-check-input" type="radio" name="filterOption" id="option1" value="monthYear" checked />
+				<label class="form-check-label" for="option1">Month/Year</label>
+			</div>
 		</div>
-		<div>
-			@(Html.Kendo().DropDownList()
-				.Name("ddlMonth")
-				.AutoWidth(true)
-				.Size(ComponentSize.Medium)
-				.Rounded(Rounded.Medium)
-				.FillMode(FillMode.Solid)
-				.DataTextField("text")
-				.DataValueField("value")
-				.DataSource(ds => ds
-					.Read(read => read
-						.Action("GetDropdownMonths", "Reports")
-					)
-				)
-			)
+		<div class="report-filter-sm">
+			<select id="ddlMonth" asp-items="Model.Months" autocomplete="off" aria-label="Month"></select>
 		</div>
-		<div class="ms-2">
-			@(Html.Kendo().DropDownList()
-				.Name("ddlYear")
-				.AutoWidth(true)
-				.Size(ComponentSize.Medium)
-				.Rounded(Rounded.Medium)
-				.FillMode(FillMode.Solid)
-				.DataTextField("text")
-				.DataValueField("value")
-				.DataSource(ds => ds
-					.Read(read => read
-						.Action("GetDropdownYears", "Reports")
-					)
-				)
-			)
+		<div class="ms-2 report-filter-sm">
+			<select id="ddlYear" asp-items="Model.Years" autocomplete="off" aria-label="Year"></select>
 		</div>
 	</div>
 
 	<div class="d-flex flex-row align-items-center mb-2">
 		<div class="me-3 label-width">
-			@(Html.Kendo().RadioButton()
-				.Name("option2")
-				.HtmlAttributes(new { @name = "filterOption" })
-				.Label("Date range")
-				.Events(events => events
-					.Change("onOptionChange")
-				)
-			)
+			<div class="form-check mb-0">
+				<input class="form-check-input" type="radio" name="filterOption" id="option2" value="dateRange" />
+				<label class="form-check-label" for="option2">Date range</label>
+			</div>
 		</div>
-		<div>
-			@(Html.Kendo().DateRangePicker()
-				.Name("dateRange")
-				.Labels(false)
-				.Format("{0:dd/MM/yyyy}")
-				.DisableDates(DayOfWeek.Saturday, DayOfWeek.Sunday)
-			)
+		<div class="report-filter-md">
+			<input id="dateRange" type="text" class="form-control" placeholder="dd/mm/yyyy – dd/mm/yyyy" aria-label="Date range" disabled />
 		</div>
 		<div class="ms-3">
 			<a href="javascript:;" class="clear-range no-loading">Clear</a>
@@ -83,84 +41,29 @@
 
 	<div class="d-flex flex-row align-items-center mb-2">
 		<div class="me-3 label-width">Location</div>
-		<div>
-			@(Html.Kendo().DropDownTree()
-				.Name("ddtLocation")
-				.Filter(FilterType.Contains)
-				.DataValueField("id")
-				.DataTextField("name")
-				.Placeholder("(select)")
-				.FillMode(FillMode.Solid)
-				.Rounded(Rounded.Medium)
-				.CheckAll(false)
-				.AutoClose(true)
-				.DataSource(ds => ds
-					.Read(read => read
-						.Url($"/{companyId}/sites/hierarchical").Type(HttpVerbs.Get)
-					)
-				)
-				.HtmlAttributes(new { @style = "width:380px" })
-			)
+		<div class="report-filter">
+			<div id="ddtLocation"></div>
 		</div>
 	</div>
 
 	<div class="d-flex flex-row align-items-center mb-2">
-		<div class="me-3 label-width">Permit holder</div>
-		<div>
-			@(Html.Kendo().DropDownList()
-				.Name("ddlPermitHolder")
-				.Size(ComponentSize.Medium)
-				.Rounded(Rounded.Medium)
-				.FillMode(FillMode.Solid)
-				.DataTextField("text")
-				.DataValueField("value")
-				.DataSource(ds => ds
-					.Read(read => read
-						.Action("GetDropdownPermitHolders", "Reports")
-					)
-				)
-				.HtmlAttributes(new { @style = "width:380px" })
-			)
+		<label for="ddlPermitHolder" class="me-3 label-width">Permit holder</label>
+		<div class="report-filter">
+			<select id="ddlPermitHolder" asp-items="Model.PermitHolders" autocomplete="off"></select>
 		</div>
 	</div>
 
 	<div class="d-flex flex-row align-items-center mb-2">
-		<div class="me-3 label-width">Certificate type</div>
-		<div>
-			@(Html.Kendo().DropDownList()
-				.Name("ddlCertificate")
-				.Size(ComponentSize.Medium)
-				.Rounded(Rounded.Medium)
-				.FillMode(FillMode.Solid)
-				.DataTextField("text")
-				.DataValueField("value")
-				.DataSource(ds => ds
-					.Read(read => read
-						.Action("GetDropdownCertificates", "Reports")
-					)
-				)
-				.HtmlAttributes(new { @style = "width:380px" })
-			)
+		<label for="ddlCertificate" class="me-3 label-width">Certificate type</label>
+		<div class="report-filter">
+			<select id="ddlCertificate" asp-items="Model.Certificates" autocomplete="off"></select>
 		</div>
 	</div>
 
 	<div class="d-flex flex-row align-items-center mb-4">
-		<div class="me-3 label-width">Permit status</div>
-		<div>
-			@(Html.Kendo().DropDownList()
-				.Name("ddlPermitStatus")
-				.Size(ComponentSize.Medium)
-				.Rounded(Rounded.Medium)
-				.FillMode(FillMode.Solid)
-				.DataTextField("text")
-				.DataValueField("value")
-				.DataSource(ds => ds
-					.Read(read => read
-						.Action("GetDropdownPermitStatus", "Reports").Type(HttpVerbs.Get)
-					)
-				)
-				.HtmlAttributes(new { @style = "width:380px" })
-			)
+		<label for="ddlPermitStatus" class="me-3 label-width">Permit status</label>
+		<div class="report-filter">
+			<select id="ddlPermitStatus" asp-items="Model.PermitStatuses" autocomplete="off"></select>
 		</div>
 	</div>
 </div>
@@ -282,95 +185,23 @@
 <div class="tab-content border border-top-0 rounded-bottom" id="reportTabContent">
 
 	<div class="tab-pane fade show active p-3" id="tab-permits" role="tabpanel">
-		<div class="grid-result">
-	@(Html.Kendo().Grid<ReportGridModel>()
-		.Name("gridResult")
-		.ToolBar(toolbar =>
-		{
-			toolbar.Excel();
-			toolbar.Search();
-		})
-		.Groupable(g =>
-		{
-			g.Enabled(true);
-			g.ShowFooter(true);
-			g.Messages(msg => msg.Empty("No data"));
-		})
-		.NoRecords(f => f
-			.Template("<div class=\"my-3 text-center w-100 text-danger\">No data available at the moment</div>"))
-		.Pageable()
-		.Sortable()
-		.Excel(e =>
-		{
-			e.AllPages(true);
-			e.Filterable(true);
-		})
-		.Columns(c =>
-		{
-			c.Bound(p => p.PermitHolderName)
-				.HideOnGroup(true)
-				.ClientGroupFooterTemplate("Num. of permits: #=count#")
-				.ClientFooterTemplate("Total permits: #=count#")
-				.Width(150);
-
-			c.Bound(p => p.Location)
-				.Width(150);
-
-			c.Bound(p => p.PermitNo)
-				.ClientTemplate($"<a href=\"/{Model.CompanyId}/permits/edit/#= Id #\">#= PermitNo #</a>")
-				.Width(150);
-			
-			c.Bound(p => p.PermitStatus)
-				.Width(130);
-
-			c.Bound(p => p.StartDate)
-				.Format("{0:dd MMM, yyyy}")
-				.Width(120);
-
-			c.Bound(p => p.EndDate)
-				.Format("{0:dd MMM, yyyy}")
-				.Width(120);
-
-			c.Bound(p => p.DurationDays)
-				.ClientTemplate("# if (DurationDays !== null && DurationDays !== undefined) { # #= DurationDays # d # } else { # — # } #")
-				.Width(100);
-
-			c.Bound(p => p.Certificates)
-				.Groupable(false)
-				.Width(150);
-			
-			c.Bound(p => p.CreatedWhen)
-				.Hidden(true)
-				.ClientGroupHeaderTemplate("DATE: #=kendo.toString(value, 'dd MMM, yyyy')#")
-				.Format("{0:dd MMM, yyyy}")
-				.Width(130);
-		})
-		.DataSource(ds => ds
-			.Custom()
-			.Group(grp =>
-			{
-				grp.AddDescending(f => f.CreatedWhen);
-			})
-			.Aggregates(agg =>
-			{
-				agg.Add(g => g.PermitHolderName).Count();
-			})
-			.Schema(s => s
-				.Model(m =>
-				{
-					m.Id(i => i.Id);
-				})
-			)
-			.Transport(t =>
-			{
-				t.Read(r => r
-					.Action("GetReportGrid", "Reports", Model.GridParamaters)
-					.Type(HttpVerbs.Get)
-				);
-			})
-			.PageSize(25)
-		)
-	)
+		<div class="data-grid">
+			<div class="grid-error alert alert-danger d-none" role="alert"></div>
+			<table id="tblReport" class="table table-sm table-hover align-middle w-100">
+				<thead>
+					<tr>
+						<th>Permit Holder</th>
+						<th>Location</th>
+						<th>Permit No.</th>
+						<th>Status</th>
+						<th>Start Date</th>
+						<th>End Date</th>
+						<th>Duration</th>
+						<th>Certificates</th>
+						<th>Submitted On</th>
+					</tr>
+				</thead>
+			</table>
 		</div>
 	</div>
 
@@ -399,16 +230,28 @@
 @Html.AntiForgeryToken()
 
 @section CustomCss {
-	<link rel="stylesheet" href="~/css/reports.css" />
+	<partial name="_DataGridStyles" />
+	<partial name="_LocationPickerStyles" />
+	<link rel="stylesheet" href="https://cdn.datatables.net/buttons/3.2.6/css/buttons.bootstrap5.min.css" />
+	<link rel="stylesheet" href="https://cdn.datatables.net/rowgroup/1.6.0/css/rowGroup.bootstrap5.min.css" />
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css" />
+	<link rel="stylesheet" href="~/css/reports.css" asp-append-version="true" />
 }
 
 @section Scripts {
+	<partial name="_DataGridScripts" />
+	<partial name="_LocationPickerScripts" />
+	@* Excel export (uses the JSZip loaded by _Layout) and row grouping for the All Permits grid. *@
+	<script src="https://cdn.datatables.net/buttons/3.2.6/js/dataTables.buttons.min.js"></script>
+	<script src="https://cdn.datatables.net/buttons/3.2.6/js/buttons.bootstrap5.min.js"></script>
+	<script src="https://cdn.datatables.net/buttons/3.2.6/js/buttons.html5.min.js"></script>
+	<script src="https://cdn.datatables.net/rowgroup/1.6.0/js/dataTables.rowGroup.min.js"></script>
+	<script src="https://cdn.datatables.net/rowgroup/1.6.0/js/rowGroup.bootstrap5.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 	<script>
 		var companyId = '@companyId';
 		var useDateRange = false;
-		var dateRange;
-		var gridResult;
 		var statusChart = null, monthlyChart = null, locationChart = null;
 		var _overduePermits = [];
 		const OVERDUE_PAGE_SIZE = 20;
@@ -424,6 +267,9 @@
 
 		const chartFont = { family: "'Poppins', sans-serif", size: 11 };
 
+		// Server values (names, locations, ...) are inserted as text, never as HTML.
+		const esc = (value) => DataGrid.escapeHtml(value);
+
 		const renderOverduePage = (page) => {
 			if (!_overduePermits || _overduePermits.length === 0) {
 				$('#overdueContainer').html('<p class="text-secondary text-center py-4 mb-0 small">No overdue permits found for the selected filters.</p>');
@@ -435,12 +281,12 @@
 			const slice = _overduePermits.slice((page - 1) * OVERDUE_PAGE_SIZE, page * OVERDUE_PAGE_SIZE);
 			const rows = slice.map(p => `
 				<tr>
-					<td><a href="/${companyId}/permits/edit/${p.id}">${p.permitNo}</a></td>
-					<td>${p.holderName}</td>
-					<td>${p.location}</td>
-					<td class="text-danger">${p.endDate}</td>
+					<td><a href="/${companyId}/permits/edit/${encodeURIComponent(p.id)}">${esc(p.permitNo)}</a></td>
+					<td>${esc(p.holderName)}</td>
+					<td>${esc(p.location)}</td>
+					<td class="text-danger">${esc(p.endDate)}</td>
 					<td class="text-center">${p.daysOverdue} day${p.daysOverdue !== 1 ? 's' : ''}</td>
-					<td><span class="badge bg-warning text-dark">${p.status}</span></td>
+					<td><span class="badge bg-warning text-dark">${esc(p.status)}</span></td>
 				</tr>`).join('');
 			let pagination = '';
 			if (totalPages > 1) {
@@ -469,7 +315,7 @@
 			const rows = holders.map(h => {
 				const rate = h.total > 0 ? Math.round(h.approved / h.total * 100) : 0;
 				return `<tr>
-					<td>${h.name}</td>
+					<td>${esc(h.name)}</td>
 					<td class="text-center">${h.total}</td>
 					<td class="text-center text-success">${h.approved}</td>
 					<td class="text-center" style="color:#f6c343">${h.pending}</td>
@@ -502,7 +348,7 @@
 			const rows = locations.map(l => {
 				const rate = l.count > 0 ? Math.round(l.approved / l.count * 100) : 0;
 				return `<tr>
-					<td>${l.label}</td>
+					<td>${esc(l.label)}</td>
 					<td class="text-center">${l.count}</td>
 					<td class="text-center text-success">${l.approved}</td>
 					<td class="text-center" style="color:#f6c343">${l.pending}</td>
@@ -641,87 +487,262 @@
 		};
 
 
-		$(document).ready(() => {
+		var tbl = null;             // All Permits grid (DataTables)
+		var fpRange = null;         // Date range picker (Flatpickr)
+		var locationTree = null;    // Location filter (Treeselect, single choice)
+		var selectedLocationId = '';
+		var filterSelects = {};     // Tom Select instances, by select id
+		var reportFilter = null;    // Filter applied by "View report"; null shows every permit.
+		var currentGroup = 'date';
 
-			gridResult = $("#gridResult").data("kendoGrid");
-			dateRange = $('#dateRange').data('kendoDateRangePicker');
-			dateRange.enable(false);
+		// Column indexes in #tblReport.
+		const COL = { holder: 0, location: 1, permitNo: 2, status: 3, start: 4, end: 5, duration: 6, certificates: 7, submitted: 8 };
 
-			gridResult.dataSource.transport.options.read.beforeSend = (req) => {
-				req.setRequestHeader('RequestVerificationToken', $('input:hidden[name="__RequestVerificationToken"]').val());
+		// "Group by" choices: data field, column to keep the groups in order, and the group header text.
+		const GROUPS = {
+			date:     { field: 'CreatedWhen',      col: COL.submitted, dir: 'desc', label: 'Date',          text: (v) => moment(v).format('DD MMM, YYYY') },
+			holder:   { field: 'PermitHolderName', col: COL.holder,    dir: 'asc',  label: 'Permit holder', text: (v) => v },
+			location: { field: 'Location',         col: COL.location,  dir: 'asc',  label: 'Location',      text: (v) => v },
+			status:   { field: 'PermitStatus',     col: COL.status,    dir: 'asc',  label: 'Status',        text: (v) => v },
+		};
+
+		// Formatted date for display and Excel; raw ISO value for sorting.
+		const renderReportDate = (data, type) => {
+			if (type === 'display') return data ? moment(data).format('DD MMM, YYYY') : '&mdash;';
+			if (type === 'export') return data ? moment(data).format('DD MMM, YYYY') : '';
+			return data ?? '';
+		};
+
+		// Permits in a group across all filtered rows, not just the current page.
+		const groupCount = (field, value) =>
+			tbl.rows({ search: 'applied' }).data().toArray().filter(r => r[field] === value).length;
+
+		// "Group by" control shown in the grid toolbar, next to the Excel button.
+		const groupByControl = () => {
+			const div = document.createElement('div');
+			div.className = 'd-flex align-items-center me-3 report-group-by';
+			div.innerHTML =
+				'<label for="ddlGroupBy" class="me-2 mb-0 text-nowrap">Group by</label>' +
+				'<div class="grid-filter"><select id="ddlGroupBy" autocomplete="off">' +
+				'<option value="date" selected>Submitted date</option>' +
+				'<option value="holder">Permit holder</option>' +
+				'<option value="location">Location</option>' +
+				'<option value="status">Status</option>' +
+				'<option value="">(none)</option>' +
+				'</select></div>';
+			return div;
+		};
+
+		const setGroup = (key) => {
+			currentGroup = key;
+			const group = GROUPS[key];
+
+			if (!group) {
+				tbl.rowGroup().disable();
+				tbl.order.fixed({});
+			} else {
+				tbl.rowGroup().dataSrc(group.field).enable();
+				tbl.order.fixed({ pre: [group.col, group.dir] });
+			}
+
+			tbl.draw();
+		};
+
+		// Reads the filter panel. Values match the fields of ReportGridModel.
+		const readFilters = () => {
+			const f = {
+				useDateRange: useDateRange,
+				month: '', year: '', start: null, end: null,
+				locationId: selectedLocationId || '',
+				holderId: filterSelects.ddlPermitHolder.getValue(),
+				certificate: filterSelects.ddlCertificate.getValue(),
+				status: filterSelects.ddlPermitStatus.getValue(),
 			};
 
+			if (useDateRange) {
+				[f.start, f.end] = fpRange.selectedDates;
+				f.start = f.start ?? null;
+				f.end = f.end ?? f.start;
+			} else {
+				f.month = filterSelects.ddlMonth.getValue();
+				f.year = filterSelects.ddlYear.getValue();
+			}
+
+			return f;
+		};
+
+		// Applies reportFilter to the All Permits grid (filtered in the browser; the grid loads every permit once).
+		DataTable.ext.search.push((settings, searchData, index, row) => {
+			if (settings.nTable.id !== 'tblReport' || !reportFilter) return true;
+
+			const f = reportFilter;
+			const created = moment(row.CreatedWhen);
+
+			if (f.start && created.isBefore(f.start, 'day')) return false;
+			if (f.end && created.isAfter(f.end, 'day')) return false;
+			if (f.month && row.CreatedMonth !== f.month) return false;
+			if (f.year && String(row.CreatedYear) !== f.year) return false;
+			if (f.locationId && (row.LocationId || '').toLowerCase() !== f.locationId.toLowerCase()) return false;
+			if (f.holderId && row.PermitHolderId !== f.holderId) return false;
+			if (f.certificate && !(row.Certificates || '').split(', ').includes(f.certificate)) return false;
+			if (f.status !== '' && String(row.PermitStatusEnum) !== f.status) return false;
+
+			return true;
+		});
+
+
+		$(document).ready(() => {
+
+			// ── Filter panel ─────────────────────────────────────
+			['ddlMonth', 'ddlYear', 'ddlPermitHolder', 'ddlCertificate', 'ddlPermitStatus'].forEach(id => {
+				filterSelects[id] = new TomSelect('#' + id, {
+					allowEmptyOption: true,
+					maxOptions: null,
+					// Search box inside the dropdown, so the control keeps its height.
+					plugins: ['dropdown_input'],
+				});
+			});
+
+			fpRange = flatpickr('#dateRange', {
+				mode: 'range',
+				dateFormat: 'd/m/Y',
+				locale: { rangeSeparator: ' – ' },
+				// Weekends can't be picked (as before).
+				disable: [(date) => date.getDay() === 0 || date.getDay() === 6],
+			});
+
+			fetch(`/${companyId}/sites/tree`, { headers: { 'Accept': 'application/json' } })
+				.then(r => { if (!r.ok) throw new Error(r.statusText); return r.json(); })
+				.then(options => {
+					locationTree = new Treeselect({
+						parentHtmlContainer: document.getElementById('ddtLocation'),
+						options: options,
+						value: null,
+						isSingleSelect: true,
+						showTags: false,
+						placeholder: '(select)',
+						emptyText: 'No locations found.',
+						inputCallback: (value) => { selectedLocationId = value ?? ''; },
+					});
+				})
+				.catch(() => {
+					$('#ddtLocation').html('<div class="form-control text-danger">Could not load locations.</div>');
+				});
+
+			$('input[name="filterOption"]').change(onOptionChange);
+
+
+			// ── All Permits grid ─────────────────────────────────
+			tbl = DataGrid.create('#tblReport', '@Url.Action("GetReportGrid", "Reports", new { company = Model.CompanyId })', {
+				pageLength: 25,
+				lengthMenu: [25, 50, 100, 250],
+				layout: {
+					topStart: [groupByControl, 'buttons'],
+				},
+				language: {
+					emptyTable: 'No data available at the moment.',
+					zeroRecords: 'No permits match the selected filters.',
+					info: 'Showing _START_ to _END_ of _TOTAL_ permits',
+					infoFiltered: '(filtered from _MAX_)',
+				},
+				buttons: {
+					dom: { button: { className: 'btn btn-sm btn-outline-success' } },
+					buttons: [{
+						extend: 'excelHtml5',
+						text: '<i class="fa-solid fa-file-excel me-2"></i>Export to Excel',
+						title: 'Permit Report',
+						filename: () => 'permit-report-' + moment().format('YYYYMMDD'),
+						// All filtered rows (every page), including the hidden "Submitted On" column.
+						exportOptions: { columns: ':not(.no-export)', orthogonal: 'export' },
+					}],
+				},
+				orderFixed: { pre: [GROUPS.date.col, GROUPS.date.dir] },
+				rowGroup: {
+					dataSrc: GROUPS.date.field,
+					emptyDataGroup: '(none)',
+					startRender: (rows, group) => {
+						const g = GROUPS[currentGroup];
+						return `${g.label}: ${DataGrid.escapeHtml(g.text(group))}`;
+					},
+					endRender: (rows, group) => `Num. of permits: ${groupCount(GROUPS[currentGroup].field, group)}`,
+				},
+				columns: [
+					{ data: 'PermitHolderName', render: DataGrid.renderText },
+					{ data: 'Location', render: DataGrid.renderText },
+					{
+						data: 'PermitNo',
+						className: 'text-nowrap',
+						render: (data, type, row) => type === 'display'
+							? `<a href="/${companyId}/permits/edit/${row.Id}">${DataGrid.escapeHtml(data)}</a>`
+							: data,
+					},
+					{ data: 'PermitStatus', render: DataGrid.renderText },
+					{ data: 'StartDate', className: 'dt-left text-nowrap', render: renderReportDate },
+					{ data: 'EndDate', className: 'dt-left text-nowrap', render: renderReportDate },
+					{
+						data: 'DurationDays',
+						className: 'dt-left text-nowrap',
+						render: (data, type) => {
+							if (type === 'display') return data == null ? '&mdash;' : `${data} d`;
+							return data ?? '';
+						},
+					},
+					{ data: 'Certificates', orderable: false, render: DataGrid.renderText },
+					// Used for date grouping and the date filters; shown in the group headers.
+					{ data: 'CreatedWhen', visible: false, render: renderReportDate },
+				],
+			});
+
+			new TomSelect('#ddlGroupBy', {
+				allowEmptyOption: true,
+				controlInput: null,
+				onChange: setGroup,
+			});
+
+
+			// ── Buttons ──────────────────────────────────────────
 			$('.view-report').click(() => {
 				$('#kpiSection, #chartsSection').hide();
 				$('#reportLoading').show();
 
-				var ddtLocation     = $('#ddtLocation').data('kendoDropDownTree');
-				var ddlPermitHolder = $('#ddlPermitHolder').data('kendoDropDownList');
-				var ddlCertificate  = $('#ddlCertificate').data('kendoDropDownList');
-				var ddlPermitStatus = $('#ddlPermitStatus').data('kendoDropDownList');
-				var ddlMonth = $('#ddlMonth').data('kendoDropDownList');
-				var ddlYear  = $('#ddlYear').data('kendoDropDownList');
+				const f = readFilters();
 
-				// ── Grid filter (Kendo client-side) ──────────────────
-				var gridFilter = { logic: 'and', filters: [] };
+				// Grid (client-side)
+				reportFilter = f;
+				tbl.draw();
 
-				if (useDateRange) {
-					var range = dateRange.range();
-					gridFilter.filters.push({ field: 'CreatedWhen', operator: 'gte', value: range.start });
-					gridFilter.filters.push({ field: 'CreatedWhen', operator: 'lte', value: range.end });
+				// Chart data (server-side aggregation)
+				var chartParams = { useDateRange: f.useDateRange };
+				if (f.useDateRange) {
+					if (f.start) chartParams.startDate = f.start.toISOString();
+					if (f.end)   chartParams.endDate   = f.end.toISOString();
 				} else {
-					if (ddlMonth.value() != '') gridFilter.filters.push({ field: 'CreatedMonth', operator: 'eq', value: ddlMonth.value() });
-					if (ddlYear.value()  != '') gridFilter.filters.push({ field: 'CreatedYear',  operator: 'eq', value: ddlYear.value() });
+					if (f.month != '') chartParams.month = f.month;
+					if (f.year  != '') chartParams.year  = f.year;
 				}
-				if (ddtLocation.value()      != '') gridFilter.filters.push({ field: 'LocationId',      operator: 'eq',       value: ddtLocation.value() });
-				if (ddlPermitHolder.value()  != '') gridFilter.filters.push({ field: 'PermitHolderId',  operator: 'eq',       value: ddlPermitHolder.value() });
-				if (ddlCertificate.value()   != '') gridFilter.filters.push({ field: 'Certificates',    operator: 'contains', value: ddlCertificate.value() });
-				if (ddlPermitStatus.value()  != '') gridFilter.filters.push({ field: 'PermitStatusEnum', operator: 'eq',      value: ddlPermitStatus.value() });
-
-				$('.grid-result').css('display', 'block');
-				gridResult.dataSource.filter(gridFilter);
-
-				// ── Chart data (server-side aggregation) ─────────────
-				var chartParams = { useDateRange: useDateRange };
-				if (useDateRange) {
-					var r = dateRange.range();
-					if (r.start) chartParams.startDate = r.start.toISOString();
-					if (r.end)   chartParams.endDate   = r.end.toISOString();
-				} else {
-					if (ddlMonth.value() != '') chartParams.month = ddlMonth.value();
-					if (ddlYear.value()  != '') chartParams.year  = ddlYear.value();
-				}
-				if (ddtLocation.value()     != '') chartParams.locationId     = ddtLocation.value();
-				if (ddlPermitHolder.value() != '') chartParams.holderId       = ddlPermitHolder.value();
-				if (ddlCertificate.value()  != '') chartParams.certificateType = ddlCertificate.value();
-				if (ddlPermitStatus.value() != '') chartParams.permitStatus    = ddlPermitStatus.value();
+				if (f.locationId  != '') chartParams.locationId      = f.locationId;
+				if (f.holderId    != '') chartParams.holderId        = f.holderId;
+				if (f.certificate != '') chartParams.certificateType = f.certificate;
+				if (f.status      != '') chartParams.permitStatus    = f.status;
 
 				loadChartData(chartParams);
 			});
 
 
 			$('.clear-range').click(() => {
-				dateRange.range({});
+				fpRange.clear();
 			});
 
 
 			$('.clear-filter').click(() => {
-				var ddtLocation     = $('#ddtLocation').data('kendoDropDownTree');
-				var ddlPermitHolder = $('#ddlPermitHolder').data('kendoDropDownList');
-				var ddlCertificate  = $('#ddlCertificate').data('kendoDropDownList');
-				var ddlPermitStatus = $('#ddlPermitStatus').data('kendoDropDownList');
-				var ddlMonth = $('#ddlMonth').data('kendoDropDownList');
-				var ddlYear  = $('#ddlYear').data('kendoDropDownList');
+				fpRange.clear();
+				locationTree?.updateValue(null);
+				selectedLocationId = '';
+				Object.values(filterSelects).forEach(s => s.setValue(''));
 
-				dateRange.range({});
-				ddtLocation.value('');
-				ddlPermitHolder.value('');
-				ddlCertificate.value('');
-				ddlPermitStatus.value('');
-				ddlMonth.value('');
-				ddlYear.value('');
+				reportFilter = null;
+				tbl.search('').draw();
 
-				gridResult.dataSource.filter({});
 				_overduePermits = [];
 				$('#overdueContainer').html('<p class="text-secondary text-center py-4 mb-0 small">Apply a filter and click <strong>View report</strong> to see overdue permits.</p>');
 				$('#badgeOverdue').addClass('d-none');
@@ -737,16 +758,12 @@
 		});
 
 
-		const onOptionChange = (e) => {
-			var dateRange = $('#dateRange').data('kendoDateRangePicker');
-			var ddlMonth  = $('#ddlMonth').data('kendoDropDownList');
-			var ddlYear   = $('#ddlYear').data('kendoDropDownList');
+		// Month/Year and Date range are alternatives: enable the controls of the chosen option.
+		const onOptionChange = () => {
+			useDateRange = $('#option2').prop('checked');
 
-			ddlMonth.enable(e.sender.element[0].id == 'option1');
-			ddlYear.enable(e.sender.element[0].id  == 'option1');
-			dateRange.enable(e.sender.element[0].id == 'option2');
-
-			useDateRange = e.sender.element[0].id == 'option2';
-		}
+			['ddlMonth', 'ddlYear'].forEach(id => useDateRange ? filterSelects[id].disable() : filterSelects[id].enable());
+			$('#dateRange').prop('disabled', !useDateRange);
+		};
 	</script>
 }

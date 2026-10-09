@@ -55,7 +55,7 @@ Service registration is split across two extension classes:
   - `AddJwtAuthentication(jwtSettings)` — JWT Bearer scheme
   - `AddCloudflareClientIp()` / `app.UseCloudflareClientIp()` (first middleware) — restores the real client IP from `CF-Connecting-IP`, trusted only from Cloudflare edge ranges (origin IP is public, so the header is spoofable otherwise). Implementation in `Web/Services/CloudflareClientIp.cs`: `CloudflareIpRanges` singleton (built-in fallback list + loopback), `CloudflareIpRangesRefresher` hosted service (refreshes from `https://api.cloudflare.com/client/v4/ips` at startup and every 24h, retries hourly on failure, never replaces a good list with an empty/bad response), `CloudflareClientIpMiddleware`. Custom middleware rather than `UseForwardedHeaders`, because `ForwardedHeadersOptions.KnownIPNetworks` can't be safely changed at runtime.
   - `AddRateLimiting()` — `"auth"` policy: 20 requests/minute **per client IP** (partitioned, not one shared bucket). `app.UseRateLimiter()` must stay **after** `UseRouting()` — before it, `[EnableRateLimiting]` endpoint metadata isn't available and the policy silently never applies (it was inactive until 2026-10-07).
-  - `AddWebServices(connectionString)` — health checks, response caching, session, MVC/Razor/Kendo/SignalR, `NotificationPushService`
+  - `AddWebServices(connectionString)` — health checks, response caching, session, MVC/Razor/SignalR, `NotificationPushService`
 
 `Program.cs` calls these extension methods in sequence — no DI registration logic lives in `Program.cs` directly.
 
@@ -87,13 +87,13 @@ Two engines coexist:
 
 ### UI Framework
 
-**In progress — Telerik removal (Phase 7).** Kendo UI for ASP.NET Core (Telerik) is being replaced across all views. Replacements: plain `<table>` + AJAX pagination for grids, native `<select>` + Tom Select for dropdowns, native `<dialog>` for modals, `wwwroot/js/toast.js` for notifications, Chart.js for charts, native `<input type="file">` for uploads. Licensed DLLs remain in `Telerik/` until all views are migrated; `'unsafe-inline'` in CSP remains required until Kendo is fully removed. New views (Phases 2–6) must not use Telerik/Kendo.
+Telerik / Kendo UI has been removed (no NuGet package, CDN, local library or CSP entries). Do not add it back. Bootstrap 5.3.8 throughout. Replacements:
+- **Grids** — DataTables 2 (Bootstrap 5 styling, client-side search/sort/paging over the existing JSON endpoints) via `wwwroot/js/datagrid.js` (`DataGrid.create`) + `css/datagrid.css`, included with `_DataGridStyles` / `_DataGridScripts`. Reports adds Buttons (Excel export, uses the JSZip loaded in `_Layout`) and RowGroup.
+- **Dropdowns** — native `<select>` + Tom Select. **Location trees** — Treeselect.js (`wwwroot/js/location-picker.js`, `_LocationPicker*` partials) fed by `GET /{company}/sites/tree`.
+- **Dates** — Flatpickr. **Switches/checkboxes** — Bootstrap `form-check`/`form-switch`. Modals: Bootstrap; notifications: `wwwroot/js/toast.js`; charts: Chart.js; uploads: native file input / custom dropzone.
+- **Old-system permit form** (`Permits/New`, `Permits/Edit`, `Panels/*`, `Forms/*` certificates A–H) — native controls marked `data-control="..."`, set up by `wwwroot/js/form-controls.js` (`_FormControls*` partials). Page code reads them with `$('#id').data('control').value()`; the adapter reproduces Kendo's `value()` semantics (null for untouched text fields, Date objects, booleans), so the saved `PermitForm` JSON — and the old-system PDF built from it — is unchanged. Change handlers are named in markup (`data-change="fn"`) and registered with `FormControls.handlers({ fn })`. Keep that JSON shape when changing these pages.
 
-Kendo is loaded in `_Layout.cshtml` from `https://kendo.cdn.telerik.com`: the 2025.2.520 scripts and font icons, and the Bootstrap theme 10.0.0. That version matches the `Telerik.UI.for.AspNet.Core` NuGet package. The bundled `wwwroot/lib/kendo-ui` JS was 2023.1.117, which did not match. The CDN is allowed in the CSP in `Program.cs` under script-src, style-src, font-src and img-src. If the Kendo version changes, update the CDN URLs and the NuGet package together. `_LayoutPdf.cshtml` still loads Kendo from the local `~/lib/kendo-ui/` folder.
-
-Kendo grid toolbar search (`.ToolBar(tb => tb.Search())`) has two known problems:
-- With no `.Search(s => s.Field(...))` set, it matches every bound column, including HTML columns such as `ActionIcons` and `StatusBadge`. For example, "dan" matches every user because the icon HTML contains `text-danger`.
-- It replaces the whole `dataSource` filter, so the search and the page's Status/Active/Role filters erase each other.
+CSP still has `'unsafe-inline'` (Razor views use inline scripts/styles) and `'unsafe-eval'` (was for Kendo; kept until no other script is confirmed to need it).
 
 ### Form Builder
 
@@ -131,7 +131,7 @@ New-system permits and certificates use a drag-drop form builder:
 
 ### Attachment Upload
 
-- **New permit**: files staged in JS `pendingFiles` array; appended to `FormData` manually at submit (no `<input type="file">` inside the form — Kendo hijacks those). Field name: `permitFiles`.
+- **New permit**: files staged in JS `pendingFiles` array; appended to `FormData` manually at submit (no `<input type="file">` inside the form). Field name: `permitFiles`.
 - **Existing permit**: immediate upload via `POST /{company}/permits/{id}/attachments/upload` (`IFormFileCollection files`); file list reloads automatically after each upload. Delete via existing `POST /{company}/permits/attachments/remove`.
 - `SaveAttachmentsAsync` filters zero-length entries; uses `Path.GetFileName` cross-platform; only registers uploaded filenames (not pre-existing folder contents).
 

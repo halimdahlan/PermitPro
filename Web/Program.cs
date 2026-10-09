@@ -54,20 +54,19 @@ app.Use(async (context, next) =>
 	// Content Security Policy:
 	//   - Assets are served locally except for the CDNs listed below.
 	//   - cdn.jsdelivr.net is allowed for Chart.js loaded on the workflow overview.
-	//   - kendo.cdn.telerik.com serves Kendo UI (JS, theme CSS, and the font icons the CSS loads),
-	//     referenced from _Layout.cshtml.
-	//   - 'unsafe-inline' is required because Kendo UI and Razor emit inline scripts/styles.
+	//   - 'unsafe-inline' is required because the Razor views use inline scripts/styles.
+	//   - 'unsafe-eval' was needed by Kendo UI (removed); kept until no other script is confirmed to need it.
 	//   - connect-src includes wss: for SignalR in production and ws: for development.
 	//   - static.cloudflareinsights.com is Cloudflare's edge-injected beacon (present when the
 	//     host is proxied through Cloudflare); allowed in both script-src and connect-src since
 	//     the beacon script loads then reports metrics via its own network call.
 	headers.ContentSecurityPolicy =
 		"default-src 'self'; " +
-		"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdn.datatables.net https://cdnjs.cloudflare.com https://unpkg.com https://kendo.cdn.telerik.com https://ka-f.webawesome.com https://maps.googleapis.com https://maps.gstatic.com https://static.cloudflareinsights.com; " +
-		"style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.datatables.net https://unpkg.com https://kendo.cdn.telerik.com https://fonts.googleapis.com https://ka-f.webawesome.com https://maps.googleapis.com; " +
-		"img-src 'self' data: blob: https://unpkg.com https://kendo.cdn.telerik.com https://*.googleapis.com https://*.gstatic.com https://*.google.com https://*.tile.openstreetmap.org; " +
-		"font-src 'self' data: https://fonts.gstatic.com https://kendo.cdn.telerik.com https://ka-f.webawesome.com; " +
-		"connect-src 'self' data: ws: wss: https://ka-f.webawesome.com https://maps.googleapis.com https://maps.gstatic.com https://cloudflareinsights.com; " +
+		"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdn.datatables.net https://cdnjs.cloudflare.com https://unpkg.com https://ka-f.webawesome.com https://maps.googleapis.com https://maps.gstatic.com https://static.cloudflareinsights.com; " +
+		"style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.datatables.net https://unpkg.com https://fonts.googleapis.com https://ka-f.webawesome.com https://maps.googleapis.com; " +
+		"img-src 'self' data: blob: https://unpkg.com https://*.googleapis.com https://*.gstatic.com https://*.google.com https://*.tile.openstreetmap.org; " +
+		"font-src 'self' data: https://fonts.gstatic.com https://ka-f.webawesome.com; " +
+		"connect-src 'self' data: ws: wss: https://ka-f.webawesome.com https://maps.googleapis.com https://maps.gstatic.com https://cloudflareinsights.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://cdn.datatables.net; " +
 		"worker-src 'self' blob:; " +
 		"frame-src 'none'; " +
 		"object-src 'none'; " +

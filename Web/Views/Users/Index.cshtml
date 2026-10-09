@@ -1,32 +1,27 @@
-﻿@using Kendo.Mvc.UI;
-
 @{
 	ViewData["Title"] = "Settings / Users";
 	ViewData["SubTitle"] = "Summary";
-
-	//var companyId = ViewContext.RouteData.Values["company"] as string;
 }
 
 @model UsersViewModel
 
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-3">
 	<div class="d-flex flex-row align-items-center gap-3">
-		<label for="filterDropdown" class="form-label mb-0">View by:</label>
-		<div>
-
-		@(Html.Kendo().DropDownList()
-			.Name("filterDropdown")
-			.Size(ComponentSize.Medium)
-			.Rounded(Rounded.Medium)
-			.FillMode(FillMode.Outline)
-			.DataValueField("value")
-			.DataTextField("text")
-			.HtmlAttributes(new { style = "width: 280px" })
-			.Events(e => e.Change("onFilterChange"))
-			.DataSource(ds => ds
-				.Read(r => r.Url($"/{Model.CompanyId}/users/filters").Type(HttpVerbs.Get))
-			)
-		)
+		<label for="ddlFilter" class="form-label mb-0">View by:</label>
+		<div class="grid-filter grid-filter-lg">
+			<select id="ddlFilter" autocomplete="off">
+				<option value="" selected>All users</option>
+				<optgroup label="Status">
+					<option value="isActive|Active">Active</option>
+					<option value="isActive|Inactive">Inactive</option>
+				</optgroup>
+				<optgroup label="Roles">
+					@foreach (var role in Model.Roles?.OrderBy(r => r.Name).ToList() ?? new())
+					{
+						<option value="roles|@role.Name">@role.Name</option>
+					}
+				</optgroup>
+			</select>
 		</div>
 	</div>
 	<div>
@@ -43,673 +38,79 @@
 	</div>
 }
 
-<div>
-	@Html.AntiForgeryToken()
-	@(Html.Kendo()
-		.Grid<UsersGridViewModel>()
-		.HtmlAttributes(new { @class = "table-grid dropdown dropstart" })
-		.Name("grid")
-		.ToolBar(tb => tb.Search())
-		.NoRecords()
-		.Pageable()
-		.Sortable()
-		.DataSource(ds => ds
-			.Custom()
-			.Schema(s => s
-				.Model(m =>
-				{
-					m.Id(i => i.Id);
-				})
-			)
-			.Transport(t =>
-			{
-				t.Read(r => r.Url($"/{Model.CompanyId}/users/grid").Type(HttpVerbs.Get));
-			})
-			.PageSize(10)
-		)
-		.Columns(c =>
-		{
-			c.Bound(f => f.Name)
-				.ClientTemplate(
-					$"<a href=\"/{Model.CompanyId}/users/edit/#=Id#\">#=Name#</a>"
-				)
-				.Width(250);
-
-			c.Bound(f => f.Email);
-
-			c.Bound(f => f.Designation)
-				.Width(250);
-
-			c.Bound(f => f.Roles)
-				.Width(250);
-
-			c.Bound(f => f.IsSecured)
-				.Sortable(false)
-				.ClientTemplate(
-					"# if (IsSecured) { #" +
-					"    <i class=\"fa-regular fa-user-lock fa-lg\"></i>" +
-					"# } else { #" +
-					"    <i class=\"fa-regular fa-user-unlock fa-lg\"></i>" +
-					"# } #"
-				)
-				.HeaderHtmlAttributes(new { @class = "grid-header text-center" })
-				.HtmlAttributes(new { @class = "text-center" })
-				.Width(120);
-
-			c.Bound(f => f.IsActive)
-				.Sortable(false)
-				.ClientTemplate(
-					"# if (IsActive) { #" +
-					"    <i class=\"fa-sharp fa-solid fa-circle-check fa-lg text-success\"></i>" +
-					"# } else { #" +
-					"    <i class=\"fa-sharp fa-solid fa-circle-check fa-lg text-warning\"></i>" +
-					"# } #"
-				)
-				.HeaderHtmlAttributes(new { @class = "grid-header text-center" })
-				.HtmlAttributes(new { @class = "text-center" })
-				.Width(120);
-
-			c.Bound(f => f.CreatedWhen)
-				.Format("{0:dd MMM, yyyy}")
-				.Width(150);
-
-			c.Bound(f => f.ActionIcons)
-				.Sortable(false)
-				.Encoded(false)
-				.HeaderHtmlAttributes(new { @class = "grid-header text-center" })
-				.HtmlAttributes(new { @class = "text-center" })
-				.Width(80);
-		})
-		.Events(ev => ev.DataBound("onGridDataBound"))
-		)
-</div>
-
-<!--
-<div class="d-flex flex-row mt-5 justify-content-start align-items-center">
-	<div class="flex-grow-1">
-		<table id="tbl" class="table table-striped display pt-5 mb-3">
+<div class="mt-4 card data-grid">
+	<div class="card-body">
+		<div class="grid-error alert alert-danger d-none" role="alert"></div>
+		<table id="tblUsers" class="table table-sm table-hover align-middle w-100">
 			<thead>
 				<tr>
-					<th>NAME</th>
-					<th>EMAIL</th>
-					<th>LOCATION</th>
-					<th>DESIGNATION</th>
-					<th>ROLE</th>
-					<th data-class-name="text-center" style="width: 82px;">IS SECURED?</th>
-					<th data-class-name="text-center" style="width: 73px;">IS ACTIVE?</th>
-					<th style="width: 100px;">DATE CREATED</th>
-					<th style="width: 78px;" data-orderable="false">&nbsp;</th>
+					<th>Name</th>
+					<th>Email</th>
+					<th>Designation</th>
+					<th>Roles</th>
+					<th class="text-center">Is Secured?</th>
+					<th class="text-center">Is Active?</th>
+					<th>Created When</th>
+					<th class="text-center">Action</th>
 				</tr>
 			</thead>
 		</table>
 	</div>
-</div>
-
-<div class="d-flex flex-row justify-content-center mt-3 notification">
-	<div class="alert alert-dismissible fade" role="alert">
-		<span class="alert-message"></span>
-		<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-	</div>
-</div>
--->
-
-<!-- Modal: New user -->
-<div class="modal fade" id="dlgUser" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="dlgUserLabel" aria-hidden="true">
-	<div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
-		<div class="modal-content">
-			<div class="modal-header bg-dark text-white">
-				<h2 class="modal-title" id="dlgUserLabel" style="font-weight:600;">New user</h2>
-				<a href="#" class="no-loading text-dark" data-bs-dismiss="modal" aria-label="Close"><i class="fa-sharp fa-solid fa-xmark fa-xl"></i></a>
-			</div>
-			<div class="modal-body">
-				<form id="frmUser" class="needs-validation" onsubmit="return formOnSubmit" novalidate>
-					<div class="d-flex flex-row mb-2">
-						<div class="form-group w-50 me-3">
-							<label class="form-label" for="frm-firstName">First name</label>
-							<input type="text" id="frm-firstName" class="form-control" required />
-							<div class="invalid-feedback">Enter the first name</div>
-						</div>
-						<div class="form-group w-50 ms-3">
-							<label class="form-label" for="frm-lastName">Last name</label>
-							<input type="text" id="frm-lastName" class="form-control" required />
-							<div class="invalid-feedback">Enter the last name</div>
-						</div>
-					</div>
-					<div class="d-flex flex-row mb-2">
-						<div class="form-group w-50 me-3">
-							<label class="form-label" for="frm-email">Email</label>
-							<input type="email" id="frm-email" class="form-control" required />
-							<div class="invalid-feedback">Enter the email address</div>
-						</div>
-						<div class="form-group w-50 ms-3">
-							<label class="form-label" for="frm-designation">Designation</label>
-							<input type="text" id="frm-designation" class="form-control" />
-						</div>
-					</div>
-					<div class="d-flex flex-row mb-2">
-						<div class="form-group w-50 me-3">
-							<label class="form-label" for="frm-role">User role</label>
-							<select id="frm-roles" class="form-select" required asp-items="@(new SelectList(ViewBag.UserRoles, "Id", "Name"))"></select>
-							<div class="invalid-feedback">Select the user role</div>
-						</div>
-						<div class="form-group w-50 ms-3">
-							<label class="form-label" for="frm-email">Set password</label> <i tabindex="0" class="fa-sharp fa-regular fa-circle-info info-pwd"></i>
-							<input type="password" id="frm-pwd" class="form-control" />
-						</div>
-					</div>
-					<div class="d-flex flex-row mb-2">
-						<div class="form-group w-50 me-3">
-							<label class="form-label" for="frm-location">Locations</label>
-							<div>
-								@(Html.Kendo().DropDownTree()
-									.Name("ddlLocations")
-									.DataValueField("id")
-									.DataTextField("name")
-									.Placeholder("(select locations)")
-									.Events(events => events.Change("onChangeSites"))
-									.FillMode(FillMode.Outline)
-									.Rounded(Rounded.Large)
-									.CheckAll(false)
-									.AutoClose(false)
-									.Checkboxes(checkboxes => checkboxes
-										.Name("checkedFiles")
-										.CheckChildren(true)
-									)
-									.DataSource(ds => ds
-										.Read(read => read
-											.Url($"/api/data/{Model.CompanyId}/sites/hierarchical").Type(HttpVerbs.Get)
-										)
-									)
-								)
-							</div>
-						</div>
-						<div class="form-group w-50 ms-3 d-flex flex-row">
-							<div class="form-check me-5">
-								<input class="form-check-input" type="radio" id="frm-active" name="user-status" checked>
-								<label class="form-check-label" for="frm-active">Active</label>
-							</div>
-							<div class="form-check">
-								<input class="form-check-input" type="radio" id="frm-inactive" name="user-status">
-								<label class="form-check-label" for="frm-inactive">Inactive</label>
-							</div>
-						</div>
-					</div>
-					<input type="hidden" id="frm-mode" value="new" />
-					<input type="hidden" id="frm-id" value="" />
-				</form>
-			</div>
-			<div class="modal-footer">
-				<button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
-				<button type="button" class="btn btn-sm btn-primary btn-save"><span class="mx-3">Save changes</span></button>
-			</div>
-		</div>
-	</div>
-</div>
-
-
-<!-- Modal: Delete confirmation -->
-<div class="modal fade" id="dlgConfirm" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="dlgConfirmLabel" aria-hidden="true">
-	<div class="modal-dialog modal-dialog-centered">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h6 class="modal-title w-100" id="dlgConfirmLabel" style="font-weight:600;">Confirm delete</h6>
-				<a href="#" class="no-loading text-dark" data-bs-dismiss="modal" aria-label="Close"><i class="fa-sharp fa-solid fa-xmark fa-xl"></i></a>
-			</div>
-			<div class="modal-body">
-				Are you sure you want to delete this user?
-			</div>
-			<div class="modal-footer">
-				<button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
-				<button type="button" class="btn btn-sm btn-danger btn-proceed" data-user-id="">Yes, proceed</button>
-			</div>
-		</div>
-	</div>
-</div>
-
-
-<!-- Modal: Limit reached -->
-<div class="modal fade" id="dlgLimitReached" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="dlgLimitReachedLabel" aria-hidden="true">
-	<div class="modal-dialog modal-dialog-centered">
-		<div class="modal-content">
-			<div class="modal-header bg-warning">
-				<h6 class="modal-title w-100" id="dlgLimitReachedLabel" style="font-weight:600;">User Creation Limit</h6>
-				<a href="#" class="no-loading text-dark" data-bs-dismiss="modal" aria-label="Close"><i class="fa-sharp fa-solid fa-xmark fa-xl"></i></a>
-			</div>
-			<div class="modal-body">
-				You have reached the user creation limit of 15 users. If you would like to increase this limit, please contact the system administrator.
-			</div>
-			<div class="modal-footer">
-				<button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
-			</div>
-		</div>
-	</div>
-</div>
-
-
-<!-- Modal: Set user password -->
-<div class="modal fade" id="dlgSetPwd" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="dlgSetPwdLabel" aria-hidden="true">
-	<div class="modal-dialog modal-dialog-centered">
-		<div class="modal-content">
-			<div class="modal-header bg-dark text-white">
-				<h2 class="modal-title" id="dlgSetPwdLabel" style="font-weight:600;">Set user password</h2>
-				<a href="#" class="no-loading text-dark" data-bs-dismiss="modal" aria-label="Close"><i class="fa-sharp fa-solid fa-xmark fa-xl"></i></a>
-			</div>
-			<div class="modal-body">
-				<form id="frmSetPwd" class="needs-validation" onsubmit="return formOnSubmit" novalidate>
-					<div class="form-group mb-3">
-						<label class="form-label" for="frm-set-pwd">Password</label>
-						<input type="password" id="frm-set-pwd" class="form-control" required />
-						<div class="invalid-feedback fb-password">
-							Please enter your password
-						</div>
-					</div>
-					<div class="form-group">
-						<label class="form-label" for="frm-set-confirm-pwd">Confirm password</label>
-						<input type="password" id="frm-set-confirm-pwd" class="form-control" required />
-						<div class="invalid-feedback fb-confirm-password">
-							Please confirm your password
-						</div>
-					</div>
-				</form>
-			</div>
-			<div class="modal-footer">
-				<button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
-				<button type="button" class="btn btn-sm btn-danger btn-set-pwd" data-user-id="">Yes, proceed</button>
-			</div>
-		</div>
-	</div>
+	@Html.AntiForgeryToken()
 </div>
 
 @section CustomCss {
-	<!-- DataTables -->
-	<link rel="stylesheet" href="~/lib/DataTables/datatables.min.css" />
-	<script src="~/lib/DataTables/datatables.min.js"></script>
-
+	<partial name="_DataGridStyles" />
 	<link rel="stylesheet" href="~/css/users.css" />
 }
 
 @section Scripts {
+	<partial name="_DataGridScripts" />
+
 	<script>
-		var selectedLocations = [];
+		var tbl = null;
+
+		// Column indexes used by the "View by" filter.
+		const COL_ROLES = 3;
+		const COL_ACTIVE = 5;
 
 		$(document).ready(() => {
-			var grid = $("#grid").data("kendoGrid");
 
-			//$('.table-grid table').addClass('table-responsive');
-
-			grid.dataSource.transport.options.read.beforeSend = (req) => {
-				req.setRequestHeader('RequestVerificationToken', $('input:hidden[name="__RequestVerificationToken"]').val());
-			};
-
-
-			$('.btn-save').click(() => {
-				$('#frmUser').removeClass('needs-validation').addClass('was-validated');
-
-				var mode = $('#frm-mode').val();
-				var id = $('#frm-id').val();
-				var firstName = $('#frm-firstName').val();
-				var lastName = $('#frm-lastName').val();
-				var email = $('#frm-email').val();
-				var designation = $('#frm-designation').val();
-				var isActive = $('#frm-active').prop('checked');;
-				var pwd = $('#frm-pwd').val();
-				var role = $('#frm-roles option:selected').val();
-
-				var regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[#$@@!%&*])[A-Za-z\d#$@@!%&*?]{12,20}$/g;
-				var passwordOk = regex.test(pwd);
-
-				if (pwd != '' && !passwordOk) {
-					alert('Your password must contain:\n\n- min 1 uppercase\n- min 1 lowercase\n- min 1 special character (#$@@!%&*)\n- min 1 number\n- min 12 characters');
-				} else {
-					if (firstName != '' && lastName != '' && email != '') {
-						var postData = {
-							id: null,
-							firstName,
-							lastName,
-							email,
-							designation,
-							password: pwd,
-							isActive,
-							role,
-							locations: selectedLocations,
-						};
-
-						if (mode == 'edit') postData.id = id;
-
-						var formData = new FormData();
-						formData.append('Id', mode == 'edit' ? id : null);
-						formData.append('FirstName', firstName);
-						formData.append('LastName', lastName);
-						formData.append('Email', email);
-						formData.append('Designation', designation);
-						formData.append('Password', pwd);
-						formData.append('IsActive', isActive);
-						formData.append('Role', role);
-						formData.append('Locations', selectedLocations);
-
-						//console.log(formData);
-
-						$('.loading').show();
-
-						var xhr = $.ajax({
-							method: 'POST',
-							url: '/@Model.CompanyId/users/' + mode,
-							data: formData,
-							contentType: false,
-							processData: false,
-							cache: false,
-							beforeSend: (xhr) => {
-								xhr.setRequestHeader('RequestVerificationToken', $('input:hidden[name="__RequestVerificationToken"]').val());
-							},
-						});
-
-						xhr.done((response, status) => {
-							//console.log(response);
-
-							if (status == 'success') {
-								if (response.data == 'OK') {
-									grid.dataSource.read();
-
-									try {
-										const dlg = bootstrap.Modal.getInstance($('#dlgUser'));
-										dlg.hide();
-
-										$('.modal-backdrop').remove();
-									} catch {
-										$('#dlgUser').modal('hide');
-									}
-
-								} else {
-									alert('Unable to update user at the moment. Please try again later.');
-								}
-							} else {
-								alert('Unable to update user at the moment. Please try again later.');
-							}
-						});
-
-						xhr.fail((response) => {
-							//console.log(response);
-							alert('Unable to update user at the moment. Please try again later.');
-						});
-
-						xhr.always(() => {
-							$('.loading').hide();
-						});
-
-					}
-				}
+			tbl = DataGrid.create('#tblUsers', '/@Model.CompanyId/users/grid', {
+				language: {
+					emptyTable: 'No users found.',
+					zeroRecords: 'No matching users found.',
+				},
+				columns: [
+					{
+						data: 'Name',
+						render: (data, type, row) => type === 'display'
+							? `<a href="/@Model.CompanyId/users/edit/${row.Id}">${DataGrid.escapeHtml(data)}</a>`
+							: data,
+					},
+					{ data: 'Email', render: DataGrid.renderText },
+					{ data: 'Designation', render: DataGrid.renderText },
+					{ data: 'Roles', render: DataGrid.renderText },
+					{
+						data: 'IsSecured',
+						className: 'text-center',
+						searchable: false,
+						render: (data, type) => type === 'display'
+							? (data ? '<i class="fa-regular fa-user-lock fa-lg" title="Password set"></i>' : '<i class="fa-regular fa-user-unlock fa-lg" title="No password"></i>')
+							: (data ? 'Secured' : 'Not secured'),
+					},
+					{ data: 'IsActive', className: 'text-center', render: DataGrid.renderActive },
+					{ data: 'CreatedWhen', className: 'dt-left text-nowrap', render: DataGrid.renderDate },
+					DataGrid.htmlColumn('ActionIcons', { className: 'text-center' }),
+				],
 			});
 
-
-			$('.btn-proceed').click(() => {
-				var userId = $('.btn-proceed').data('userId');
-
-				$('.loading').show();
-
-				var xhr = $.ajax({
-					method: 'DELETE',
-					url: '/@Model.CompanyId/users/' + userId,
-				});
-
-				xhr.done((response, status) => {
-					if (response.data == 'OK') {
-						grid.dataSource.read();
-						$('#dlgConfirm').modal('hide');
-					} else {
-						$('#dlgConfirm').modal('hide');
-					}
-				});
-
-				xhr.fail((response, status) => {
-					//console.log(response);
-				});
-
-				xhr.always(() => {
-					$('.loading').hide();
-				});
-
-			});
-
-
-			$('.btn-set-pwd').click(() => {
-				var userId = $('#dlgSetPwd .btn-set-pwd').data('userId');
-
-				$('#frmSetPwd').removeClass('needs-validation').addClass('was-validated');
-
-				var pwd = $('#frm-set-pwd').val();
-				var confirmPwd = $('#frm-set-confirm-pwd').val();
-
-				var regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[#$@@!%&*])[A-Za-z\d#$@@!%&*?]{12,20}$/g;
-				var passwordOk = regex.test(confirmPwd);
-
-				if (!passwordOk) {
-					alert('Your password must contain:\n\n- min 1 uppercase\n- min 1 lowercase\n- min 1 special character\n- min 1 number\n- min 12 characters');
-				} else {
-					var postData = {
-						password: confirmPwd
-					};
-
-					if (confirmPwd != '' && pwd != '' && confirmPwd == pwd) {
-						$('.loading').show();
-
-						var xhr = $.ajax({
-							method: 'POST',
-							url: '/@Model.CompanyId/users/' + userId + '/setpassword',
-							data: JSON.stringify(postData),
-							contentType: 'application/json; charset=utf-8',
-							dataType: 'json',
-						});
-
-						xhr.done((response) => {
-							if (response.data == 'OK') {
-								grid.dataSource.read();
-								$('#dlgSetPwd').modal('hide');
-							} else {
-								alert('Unable to set user\'s password. Please try again.');
-							}
-						});
-
-						xhr.fail((response) => {
-							alert('Unable to set user\'s password. Please try again.');
-						});
-
-						xhr.always(() => {
-							$('.loading').hide();
-						});
-
-					} else {
-						if (confirmPwd != pwd) {
-							$('#frm-set-confirm-pwd').addClass('is-invalid');
-							$('.fb-confirm-password').html('Confirm password is not the same');
-						}
-					}
-				}
-			});
-
-
-			$('.frm-locations .dropdown-menu .dropdown-item').click((elem) => {
-				var allLocations = $('.frm-locations .dropdown-menu .dropdown-item');
-				var locationId = $(elem.currentTarget).data('locationId');
-				var totalLocations = allLocations.length - 1;
-
-				if (locationId != '') {
-					var n = selectedLocations.findIndex(x => x == locationId);
-					var checkbox = $(elem.currentTarget).find('.fa-sharp');
-
-					if (n == -1) {
-						selectedLocations.push(locationId);
-						checkbox.removeClass('fa-square').removeClass('fa-regular').addClass('fa-square-check').addClass('fa-solid');
-					} else {
-						selectedLocations.splice(n, 1);
-						checkbox.removeClass('fa-square-check').removeClass('fa-solid').addClass('fa-square').addClass('fa-regular');
-					}
-
-				} else {
-					var isAllChecked = $(elem.currentTarget).find('.fa-sharp').hasClass('fa-solid');
-
-					if (selectedLocations.length > 0) {
-						selectedLocations = [];
-					}
-
-					allLocations.map((i, e) => {
-						var elem = $(e);
-						var checkbox = $(e).find('.fa-sharp');
-
-						if (!isAllChecked) {
-							checkbox.removeClass('fa-square').removeClass('fa-regular').addClass('fa-square-check').addClass('fa-solid');
-
-							if (elem.data('locationId') != '') {
-								selectedLocations.push(elem.data('locationId'));
-							}
-						} else {
-							checkbox.removeClass('fa-square-check').removeClass('fa-solid').addClass('fa-square').addClass('fa-regular');
-						}
-					});
-				}
-
-				if (selectedLocations.length < 1) {
-					$('#btn-locations').html('(select location)');
-				} else {
-					if (selectedLocations.length == totalLocations) {
-						$('#btn-locations').html('All selected');
-					} else {
-						$('#btn-locations').html('(' + selectedLocations.length + ') selected');
-					}
-				}
-
-			});
-
-
-			/**
-			 * MODAL: dlgUser
-			 */
-			$('#dlgUser').on('show.bs.modal', () => {
-				var mode = $('#frm-mode').val();
-				var userId = $('#frm-id').val();
-
-				if (mode == 'edit') {
-					$('.loading').show();
-
-					var xhr = $.ajax({
-						method: 'GET',
-						url: '/@Model.CompanyId/users/' + userId + '/info'
-					});
-
-					xhr.done((response, status) => {
-						if (status == 'success' && response.user != null) {
-							var user = response.user;
-
-							if (user.isSecured) {
-								$('#frm-pwd').prop('disabled', 'disabled').addClass('disabled');
-							}
-
-							$('#frm-firstName').val(user.firstName);
-							$('#frm-lastName').val(user.lastName);
-							$('#frm-email').val(user.email);
-							$('#frm-designation').val(user.designation);
-
-							if (user.isActive) {
-								$('#frm-active').prop('checked', true);
-							} else {
-								$('#frm-inactive').prop('checked', true);
-							}
-
-							if (user.roles.length > 0) {
-								$('#frm-roles option[value="' + user.roles[0].roleId + '"]').prop('selected', 'selected');
-							}
-
-							/*
-							var allLocations = $('.frm-locations .dropdown-menu .dropdown-item');
-
-							allLocations.map((i, e) => {
-								var elem = $(e);
-								var locationId = $(elem[0]).data('locationId').toLowerCase();
-
-								for (var n = 0; n < user.sites.length; n++) {
-									if (user.sites[n].id.toLowerCase() == locationId) {
-										$(elem[0]).click();
-									}
-								}
-							});*/
-
-							var selectedSites = [];
-
-							for (var n = 0; n < user.sites.length; n++) {
-								selectedSites.push(user.sites[n].id.toLowerCase());
-								selectedLocations.push(user.sites[n].id);
-							}
-
-							var dropDownTree = $('#ddlLocations').data('kendoDropDownTree');
-
-							dropDownTree.dataSource.filter({});
-							dropDownTree.value(selectedSites);
-
-						}
-					});
-
-					xhr.fail(() => {
-					});
-
-					xhr.always(() => {
-						$('.loading').hide();
-					});
-				}
-			});
-
-
-			$('#dlgUser').on('hidden.bs.modal', () => {
-				$('#frm-firstName').val('');
-				$('#frm-lastName').val('');
-				$('#frm-email').val('');
-				$('#frm-designation').val('');
-				$('#frm-pwd').val('');
-				$('#frm-pwd').prop('disabled', null).removeClass('disabled');
-				$('#frm-active').prop('checked', true);
-				$('#frm-roles option[value=""]').prop('selected', true);
-				$('#frmUser').removeClass('was-validated').addClass('needs-validation');
-				$('#frm-mode').val('new');
-				$('#frm-id').val('');
-				$('#dlgUserLabel').html('New user');
-
-				selectedLocations = [];
-
-				var elems = $('.frm-locations .dropdown-menu .dropdown-item');
-
-				elems.map((i, e) => {
-					var checkbox = $(e).find('.fa-sharp');
-					checkbox.removeClass('fa-square-check').removeClass('fa-solid').addClass('fa-square').addClass('fa-regular');
-				});
-
-				$('#btn-locations').html('(select location)');
-			});
-
-
-			/**
-			 * MODAL: dlgSetPwd
-			 */
-			$('#dlgSetPwd').on('show.bs.modal', () => {
-			});
-
-
-			$('#dlgSetPwd').on('hidden.bs.modal', () => {
-				$('#frmSetPwd').removeClass('was-validated').addClass('needs-validation');
-				$('#frm-set-confirm-pwd').removeClass('is-invalid');
-				$('.fb-confirm-password').html('Please confirm your password');
-
-				$('#frm-set-pwd').val(null);
-				$('#frm-set-confirm-pwd').val(null);
-			});
-
-
-			/**
-			 * MODAL: dlgConfirm
-			 */
-			$('#dlgConfirm').on('show.bs.modal', () => {
-			});
-
-
-			$('#dlgConfirm').on('hidden.bs.modal', () => {
-				$('#dlgConfirm .btn-proceed').data('userId', '');
+			new TomSelect('#ddlFilter', {
+				allowEmptyOption: true,
+				maxOptions: null,
+				// Search box inside the dropdown, so the control keeps its height.
+				plugins: ['dropdown_input'],
+				onChange: onFilterChange,
 			});
 
 
@@ -722,20 +123,15 @@
 				var xhr = $.ajax({
 					method: 'DELETE',
 					url: `/@Model.CompanyId/users/${userId}`,
+					headers: { 'RequestVerificationToken': DataGrid.antiForgeryToken() },
 				});
 
 				xhr.done((response, status) => {
 					if (status == 'success') {
 						if (response.data == 'OK') {
-							grid.dataSource.read();
+							tbl.ajax.reload(null, false);
 						}
 					}
-
-					//$('#dlgConfirmDeleteItem').modal('hide');
-				});
-
-				xhr.fail(() => {
-					//$('#dlgConfirmDeleteItem').modal('hide');
 				});
 
 				xhr.always(() => {
@@ -747,88 +143,25 @@
 		});
 
 
-		const onFilterChange = (e) => {
-			var dropdownlist = e.sender;
-			var search = dropdownlist.value();
-			var grid = $("#grid").data("kendoGrid");
+		// Value is "" (all), "isActive|Active", "isActive|Inactive" or "roles|<role name>".
+		const onFilterChange = (value) => {
+			const [field, search] = (value || '|').split('|');
 
-			if (!search) {
-				grid.dataSource.filter(null);
-				return;
-			}
+			// Only one filter at a time: clear the column not being filtered.
+			tbl.column(field == 'roles' ? COL_ACTIVE : COL_ROLES).search('');
 
-			var filter = search.split('|');
-
-			if (filter[0] == 'all') {
-				grid.dataSource.filter(null);
+			if (field == 'roles') {
+				DataGrid.filterListItem(tbl, COL_ROLES, search);
 			} else {
-				if (filter[0] == 'isActive') {
-					var state = filter[1];
-					grid.dataSource.filter({ field: 'IsActive', operator: 'eq', value: state == 'true' });
-				} else {
-					grid.dataSource.filter({ field: 'Roles', operator: 'eq', value: filter[1] });
-				}
+				DataGrid.filterExact(tbl, COL_ACTIVE, search);
 			}
 		};
 
 
-		const editUser = (id) => {
-			$('#frm-mode').val('edit');
-			$('#frm-id').val(id);
-			$('#dlgUserLabel').html('Edit user');
-			$('#dlgUser').modal('show');
-		};
-
-
+		// Called by the delete icon in the server-built ActionIcons column.
 		const deleteUser = (id) => {
 			$('#btnDeleteItem').data('itemId', id);
 			$('#dlgConfirmDeleteItem').modal('show');
-		};
-
-
-		const setPassword = (obj) => {
-			var elem = $(obj);
-			var userId = elem.data('userId');
-
-			$('#dlgUserLabel').html('Edit user');
-			$('#dlgSetPwd').modal('show');
-			$('#dlgSetPwd .btn-set-pwd').data('userId', userId);
-		};
-
-
-		const formOnSubmit = () => {
-			return false;
-		};
-
-
-		const onChangeSites = () => {
-			var checkedNodes = [];
-			var dropDownTree = $('#ddlLocations').data('kendoDropDownTree');
-
-			checkedNodeIds(dropDownTree.dataSource.view(), checkedNodes);
-			selectedLocations = checkedNodes;
-		};
-
-		const checkedNodeIds = (nodes, checkedNodes) => {
-			for (var i = 0; i < nodes.length; i++) {
-				if (nodes[i].checked) {
-					checkedNodes.push(nodes[i].id);
-				}
-
-				if (nodes[i].hasChildren) {
-					checkedNodeIds(nodes[i].children.view(), checkedNodes);
-				}
-			}
-		};
-
-
-		const onGridDataBound = (arg) => {
-			// console.log(arg);
-
-			// const dropdownElementList = document.querySelectorAll('.menu-context');
-			// const dropdownList = [...dropdownElementList].map(el => new bootstrap.Dropdown(el));
-
-			// console.log(dropdownList);
 		};
 
 	</script>

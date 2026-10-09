@@ -1,4 +1,4 @@
-﻿#nullable disable
+#nullable disable
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -117,15 +117,9 @@ public class UsersController : AppControllerBase
 			LastName = string.Empty,
 			Email = string.Empty,
 			UserRole = string.Empty,
-			CompanyID = company
 		};
 
-		var roles = GetSelectableUserRoles(company, out var hasExceededLimit, out var noRolesAvailable);
-
-		model.Roles = roles;
-		model.MaxNumOfUsers = _systemConfiguration.UserCreateLimit;
-		model.HasExceededLimit = hasExceededLimit;
-		model.NoRolesAvailable = noRolesAvailable;
+		PrepareNewUserForm(company, model);
 		model.OriginFromContractors = !string.IsNullOrEmpty(org) && org == "c";
 
 		if (org == "c")
@@ -136,6 +130,18 @@ public class UsersController : AppControllerBase
 		}
 
 		return View(model);
+	}
+
+
+	// What the New User form needs that isn't posted back with it: the company (used in the
+	// Cancel link and the locations picker URL) and the selectable roles.
+	private void PrepareNewUserForm(Guid company, NewUserViewModel model)
+	{
+		model.CompanyID = company;
+		model.Roles = GetSelectableUserRoles(company, out var hasExceededLimit, out var noRolesAvailable);
+		model.MaxNumOfUsers = _systemConfiguration.UserCreateLimit;
+		model.HasExceededLimit = hasExceededLimit;
+		model.NoRolesAvailable = noRolesAvailable;
 	}
 
 
@@ -154,20 +160,34 @@ public class UsersController : AppControllerBase
 		}
 
 		if (!ModelState.IsValid)
+		{
+			PrepareNewUserForm(company, model);
 			return View(model);
+		}
 
 		var selectedRole = await _dbContext.Roles.FirstOrDefaultAsync(e => e.Id == model.UserRole);
-		var roles = GetSelectableUserRoles(company, out var hasExceededLimit, out var noRolesAvailable);
+		GetSelectableUserRoles(company, out var hasExceededLimit, out _);
 
 		// Defense-in-depth: the dropdown already only offers unlimited-users roles once the
 		// limit is reached, but re-check server-side in case of a raw/tampered submission.
 		if (hasExceededLimit && (selectedRole == null || !selectedRole.IsUnlimitedUsers))
 		{
 			ModelState.AddModelError(nameof(model.UserRole), "You have reached the user creation limit. Only roles marked \"Unlimited users\" can be selected.");
-			model.Roles = roles;
-			model.MaxNumOfUsers = _systemConfiguration.UserCreateLimit;
-			model.HasExceededLimit = hasExceededLimit;
-			model.NoRolesAvailable = noRolesAvailable;
+			PrepareNewUserForm(company, model);
+			return View(model);
+		}
+
+		// The email is the user name, which is unique across all companies (including deleted
+		// users); without this check the insert failed with a duplicate-key exception.
+		var normalizedEmail = model.Email.ToUpper();
+		var emailInUse = await _dbContext.Users
+			.IgnoreQueryFilters()
+			.AnyAsync(e => e.NormalizedUserName == normalizedEmail || e.NormalizedEmail == normalizedEmail);
+
+		if (emailInUse)
+		{
+			ModelState.AddModelError(nameof(model.Email), "A user with this email already exists.");
+			PrepareNewUserForm(company, model);
 			return View(model);
 		}
 
@@ -329,6 +349,35 @@ public class UsersController : AppControllerBase
 	}
 
 
+	// Redisplaying the Edit form after a failed save: restore what isn't posted back with it
+	// (company, user id, email, selectable roles, password form) and keep what the user entered.
+	private async Task PrepareEditUserFormAsync(Guid company, Guid id, ManageUserMainViewModel model)
+	{
+		var org = model.UserInfoForm?.OriginFromContractors == true ? "c" : null;
+		var saved = await BuildEditUserFormAsync(company, id, org);
+
+		if (saved == null)
+			return;
+
+		var form = model.UserInfoForm ??= saved;
+		form.Id = saved.Id;
+		form.CompanyID = company;
+		form.Email = saved.Email;
+		form.Roles = saved.Roles;
+		form.IsEdit = true;
+		form.MaxNumOfUsers = saved.MaxNumOfUsers;
+		form.HasExceededLimit = saved.HasExceededLimit;
+		form.NoRolesAvailable = saved.NoRolesAvailable;
+
+		model.UserPasswordForm ??= new ManageUserPasswordViewModel
+		{
+			NewPassword = string.Empty,
+			ConfirmPassword = string.Empty,
+			IsContractors = form.OriginFromContractors
+		};
+	}
+
+
 	[HttpPost("{company}/users/edit/{id}")]
 	[ValidateAntiForgeryToken]
 	public async Task<IActionResult> Edit(Guid company, Guid id, ManageUserMainViewModel model)
@@ -337,6 +386,7 @@ public class UsersController : AppControllerBase
 
 		if (!ModelState.IsValid)
 		{
+			await PrepareEditUserFormAsync(company, id, model);
 			return View(model);
 		}
 
@@ -357,18 +407,14 @@ public class UsersController : AppControllerBase
 		// limit, since moving a user out of an unlimited role into a limited one increases the
 		// counted headcount.
 		var selectedRole = await _dbContext.Roles.FirstOrDefaultAsync(e => e.Id == model.UserInfoForm.UserRole);
-		var roles = GetSelectableUserRoles(company, out var hasExceededLimit, out var noRolesAvailable, excludeUserId: userInfo.Id, keepSelectableRoleId: oldUserRole?.RoleId);
+		GetSelectableUserRoles(company, out var hasExceededLimit, out _, excludeUserId: userInfo.Id, keepSelectableRoleId: oldUserRole?.RoleId);
 		var isRoleChangeAllowed = !hasExceededLimit
 			|| (selectedRole != null && (selectedRole.IsUnlimitedUsers || selectedRole.Id == oldUserRole?.RoleId));
 
 		if (!isRoleChangeAllowed)
 		{
 			ModelState.AddModelError("UserInfoForm.UserRole", "You have reached the user creation limit. This user can only be moved to a role marked \"Unlimited users\".");
-			model.UserInfoForm.Roles = roles;
-			model.UserInfoForm.MaxNumOfUsers = _systemConfiguration.UserCreateLimit;
-			model.UserInfoForm.HasExceededLimit = hasExceededLimit;
-			model.UserInfoForm.NoRolesAvailable = noRolesAvailable;
-			model.UserInfoForm.IsEdit = true;
+			await PrepareEditUserFormAsync(company, id, model);
 			return View(model);
 		}
 
@@ -536,31 +582,6 @@ public class UsersController : AppControllerBase
 		}).ToList();
 
 		return new JsonResult(siteUsers, new JsonSerializerOptions
-		{
-			PropertyNamingPolicy = null,
-		});
-	}
-
-
-	[HttpGet("{company}/users/filters")]
-	public JsonResult GetUserFilters(Guid company)
-	{
-		var filters = new List<dynamic>
-		{
-			new { text = "All", value = "all|all" },
-			new { text = "Active", value = "isActive|true" },
-			new { text = "Inactive", value = "isActive|false" }
-		};
-
-		var roles = _dbContext.Roles
-			.Where(e => e.NormalizedName != "SUPERUSER")
-			.OrderBy(e => e.Name)
-			.Select(e => new { text = e.Name, value = $"roles|{e.Name}" })
-			.ToList();
-
-		filters.AddRange(roles);
-
-		return new JsonResult(filters, new JsonSerializerOptions
 		{
 			PropertyNamingPolicy = null,
 		});

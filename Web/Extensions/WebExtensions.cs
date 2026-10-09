@@ -171,7 +171,6 @@ public static class WebExtensions
 		services.AddSession(options => { options.IdleTimeout = TimeSpan.FromMinutes(60); });
 		services.AddControllersWithViews();
 		services.AddRazorPages();
-		services.AddKendo();
 		services.AddSignalR();
 		services.AddScoped<INotificationPushService, NotificationPushService>();
 

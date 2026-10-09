@@ -40,7 +40,7 @@
 	width: 200px !important;
 }
 
-#grid, #grid .k-input-inner {
+#grid {
 	font-family: 'Poppins';
 	font-size: 14px;
 }
@@ -50,18 +50,6 @@
 		font-weight: 600;
 	}
 
-		#grid table thead th.text-center .k-column-title {
-			margin: 0 auto;
-		}
-
-	#grid .k-grid-norecords-template {
-		border: 0;
-	}
-
-.k-column-title {
-  font-size: 14px !important;
-}
-
 a:link, a:visited {
 	text-decoration: none !important;
 }
@@ -70,15 +58,31 @@ a:hover {
 	color: var(--bs-btn-disabled-bg);
 }
 
-.k-grid a {
-	text-decoration: none !important;
-	color: rgba(var(--bs-link-color-rgb), var(--bs-link-opacity,1));
+/* New workflow step dialog: duration number + duration type side by side. */
+#dlg #stepDuration {
+	width: 120px;
 }
 
-.k-grid a:hover {
-	color: var(--bs-btn-disabled-bg);
+#dlg #stepDurationType {
+	min-width: 170px;
 }
 
-.k-calendar, .k-title, .k-button {
-	font-family: 'Poppins', sans-serif !important;
+/* Select user dialog: fixed column widths, names on one line. */
+#tblUsers {
+	table-layout: fixed;
 }
+
+	#tblUsers th.col-user-name {
+		width: 200px;
+	}
+
+	#tblUsers th.col-user-select {
+		width: 90px;
+	}
+
+	#tblUsers td.col-user-name,
+	#tblUsers td.col-user-email {
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}

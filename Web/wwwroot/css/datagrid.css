@@ -1,0 +1,151 @@
+/* List-page grids (DataTables 2 inside a .data-grid card) and Tom Select filters (.grid-filter). */
+
+.grid-filter {
+	width: 180px;
+}
+
+	.grid-filter.grid-filter-lg {
+		width: 280px;
+	}
+
+	.grid-filter .ts-control {
+		font-family: 'Poppins', sans-serif;
+		font-size: 14px;
+		border-color: rgb(210, 221, 236);
+	}
+
+	.grid-filter .ts-dropdown {
+		font-family: 'Poppins', sans-serif;
+		font-size: 14px;
+	}
+
+.data-grid {
+	font-family: 'Poppins', sans-serif;
+	font-size: 14px;
+}
+
+	/* Headers: DataTables' default Bootstrap 5 look (dark, bold, normal case). */
+	/* Uppercase headers in a mid-dark slate (site.css's own ".table thead th" grey is too faint). */
+	.data-grid table.dataTable thead th {
+		color: #4a5568;
+		font-size: 13px;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: .04em;
+		white-space: nowrap;
+		border-bottom: 1px solid var(--bs-border-color);
+	}
+
+	/* DataTables puts the sort arrow before the title on number columns; keep it after, like the others. */
+	.data-grid table.dataTable thead th.dt-type-numeric div.dt-column-header {
+		flex-direction: row;
+	}
+
+		.data-grid table.dataTable thead th.dt-type-numeric .dt-column-order {
+			left: -.25rem;
+		}
+
+	/* Paging: Bootstrap 5's joined pagination bar. site.css restyles .pagination app-wide
+	   (small grey buttons with gaps), so restore the Bootstrap defaults inside grids. */
+	.data-grid .pagination .page-link {
+		margin: 0;
+		padding: .375rem .75rem;
+		font-size: 14px;
+		font-weight: 400;
+		color: var(--bs-link-color);
+		border-color: var(--bs-border-color);
+		border-radius: 0 !important;
+	}
+
+	/* webawesome.css indents list items, which would leave gaps between the buttons. */
+	.data-grid .pagination .page-item {
+		margin: 0 !important;
+	}
+
+	.data-grid .pagination .page-item:not(:first-child) .page-link {
+		margin-left: -1px;
+	}
+
+	.data-grid .pagination .page-item:first-child .page-link {
+		border-top-left-radius: var(--bs-border-radius) !important;
+		border-bottom-left-radius: var(--bs-border-radius) !important;
+	}
+
+	.data-grid .pagination .page-item:last-child .page-link {
+		border-top-right-radius: var(--bs-border-radius) !important;
+		border-bottom-right-radius: var(--bs-border-radius) !important;
+	}
+
+	.data-grid .pagination .page-link:hover {
+		z-index: 2;
+		color: var(--bs-link-hover-color);
+		background-color: var(--bs-tertiary-bg);
+		border-color: var(--bs-border-color);
+	}
+
+	.data-grid .pagination .page-item.active .page-link {
+		z-index: 3;
+		color: #fff;
+		background-color: var(--bs-primary);
+		border-color: var(--bs-primary);
+	}
+
+	.data-grid .pagination .page-item.disabled .page-link {
+		color: var(--bs-secondary-color);
+		background-color: var(--bs-secondary-bg);
+		border-color: var(--bs-border-color);
+	}
+
+	.data-grid table.dataTable td {
+		font-size: 14px;
+	}
+
+	/* Matches the specificity of DataTables' own "div.dt-container div.dt-search input" rule. */
+	.data-grid div.dt-container div.dt-search input {
+		width: 28em;
+		max-width: 100%;
+		margin-left: 0;
+	}
+
+	/* Tighter rows than Bootstrap's default table padding. */
+	.data-grid table.dataTable > tbody > tr > td {
+		padding-top: .3rem;
+		padding-bottom: .3rem;
+	}
+
+	/* Contractors, Users, User roles, Locations and Workflows grids. */
+	.data-grid table.dataTable#tblContractors > tbody > tr > td,
+	.data-grid table.dataTable#tblUsers > tbody > tr > td,
+	.data-grid table.dataTable#tblRoles > tbody > tr > td,
+	.data-grid table.dataTable#tblSites > tbody > tr > td,
+	.data-grid table.dataTable#tblWorkflows > tbody > tr > td {
+		padding-top: 10px;
+		padding-bottom: 10px;
+	}
+
+	.data-grid .dt-info {
+		margin-right: 1rem;
+	}
+
+	.data-grid .dt-length select {
+		width: auto;
+		min-width: 4.5rem;
+	}
+
+	.data-grid table.dataTable a {
+		text-decoration: none !important;
+	}
+
+	/* Server-built action icons. */
+	.data-grid .action-icons {
+		justify-content: center;
+	}
+
+		.data-grid .action-icons a:not(:last-child) {
+			padding-right: 12px;
+		}
+
+	/* On narrow screens scroll the table inside the card, not the whole page. */
+	.data-grid .dt-layout-table {
+		overflow-x: auto;
+	}

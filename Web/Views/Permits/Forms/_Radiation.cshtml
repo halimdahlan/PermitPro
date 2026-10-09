@@ -1,6 +1,4 @@
-﻿@using Kendo.Mvc.UI
-
-<!-- Modal: FORM C /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+﻿<!-- Modal: FORM C /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
 <div class="modal fade" id="dlgFormC" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="dlgFormCLabel" aria-hidden="true">
 	<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
 		<div class="modal-content">
@@ -32,75 +30,56 @@
 				</div>
 				<div class="px-2 mb-4">
 					<div class="mb-3">
-						@(Html.Kendo().TextBox()
-								.Name("tbxFormC-MaterialUsed")
-								.Label(x => x.Content("Radioactive material being used, please specify"))
-								.Size(ComponentSize.Medium)
-								.Rounded(Rounded.Large)
-								.FillMode(FillMode.Outline))
+						<div class="form-floating">
+							<input type="text" class="form-control" id="tbxFormC-MaterialUsed" name="tbxFormC-MaterialUsed" autocomplete="off" data-control="textbox" placeholder=" " />
+							<label for="tbxFormC-MaterialUsed">Radioactive material being used, please specify</label>
+						</div>
 					</div>
 					<div class="d-flex flex-row mb-3">
 						<div class="flex-grow-1">
-							@(Html.Kendo().TextBox()
-									.Name("tbxFormC-MaterialActivity")
-									.Label(x => x.Content("Activity of material"))
-									.Size(ComponentSize.Medium)
-									.Rounded(Rounded.Large)
-									.FillMode(FillMode.Outline))
+							<div class="form-floating">
+								<input type="text" class="form-control" id="tbxFormC-MaterialActivity" name="tbxFormC-MaterialActivity" autocomplete="off" data-control="textbox" placeholder=" " />
+								<label for="tbxFormC-MaterialActivity">Activity of material</label>
+							</div>
 						</div>
 						<div class="ms-3 pt-5">
 							<span>Bg/mCi</span>
 						</div>
 					</div>
 					<div class="mb-3">
-						@(Html.Kendo().TextBox()
-								.Name("tbxFormC-ContainedWithin")
-								.Label(x => x.Content("Contained within"))
-								.Size(ComponentSize.Medium)
-								.Rounded(Rounded.Large)
-								.FillMode(FillMode.Outline))
+						<div class="form-floating">
+							<input type="text" class="form-control" id="tbxFormC-ContainedWithin" name="tbxFormC-ContainedWithin" autocomplete="off" data-control="textbox" placeholder=" " />
+							<label for="tbxFormC-ContainedWithin">Contained within</label>
+						</div>
 					</div>
 					<div class="mb-3">
 						<div class="d-flex flex-column flex-md-row">
 							<div class="me-5">
 								<div style="padding-top: 4px;">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormC-XRayMachine")
-											.Label("   X-ray machine")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<div class="form-check fc-check">
+										<input type="checkbox" class="form-check-input" id="chkFormC-XRayMachine" name="chkFormC-XRayMachine" data-control="checkbox" />
+										<label class="form-check-label" for="chkFormC-XRayMachine">X-ray machine</label>
+									</div>
 								</div>
 							</div>
 							<div class="mt-3 mt-md-0">
 								<div class="d-flex flex-row align-items-center mb-2 ms-4 ms-md-0">
 									<label style="min-width: 140px;">Manufacturer/model</label>
 									<div class="ms-3">
-										@(Html.Kendo().TextBox()
-												.Name("tbxFormC-ManufacturerModel")
-												.Size(ComponentSize.Medium)
-												.Rounded(Rounded.Large)
-												.FillMode(FillMode.Outline))
+										<input type="text" class="form-control" id="tbxFormC-ManufacturerModel" name="tbxFormC-ManufacturerModel" autocomplete="off" data-control="textbox" />
 									</div>
 								</div>
 								<div class="d-flex flex-row align-items-center mb-2 ms-4 ms-md-0">
 									<label style="min-width: 140px;">Max tube voltage</label>
 									<div class="ms-3 me-3">
-										@(Html.Kendo().TextBox()
-												.Name("tbxFormC-MaxTubeVoltage")
-												.Size(ComponentSize.Medium)
-												.Rounded(Rounded.Large)
-												.FillMode(FillMode.Outline))
+										<input type="text" class="form-control" id="tbxFormC-MaxTubeVoltage" name="tbxFormC-MaxTubeVoltage" autocomplete="off" data-control="textbox" />
 									</div>
 									<div>kV</div>
 								</div>
 								<div class="d-flex flex-row align-items-center ms-4 ms-md-0">
 									<label style="min-width: 140px;">Max tube current</label>
 									<div class="ms-3 me-3">
-										@(Html.Kendo().TextBox()
-												.Name("tbxFormC-MaxTubeCurrent")
-												.Size(ComponentSize.Medium)
-												.Rounded(Rounded.Large)
-												.FillMode(FillMode.Outline))
+										<input type="text" class="form-control" id="tbxFormC-MaxTubeCurrent" name="tbxFormC-MaxTubeCurrent" autocomplete="off" data-control="textbox" />
 									</div>
 									<div>mA</div>
 								</div>
@@ -111,33 +90,26 @@
 						<div class="d-flex flex-column flex-md-row">
 							<div class="me-5">
 								<div style="padding-top: 4px;">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormC-OtherEquip")
-											.Label("   Other equipment, specify")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<div class="form-check fc-check">
+										<input type="checkbox" class="form-check-input" id="chkFormC-OtherEquip" name="chkFormC-OtherEquip" data-control="checkbox" />
+										<label class="form-check-label" for="chkFormC-OtherEquip">Other equipment, specify</label>
+									</div>
 								</div>
 							</div>
 							<div class="mt-3 mt-md-0">
 								<div class="d-flex flex-row align-items-center mb-2 ms-4 ms-md-0">
 									<div style="margin-left: 83px;">
-										@(Html.Kendo().TextBox()
-												.Name("tbxFormC-OtherEquip")
-												.Size(ComponentSize.Medium)
-												.Rounded(Rounded.Large)
-												.FillMode(FillMode.Outline))
+										<input type="text" class="form-control" id="tbxFormC-OtherEquip" name="tbxFormC-OtherEquip" autocomplete="off" data-control="textbox" />
 									</div>
 								</div>
 							</div>
 						</div>
 					</div>
 					<div class="mb-3">
-						@(Html.Kendo().TextArea()
-								.Name("txtFormC-EquipAdditionalInfo")
-								.Label(x => x.Content("Additional information about operation of equipment"))
-								.Rounded(Rounded.Large)
-								.FillMode(FillMode.Outline)
-								.Rows(2))
+						<div class="form-floating">
+							<textarea class="form-control" id="txtFormC-EquipAdditionalInfo" name="txtFormC-EquipAdditionalInfo" data-control="textarea" rows="2" placeholder=" "></textarea>
+							<label for="txtFormC-EquipAdditionalInfo">Additional information about operation of equipment</label>
+						</div>
 					</div>
 					<div class="mb-3">
 						<div class="mb-2">
@@ -145,33 +117,29 @@
 						</div>
 						<div class="d-flex flex-column flex-md-row justify-content-evenly mb-3">
 							<div class="w-100 me-0 me-md-3 mb-3 mb-md-0">
-								@(Html.Kendo().TimePicker()
-										.Name("tmpFormC-TimeUseFrom")
-										.Label(x => x.Content("From"))
-										.DateInput())
+								<div class="form-floating">
+									<input type="text" class="form-control" id="tmpFormC-TimeUseFrom" name="tmpFormC-TimeUseFrom" autocomplete="off" data-control="time" placeholder=" " />
+									<label for="tmpFormC-TimeUseFrom">From</label>
+								</div>
 							</div><div class="w-100 ms-0 ms-md-3">
-								@(Html.Kendo().TimePicker()
-										.Name("tmpFormC-TimeUseTo")
-										.Label(x => x.Content("To"))
-										.DateInput())
+								<div class="form-floating">
+									<input type="text" class="form-control" id="tmpFormC-TimeUseTo" name="tmpFormC-TimeUseTo" autocomplete="off" data-control="time" placeholder=" " />
+									<label for="tmpFormC-TimeUseTo">To</label>
+								</div>
 							</div>
 						</div>
 					</div>
 					<div class="mb-3">
-						@(Html.Kendo().TextArea()
-								.Name("txtFormC-PreventMeasures")
-								.Label(x => x.Content("Measures to prevent and mitigate exposure"))
-								.Rounded(Rounded.Large)
-								.FillMode(FillMode.Outline)
-								.Rows(2))
+						<div class="form-floating">
+							<textarea class="form-control" id="txtFormC-PreventMeasures" name="txtFormC-PreventMeasures" data-control="textarea" rows="2" placeholder=" "></textarea>
+							<label for="txtFormC-PreventMeasures">Measures to prevent and mitigate exposure</label>
+						</div>
 					</div>
 					<div class="mb-4">
-						@(Html.Kendo().TextArea()
-								.Name("txtFormC-AdditionalControl")
-								.Label(x => x.Content("Additional controls required"))
-								.Rounded(Rounded.Large)
-								.FillMode(FillMode.Outline)
-								.Rows(2))
+						<div class="form-floating">
+							<textarea class="form-control" id="txtFormC-AdditionalControl" name="txtFormC-AdditionalControl" data-control="textarea" rows="2" placeholder=" "></textarea>
+							<label for="txtFormC-AdditionalControl">Additional controls required</label>
+						</div>
 					</div>
 					<div class="text-center">
 						<h6>ALL IRREGULARITIES DURING WORK MUST BE REPORTED IMMEDIATELY TO THE PERMIT HOLDER</h6>
@@ -192,15 +160,15 @@
 						</div>
 						<div class="d-flex flex-column flex-md-row justify-content-evenly mb-3">
 							<div class="w-100 me-0 me-md-3 mb-3 mb-md-0">
-								@(Html.Kendo().TimePicker()
-										.Name("tmpFormC-TimeAllowedFrom")
-										.Label(x => x.Content("From"))
-										.DateInput())
+								<div class="form-floating">
+									<input type="text" class="form-control" id="tmpFormC-TimeAllowedFrom" name="tmpFormC-TimeAllowedFrom" autocomplete="off" data-control="time" placeholder=" " />
+									<label for="tmpFormC-TimeAllowedFrom">From</label>
+								</div>
 							</div><div class="w-100 ms-0 ms-md-3">
-								@(Html.Kendo().TimePicker()
-										.Name("tmpFormC-TimeAllowedTo")
-										.Label(x => x.Content("To"))
-										.DateInput())
+								<div class="form-floating">
+									<input type="text" class="form-control" id="tmpFormC-TimeAllowedTo" name="tmpFormC-TimeAllowedTo" autocomplete="off" data-control="time" placeholder=" " />
+									<label for="tmpFormC-TimeAllowedTo">To</label>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -212,20 +180,13 @@
 					<div>
 						<div class="d-flex flex-row align-items-center">
 							<div class="me-5">
-								@(Html.Kendo().Switch()
-										.Name("swtFormC-Withdrawn")
-										.Size(ComponentSize.Small)
-										.Messages(x => x.Checked("YES").Unchecked("NO"))
-										.Events(x => x.Change("onChangeWithdrawnFormC")))
+								<div class="form-check form-switch fc-switch">
+									<input type="checkbox" role="switch" class="form-check-input" id="swtFormC-Withdrawn" name="swtFormC-Withdrawn" data-control="switch" data-change="onChangeWithdrawnFormC" />
+								</div>
 							</div>
 							<label class="form-label me-3" for="tbxFormD-Withdrawn-Reason">Reason</label>
 							<div class="flex-grow-1">
-								@(Html.Kendo().TextBox()
-										.Name("tbxFormC-Withdrawn-Reason")
-										.Enable(false)
-										.Size(ComponentSize.Medium)
-										.Rounded(Rounded.Large)
-										.FillMode(FillMode.Outline))
+								<input type="text" class="form-control" id="tbxFormC-Withdrawn-Reason" name="tbxFormC-Withdrawn-Reason" autocomplete="off" data-control="textbox" disabled />
 							</div>
 						</div>
 					</div>

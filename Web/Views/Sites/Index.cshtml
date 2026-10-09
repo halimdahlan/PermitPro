@@ -1,13 +1,16 @@
-﻿@using Kendo.Mvc.UI;
-
 @{
 	ViewData["Title"] = "Settings / Locations";
 	ViewData["SubTitle"] = "Summary";
-
-	//var companyId = ViewContext.RouteData.Values["company"] as string;
 }
 
 @model SitesViewModel
+
+@{
+	// Child locations are listed per parent; the root list uses /sites/grid.
+	var gridUrl = string.IsNullOrEmpty(Model.ParentId)
+		? $"/{Model.CompanyId}/sites/grid"
+		: $"/{Model.CompanyId}/sites/grid/{Model.ParentId}";
+}
 
 <div class="data-table">
 	<div class="d-flex flex-row justify-content-between align-items-center mb-5">
@@ -26,8 +29,6 @@
 		}
 	</div>
 
-	
-
 	@if (TempData["SuccessMessage"] != null)
 	{
 		<div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -35,93 +36,25 @@
 		</div>
 	}
 
-	</div>
-
-	<div class="my-3">
+	<div class="my-3 card data-grid">
+		<div class="card-body">
+			<div class="grid-error alert alert-danger d-none" role="alert"></div>
+			<table id="tblSites" class="table table-sm table-hover align-middle w-100">
+				<thead>
+					<tr>
+						<th>Location Name</th>
+						<th>Description</th>
+						<th>Contact Name</th>
+						<th>Contact Email</th>
+						<th class="text-center">Is Active?</th>
+						<th class="text-center">Action</th>
+					</tr>
+				</thead>
+			</table>
+		</div>
 		@Html.AntiForgeryToken()
-		@(Html.Kendo()
-			.Grid<SitesGridViewModel>()
-			.Name("grid")
-			.ToolBar(tb => tb.Search())
-			.NoRecords()
-			.Pageable()
-			.Sortable()
-			.Columns(c =>
-			{
-
-				c.Bound(p => p.Name)
-					.ClientTemplate(
-						$"<a href=\"/{Model.CompanyId}/sites/#= Id #\">#= Name #</a>"
-					)
-					.Width(250);
-
-				c.Bound(p => p.Description);
-
-				c.Bound(p => p.ContactName)
-					.Width(250);
-
-				c.Bound(p => p.ContactEmail)
-					.Width(250);
-
-				c.Bound(p => p.IsActive)
-					.ClientTemplate(
-						"# if (IsActive) { #" +
-						"    <i class=\"fa-sharp fa-solid fa-circle-check fa-lg text-success\"></i>" +
-						"# } else { #" +
-						"    <i class=\"fa-sharp fa-solid fa-circle-check fa-lg text-warning\"></i>" +
-						"# } #"
-					)
-					.HeaderHtmlAttributes(new { @class = "grid-header text-center" })
-					.HtmlAttributes(new { @class = "text-center" })
-					.Width(120);
-
-				c.Bound(p => p.ActionIcons)
-					.Title("ACTION")
-					.Sortable(false)
-					.Encoded(false)
-					.HeaderHtmlAttributes(new { @class = "text-center" })
-					.HtmlAttributes(new { @class = "text-center" })
-					.Width(100);
-
-			})
-			.DataSource(ds => ds
-				.Custom()
-				.Schema(s => s
-					.Model(m =>
-					{
-						m.Id(i => i.Id);
-					})
-				)
-				.Transport(t =>
-				{
-					if (Model.ParentId != string.Empty)
-					{
-						t.Read(r => r.Url($"/{Model.CompanyId}/sites/grid/{Model.ParentId}").Type(HttpVerbs.Get));
-					}
-					else
-					{
-						t.Read(r => r.Url($"/{Model.CompanyId}/sites/grid").Type(HttpVerbs.Get));
-					}
-				})
-				.PageSize(20)
-			)
-		)
 	</div>
 
-	<!--
-	<table id="tbl" class="table table-striped display pt-5 mb-3">
-		<thead>
-			<tr>
-				<th>LOCATION NAME</th>
-				<th style="width: 400px;">DESCRIPTION</th>
-				<th style="width: 200px;">CONTACT NAME</th>
-				<th style="width: 200px;">EMAIL</th>
-				<th data-class-name="text-center" style="width: 73px;">IS ACTIVE?</th>
-				<th style="width: 78px;" data-orderable="false">&nbsp;</th>
-			</tr>
-		</thead>
-	</table>
-	-->
 	@if (Model.SiteParent != null)
 	{
 		<div class="d-flex flex-row align-items-center justify-content-between mt-5">
@@ -139,270 +72,39 @@
 	}
 </div>
 
-
-<!-- Modal -->
-<div class="modal fade" id="dlgSite" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="dlgSiteLabel" aria-hidden="true">
-	<div class="modal-dialog modal-dialog-centered">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h1 class="modal-title" id="dlgSiteLabel">New location</h1>
-				<a href="#" class="no-loading text-dark" data-bs-dismiss="modal" aria-label="Close"><i class="fa-sharp fa-solid fa-xmark fa-xl"></i></a>
-			</div>
-			<div class="modal-body">
-				<form id="frmNew" class="needs-validation" onsubmit="return formOnSubmit" novalidate>
-					<div class="form-group">
-						<label class="form-label" for="frm-site-parent">Parent location</label>
-						<select id="frm-site-parent" class="form-select" asp-items="@(new SelectList(ViewBag.SiteList, "Id", "Name"))"></select>
-					</div>
-					<div class="form-group">
-						<label class="form-label" for="frm-site-name">Location name</label>
-						<input id="frm-site-name" type="text" class="form-control" required />
-						<div class="invalid-feedback">Please enter a location name</div>
-					</div>
-					<div class="form-group">
-						<label class="form-label" for="frm-site-desc">Description</label>
-						<textarea id="frm-site-desc" class="form-control"></textarea>
-					</div>
-					<div>
-						<h4>Contact</h4>
-						<div class="d-flex flex-row">
-							<div class="w-50 me-2">
-								<div class="form-group">
-									<label class="form-label" for="frm-site-contact">Name</label>
-									<input id="frm-site-contact" type="text" class="form-control" required />
-									<div class="invalid-feedback">Please enter a contact name</div>
-								</div>
-							</div>
-							<div class="w-50 ms-2">
-								<div class="form-group">
-									<label class="form-label" for="frm-site-email">Email</label>
-									<input id="frm-site-email" type="email" class="form-control" required />
-									<div class="invalid-feedback">Please enter the contact's email</div>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div>
-						<h4>Coordinates</h4>
-						<div class="d-flex flex-row">
-							<div class="w-50 me-2">
-								<div class="form-group">
-									<label class="form-label" for="frm-site-lat">Latitude</label>
-									<input id="frm-site-lat" type="text" class="form-control" value="0.0" />
-								</div>
-							</div>
-							<div class="w-50 ms-2">
-								<div class="form-group">
-									<label class="form-label" for="frm-site-lng">Longitude</label>
-									<input id="frm-site-lng" type="text" class="form-control" value="0.0" />
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="form-group mb-3 d-flex flex-row align-items-center">
-						<div class="form-check me-5">
-							<input class="form-check-input" type="radio" id="frm-site-active" name="ctrl04" checked>
-							<label class="form-check-label" for="frm-site-active">Active</label>
-						</div>
-						<div class="form-check">
-							<input class="form-check-input" type="radio" id="frm-site-inactive" name="ctrl04">
-							<label class="form-check-label" for="frm-site-inactive">Inactive</label>
-						</div>
-					</div>
-					<div class="form-group mb-3 d-flex flex-row align-items-center">
-						<div class="form-check me-5">
-							<input class="form-check-input" type="checkbox" id="frm-site-map-show" name="ctrl05">
-							<label class="form-check-label" for="frm-site-map-show">Show in map</label>
-						</div>
-					</div>
-					<input id="frm-mode" type="hidden" value="new" />
-					<input id="frm-site-id" type="hidden" />
-				</form>
-			</div>
-			<div class="modal-footer">
-				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-				<button type="button" class="btn btn-primary btn-save">Save changes</button>
-			</div>
-		</div>
-	</div>
-</div>
-
-
-<div class="modal fade" id="dlgConfirm" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="dlgConfirmLabel" aria-hidden="true">
-	<div class="modal-dialog modal-dialog-centered">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h1 class="modal-title" id="dlgConfirmLabel">Confirm delete</h1>
-				<a href="#" class="no-loading text-dark" data-bs-dismiss="modal" aria-label="Close"><i class="fa-sharp fa-solid fa-xmark fa-xl"></i></a>
-			</div>
-			<div class="modal-body">
-				Are you sure you want to delete this site?
-			</div>
-			<div class="modal-footer">
-				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-				<button type="button" class="btn btn-danger btn-proceed" data-site-id="">Yes, proceed</button>
-			</div>
-		</div>
-	</div>
-</div>
-
 @section CustomCss {
-	<!-- DataTables -->
-	<link rel="stylesheet" href="~/lib/DataTables/datatables.min.css" />
-	<script src="~/lib/DataTables/datatables.min.js"></script>
-
+	<partial name="_DataGridStyles" />
 	<link rel="stylesheet" href="~/css/sites.css" />
 }
 
 @section Scripts {
-	<script>
-		var tbl;
-		var guidEmpty = '00000000-0000-0000-0000-000000000000';
-		var siteParentId = '@((Model.SiteParent != null) ? Model.SiteParent.Id : "")';
-		var grid;
+	<partial name="_DataGridScripts" />
 
+	<script>
+		var tbl = null;
 
 		$(document).ready(() => {
-			var getUrl = '/@Model.CompanyId/sites';
-			var parent = '@Model.ParentId';
 
-			if (parent != '') {
-				getUrl += '/' + parent;
-			}
-
-			grid = $("#grid").data("kendoGrid");
-
-			grid.dataSource.transport.options.read.beforeSend = (req) => {
-				req.setRequestHeader('RequestVerificationToken', $('input:hidden[name="__RequestVerificationToken"]').val());
-			};
-
-			// Add new site
-			$('.btn-save').click(() => {
-				$('#dlgSite').modal('hide');
-
-				$('#frmNew').addClass('was-validated');
-
-				var parentId = $('#frm-site-parent option:selected').val();
-				var name = $('#frm-site-name').val();
-				var desc = $('#frm-site-desc').val();
-				var contact = $('#frm-site-contact').val();
-				var email = $('#frm-site-email').val();
-				var latitude = $('#frm-site-lat').val();
-				var longitude = $('#frm-site-lng').val();
-				var isActive = $('#frm-site-active').prop('checked');
-				var showInMap = $('#frm-site-map-show').prop('checked');
-				var mode = $('#frm-mode').val();
-				var method = 'POST';
-
-				if (name != '' && contact != '' && email != '') {
-					var frmData = new FormData();
-					frmData.append('ParentId', parentId);
-					frmData.append('Name', name);
-					frmData.append('Description', desc);
-					frmData.append('Contact', contact);
-					frmData.append('Email', email);
-					frmData.append('Latitude', latitude);
-					frmData.append('Longitude', longitude);
-					frmData.append('IsActive', isActive);
-					frmData.append('ShowInMap', showInMap);
-					frmData.append('SiteType', 1);
-					frmData.append('CompanyId', '@Model.CompanyId');
-					frmData.append('Mode', mode);
-
-					$('.loading').show();
-
-					var postUrl = '/@Model.CompanyId/sites';
-
-					if (mode == 'edit') {
-						frmData.append('Id', $('#frm-site-id').val());
-					} else {
-						frmData.append('Id', guidEmpty);
-					}
-
-					var ajaxPost = $.ajax({
-						url: postUrl,
-						method: 'POST',
-						data: frmData,
-						contentType: false,
-						processData: false,
-						cache: false,
-						beforeSend: (xhr) => {
-							var token = $("input:hidden[name=__RequestVerificationToken]").val();
-							xhr.setRequestHeader('RequestVerificationToken', token);
-						},
-					});
-
-					ajaxPost.done((response) => {
-						if (response.data == 'OK') {
-							grid.dataSource.read();
-						}
-					});
-
-					ajaxPost.always(() => {
-						$('.loading').hide();
-					});
-				}
-			});
-
-
-			// Delete site
-			$('.btn-proceed').click(() => {
-				var id = $('.btn-proceed').data('siteId');
-
-				if (id != '') {
-					var postUrl = '/@Model.CompanyId/sites/' + id;
-
-					$('.loading').show();
-
-					var xhr = $.ajax({
-						method: 'DELETE',
-						url: postUrl,
-					});
-
-					xhr.done((response) => {
-						if (response.data == 'OK') {
-							grid.dataSource.read();
-						}
-					});
-
-					xhr.fail(() => {
-						alert('ERROR!');
-					});
-
-					xhr.always(() => {
-						$('.loading').css('display', 'none');
-					});
-				}
-			});
-
-
-			$('#dlgSite').on('show.bs.modal', () => {
-				if (siteParentId != '') {
-					$('#frm-site-parent option[value="' + siteParentId + '"]').prop('selected', true);
-					$('#frm-site-parent').prop('disabled', 'disabled');
-					$('#frm-site-parent').addClass('disabled');
-				} else {
-					$('#frm-site-parent').prop('disabled', null);
-					$('#frm-site-parent').removeClass('disabled');
-				}
-			});
-
-
-			$('#dlgSite').on('hidden.bs.modal', () => {
-				$('#frm-site-parent option[value="' + guidEmpty + '"]').prop('selected', true);
-				$('#frm-site-name').val('');
-				$('#frm-site-desc').val('');
-				$('#frm-site-contact').val('');
-				$('#frm-site-email').val('');
-				$('#frm-site-active').prop('checked', true);
-				$('#frmNew').removeClass('was-validated');
-				$('#frm-mode').val('new');
-				$('#dlgSiteLabel').html('New location');
-			});
-
-
-			$('#dlgConfirm').on('hide.bs.modal', () => {
-				$('.btn-proceed').data('siteId', '');
+			tbl = DataGrid.create('#tblSites', '@gridUrl', {
+				pageLength: 20,
+				language: {
+					emptyTable: 'No locations found.',
+					zeroRecords: 'No matching locations found.',
+				},
+				columns: [
+					{
+						// Opens the child locations of this location.
+						data: 'Name',
+						render: (data, type, row) => type === 'display'
+							? `<a href="/@Model.CompanyId/sites/${row.Id}">${DataGrid.escapeHtml(data)}</a>`
+							: data,
+					},
+					{ data: 'Description', render: DataGrid.renderText },
+					{ data: 'ContactName', render: DataGrid.renderText },
+					{ data: 'ContactEmail', render: DataGrid.renderText },
+					{ data: 'IsActive', className: 'text-center', render: DataGrid.renderActive },
+					DataGrid.htmlColumn('ActionIcons', { className: 'text-center text-nowrap' }),
+				],
 			});
 
 
@@ -415,20 +117,15 @@
 				var xhr = $.ajax({
 					method: 'DELETE',
 					url: `/@Model.CompanyId/sites/${id}`,
+					headers: { 'RequestVerificationToken': DataGrid.antiForgeryToken() },
 				});
 
 				xhr.done((response, status) => {
 					if (status == 'success') {
 						if (response.data == 'OK') {
-							grid.dataSource.read();
+							tbl.ajax.reload(null, false);
 						}
 					}
-
-					//$('#dlgConfirmDeleteItem').modal('hide');
-				});
-
-				xhr.fail(() => {
-					//$('#dlgConfirmDeleteItem').modal('hide');
 				});
 
 				xhr.always(() => {
@@ -440,64 +137,11 @@
 		});
 
 
-		const manageSite = (id, isDelete) => {
-			var postUrl = '/@Model.CompanyId/sites/info/' + id;
-			
-			if (!isDelete) {
-				$('#frm-mode').val('edit');
-
-				$('.loading').show();
-
-				//var xhr = $.post(postUrl);
-
-				var xhr = $.ajax({
-					url: postUrl,
-					method: 'GET',
-				});
-
-				xhr.done((response) => {
-					$('#dlgSite').modal('show');
-					$('#dlgSiteLabel').html('Edit location');
-
-					if (response.parent != null) {
-						$('#frm-site-parent option[value="' + response.parent.id + '"]').prop('selected', true);
-					}
-
-					$('#frm-site-id').val(response.id);
-					$('#frm-site-name').val(response.name);
-					$('#frm-site-desc').val(response.description);
-					$('#frm-site-contact').val(response.contactName);
-					$('#frm-site-email').val(response.contactEmail);
-					$('#frm-site-lat').val(response.latitude);
-					$('#frm-site-lng').val(response.longitude);
-					$('#frm-site-active').prop('checked', response.isActive);
-					$('#frm-site-inactive').prop('checked', !response.isActive);
-					$('#frm-site-map-show').prop('checked', response.showInMap);
-				});
-
-				xhr.fail((response, status) => {
-					alert(response);
-				});
-
-				xhr.always(() => {
-					$('.loading').css('display', 'none');
-				});
-
-			} else {
-				$('#dlgConfirm').modal('show');
-				$('.btn-proceed').data('siteId', id);
-			}
-		};
-
-
+		// Called by the delete icon in the server-built ActionIcons column.
 		const deleteItem = (id) => {
 			$('#btnDeleteItem').data('itemId', id);
 			$('#dlgConfirmDeleteItem').modal('show');
 		};
 
-
-		const formOnSubmit = () => {
-			return false;
-		};
 	</script>
 }

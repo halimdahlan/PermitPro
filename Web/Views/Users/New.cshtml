@@ -1,5 +1,3 @@
-﻿@using Kendo.Mvc.UI;
-
 @{
 	ViewData["Title"] = "Settings / Users";
 	ViewData["SubTitle"] = "New user";
@@ -80,31 +78,7 @@ else
 						<div class="row g-3 mb-3">
 							<div class="col">
 								<label class="form-label">Locations</label>
-								@(Html
-									.Kendo()
-										.DropDownTree()
-											.Name("ddlLocations")
-											.DataValueField("id")
-											.DataTextField("name")
-											.Placeholder("(select locations)")
-											.Events(events => events
-												.Change("onChangeSites")
-											)
-											.FillMode(FillMode.Outline)
-											.Rounded(Rounded.Large)
-											.CheckAll(false)
-											.AutoClose(false)
-											.Checkboxes(checkboxes => checkboxes
-												.Name("checkedFiles")
-												.CheckChildren(true)
-											)
-											.DataSource(ds => ds
-												.Read(read => read
-													.Url($"/api/data/{Model.CompanyID}/sites/hierarchical")
-													.Type(HttpVerbs.Get)
-												)
-											)
-									)
+								<div id="locationPicker"></div>
 							</div>
 						</div>
 						<div class="row g-3 mb-3">
@@ -144,16 +118,17 @@ else
 	@section Scripts {
 		<!-- Includes jQuery validation for instant client-side checks without reloading -->
 		<partial name="_ValidationScriptsPartial" />
+		<partial name="_LocationPickerScripts" />
 
 		<script>
-			var selectedLocations = [];
 			var isContractor = @Model.OriginFromContractors.ToString().ToLower();
 
 			$(document).ready(() => {
-				var dropDownTree = $('#ddlLocations').data('kendoDropDownTree');
-
-				dropDownTree.dataSource.filter({});
-				dropDownTree.value(selectedLocations);
+				// Locations picker; the selection is kept in the hidden #hidLocations input.
+				LocationPicker.create(
+					document.getElementById('locationPicker'),
+					document.getElementById('hidLocations'),
+					'/@Model.CompanyID/sites/tree');
 
 				if (isContractor) {
 					const selectElement = document.getElementById('UserRole');
@@ -170,31 +145,13 @@ else
 				}
 			});
 
-			const onChangeSites = () => {
-				var checkedNodes = [];
-				var dropDownTree = $('#ddlLocations').data('kendoDropDownTree');
-
-				checkedNodeIds(dropDownTree.dataSource.view(), checkedNodes);
-				$('#hidLocations').val(JSON.stringify(checkedNodes));
-			};
-
-			const checkedNodeIds = (nodes, checkedNodes) => {
-				for (var i = 0; i < nodes.length; i++) {
-					if (nodes[i].checked) {
-						checkedNodes.push(nodes[i].id);
-					}
-
-					if (nodes[i].hasChildren) {
-						checkedNodeIds(nodes[i].children.view(), checkedNodes);
-					}
-				}
-			};
 		</script>
 	}
 
 }
 
 @section CustomCss {
+	<partial name="_LocationPickerStyles" />
 	<link rel="stylesheet" href="~/css/users.css" />
 }
 

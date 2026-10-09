@@ -1,6 +1,6 @@
 ---
 name: patterns
-description: "Key coding conventions, EF patterns, Kendo UI usage, and gotchas specific to this codebase"
+description: "Key coding conventions, EF patterns, UI controls (DataTables/Tom Select/form-controls), and gotchas specific to this codebase"
 metadata: 
   node_type: memory
   type: project
@@ -9,7 +9,7 @@ metadata:
 
 **Why:** These patterns are not always obvious from the code and save time when working on this repo.
 
-**How to apply:** Follow these before writing any new controller action, EF query, or Kendo component.
+**How to apply:** Follow these before writing any new controller action, EF query, or UI control.
 
 ## EF Core Patterns
 
@@ -24,13 +24,11 @@ metadata:
 - When projecting to `DeletedItem.Id` (Guid): `Guid.Parse(r.Id)`
 - When looking up by Guid for Restore/Delete: `r.Id == id.ToString()`
 
-## Kendo UI
+## UI controls (Telerik/Kendo removed — do not reintroduce)
 
-- DropDownList width is not set on the Kendo helper — set via `HtmlAttributes(new { @style = "width:Xpx" })`
-- `ComponentSize.Medium`, `Rounded.Medium`, `FillMode.Solid` — standard styling for all pickers
-- DataSource reads use `.Action("ActionName", "ControllerName")` without company prefix (routing handles it)
-- To reset a DropDownList to first item: `$('#id').data('kendoDropDownList').select(0);`
-- To apply client-side grid filter: `var grid = $('#gridResult').data('kendoGrid'); grid.dataSource.filter({...});`
+- Grids: DataTables 2 via `DataGrid.create(selector, url, options)` (`wwwroot/js/datagrid.js`); column filters with `DataGrid.filterExact` / `filterListItem`
+- Dropdowns: native `<select>` + Tom Select; reset with `tomSelect.setValue('')`
+- Old-system permit form: controls marked `data-control="..."`; read/write with `$('#id').data('control').value()` (`wwwroot/js/form-controls.js`)
 
 ## JavaScript / AJAX
 
@@ -55,5 +53,5 @@ metadata:
 
 - `DurationDays` is a computed property (no setter) — cannot be set in object initializer, only derived from StartDate/EndDate
 - After editing a model file, check for duplicate property declarations — Edit tool can accidentally double-add properties if the old_string doesn't match exactly
-- PermitHolderId must be `.ToLower()` for case-insensitive match between Kendo dropdown value and grid filter
+- PermitHolderId must be `.ToLower()` for case-insensitive match between the dropdown value and grid filter
 - `byMonth` trend intentionally ignores the date filter — always last 12 months for trend continuity

@@ -1,6 +1,5 @@
 ﻿#nullable disable
 
-using Kendo.Mvc.Extensions;
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;

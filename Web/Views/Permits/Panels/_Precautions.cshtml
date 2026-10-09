@@ -1,6 +1,4 @@
-﻿@using Kendo.Mvc.UI
-
-@model EditPermitViewModel
+﻿@model EditPermitViewModel
 
 <h2 class="accordion-header">
 	<button class="accordion-button fw-semibold text-uppercase collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse6" aria-expanded="false" aria-controls="collapse6">
@@ -16,19 +14,11 @@
 		<div>
 			<div class="form-group">
 				<label class="form-label" for="precautionsForWork">Precautions for the work (in addition to those overleaf, and stated in associated certificates)</label>
-				@(Html.Kendo().TextArea()
-						.Name("precautionsForWork")
-						.Rounded(Rounded.Large)
-						.FillMode(FillMode.Outline)
-						.Rows(2))
+				<textarea class="form-control" id="precautionsForWork" name="precautionsForWork" data-control="textarea" rows="2"></textarea>
 			</div>
 			<div class="form-group">
 				<label class="form-label" for="tbPrecautions2">Additional Precautions for Lead Permit Issuer (LPI) and Engineer</label>
-				@(Html.Kendo().TextArea()
-						.Name("additionalPrecautions")
-						.Rounded(Rounded.Large)
-						.FillMode(FillMode.Outline)
-						.Rows(2))
+				<textarea class="form-control" id="additionalPrecautions" name="additionalPrecautions" data-control="textarea" rows="2"></textarea>
 			</div>
 		</div>
 		<hr />
@@ -39,10 +29,9 @@
 						<div><label for="swPrecautions3">Reference made to attached Method of Statement?</label></div>
 					</div>
 					<div class="">
-						@(Html.Kendo().Switch()
-								.Name("methodOfStatementAttached")
-								.Size(ComponentSize.Small)
-								.Messages(x => x.Checked("YES").Unchecked("NO")))
+						<div class="form-check form-switch fc-switch">
+							<input type="checkbox" role="switch" class="form-check-input" id="methodOfStatementAttached" name="methodOfStatementAttached" data-control="switch" />
+						</div>
 					</div>
 				</li>
 			</ul>
@@ -52,10 +41,7 @@
 			<div class="mb-3">Declaration</div>
 			<div class="d-flex flex-row">
 				<div>
-					@(Html.Kendo().CheckBox()
-							.Name("declaration")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+					<input type="checkbox" class="form-check-input fc-check-input" id="declaration" name="declaration" data-control="checkbox" />
 				</div>
 				<label class="form-label ms-3" for="chkPrecautions4">
 					I certified that I have fully considered the implications of the work in line with the responsibilities details
@@ -72,10 +58,9 @@
 						<div><label for="swPrecautions5">Engineering Advice Required?</label></div>
 					</div>
 					<div class="">
-						@(Html.Kendo().Switch()
-								.Name("engineeringAdviceRequired")
-								.Size(ComponentSize.Small)
-								.Messages(x => x.Checked("YES").Unchecked("NO")))
+						<div class="form-check form-switch fc-switch">
+							<input type="checkbox" role="switch" class="form-check-input" id="engineeringAdviceRequired" name="engineeringAdviceRequired" data-control="switch" />
+						</div>
 					</div>
 				</li>
 			</ul>
@@ -85,10 +70,7 @@
 			<div class="mb-3">Declaration by Permit Issuer (PI)</div>
 			<div class="d-flex flex-row">
 				<div>
-					@(Html.Kendo().CheckBox()
-							.Name("authorizedForExecution1")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+					<input type="checkbox" class="form-check-input fc-check-input" id="authorizedForExecution1" name="authorizedForExecution1" data-control="checkbox" />
 				</div>
 				<label class="form-label ms-3" for="chkPrecautions6">
 					Authorised for execution without additional certificates
@@ -100,10 +82,7 @@
 			<div class="mb-3">Declaration by Lead Permit Issuer (LPI)</div>
 			<div class="d-flex flex-row">
 				<div>
-					@(Html.Kendo().CheckBox()
-							.Name("authorizedForExecution2")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+					<input type="checkbox" class="form-check-input fc-check-input" id="authorizedForExecution2" name="authorizedForExecution2" data-control="checkbox" />
 				</div>
 				<label class="form-label ms-3" for="chkPrecautions7">
 					Authorised for execution only in accordance with attached certificates
@@ -115,10 +94,7 @@
 			<div class="mb-3">Permit validity (where work is going to last more than the duration of a day)</div>
 			<div class="d-flex flex-row">
 				<div>
-					@(Html.Kendo().CheckBox()
-							.Name("permitValidity")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+					<input type="checkbox" class="form-check-input fc-check-input" id="permitValidity" name="permitValidity" data-control="checkbox" />
 				</div>
 				<label class="form-label ms-3" for="chkPrecautions8">
 					Permit Issuer & Permit Holder confirm by signing that the precautions required to work safely have been

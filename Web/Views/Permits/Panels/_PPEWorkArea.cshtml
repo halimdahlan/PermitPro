@@ -1,6 +1,4 @@
-﻿@using Kendo.Mvc.UI
-
-@model EditPermitViewModel
+﻿@model EditPermitViewModel
 
 <h2 class="accordion-header">
 	<button class="accordion-button fw-semibold text-uppercase collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse4" aria-expanded="false" aria-controls="collapse4">
@@ -19,11 +17,9 @@
 					<div><label for="swPpeWorkArea1">Safety Glasses</label></div>
 				</div>
 				<div class="">
-					@(Html.Kendo().Switch()
-							.Name("swPpeWorkArea1")
-							.Size(ComponentSize.Small)
-							.HtmlAttributes(new { data_elem = "safetyGlass" })
-							.Messages(x => x.Checked("YES").Unchecked("NO")))
+					<div class="form-check form-switch fc-switch">
+						<input type="checkbox" role="switch" class="form-check-input" id="swPpeWorkArea1" name="swPpeWorkArea1" data-control="switch" data-elem="safetyGlass" />
+					</div>
 				</div>
 			</li>
 			<li class="list-group-item d-flex justify-content-between align-items-center">
@@ -31,11 +27,9 @@
 					<div><label for="swPpeWorkArea2">Safety Helmet</label></div>
 				</div>
 				<div class="">
-					@(Html.Kendo().Switch()
-							.Name("swPpeWorkArea2")
-							.Size(ComponentSize.Small)
-							.HtmlAttributes(new { data_elem = "safetyHelmet" })
-							.Messages(x => x.Checked("YES").Unchecked("NO")))
+					<div class="form-check form-switch fc-switch">
+						<input type="checkbox" role="switch" class="form-check-input" id="swPpeWorkArea2" name="swPpeWorkArea2" data-control="switch" data-elem="safetyHelmet" />
+					</div>
 				</div>
 			</li>
 			<li class="list-group-item d-flex justify-content-between align-items-center">
@@ -43,11 +37,9 @@
 					<div><label for="swPpeWorkArea3">Full Face Mask</label></div>
 				</div>
 				<div class="">
-					@(Html.Kendo().Switch()
-							.Name("swPpeWorkArea3")
-							.Size(ComponentSize.Small)
-							.HtmlAttributes(new { data_elem = "fullFaceMask" })
-							.Messages(x => x.Checked("YES").Unchecked("NO")))
+					<div class="form-check form-switch fc-switch">
+						<input type="checkbox" role="switch" class="form-check-input" id="swPpeWorkArea3" name="swPpeWorkArea3" data-control="switch" data-elem="fullFaceMask" />
+					</div>
 				</div>
 			</li>
 			<li class="list-group-item d-flex justify-content-between align-items-center">
@@ -55,11 +47,9 @@
 					<div><label for="swPpeWorkArea4">Leather Gloves</label></div>
 				</div>
 				<div class="">
-					@(Html.Kendo().Switch()
-							.Name("swPpeWorkArea4")
-							.Size(ComponentSize.Small)
-							.HtmlAttributes(new { data_elem = "leatherGloves" })
-							.Messages(x => x.Checked("YES").Unchecked("NO")))
+					<div class="form-check form-switch fc-switch">
+						<input type="checkbox" role="switch" class="form-check-input" id="swPpeWorkArea4" name="swPpeWorkArea4" data-control="switch" data-elem="leatherGloves" />
+					</div>
 				</div>
 			</li>
 			<li class="list-group-item d-flex justify-content-between align-items-center">
@@ -67,11 +57,9 @@
 					<div><label for="swPpeWorkArea5">Neoprene Gloves</label></div>
 				</div>
 				<div class="">
-					@(Html.Kendo().Switch()
-							.Name("swPpeWorkArea5")
-							.Size(ComponentSize.Small)
-							.HtmlAttributes(new { data_elem = "neopreneGloves" })
-							.Messages(x => x.Checked("YES").Unchecked("NO")))
+					<div class="form-check form-switch fc-switch">
+						<input type="checkbox" role="switch" class="form-check-input" id="swPpeWorkArea5" name="swPpeWorkArea5" data-control="switch" data-elem="neopreneGloves" />
+					</div>
 				</div>
 			</li>
 			<li class="list-group-item d-flex justify-content-between align-items-center">
@@ -79,11 +67,9 @@
 					<div><label for="swPpeWorkArea6">Safety Harness</label></div>
 				</div>
 				<div class="">
-					@(Html.Kendo().Switch()
-							.Name("swPpeWorkArea6")
-							.Size(ComponentSize.Small)
-							.HtmlAttributes(new { data_elem = "safetyHarness" })
-							.Messages(x => x.Checked("YES").Unchecked("NO")))
+					<div class="form-check form-switch fc-switch">
+						<input type="checkbox" role="switch" class="form-check-input" id="swPpeWorkArea6" name="swPpeWorkArea6" data-control="switch" data-elem="safetyHarness" />
+					</div>
 				</div>
 			</li>
 			<li class="list-group-item d-flex justify-content-between align-items-center">
@@ -91,11 +77,9 @@
 					<div><label for="swPpeWorkArea7">Fall Protection</label></div>
 				</div>
 				<div class="">
-					@(Html.Kendo().Switch()
-							.Name("swPpeWorkArea7")
-							.Size(ComponentSize.Small)
-							.HtmlAttributes(new { data_elem = "fallProtection" })
-							.Messages(x => x.Checked("YES").Unchecked("NO")))
+					<div class="form-check form-switch fc-switch">
+						<input type="checkbox" role="switch" class="form-check-input" id="swPpeWorkArea7" name="swPpeWorkArea7" data-control="switch" data-elem="fallProtection" />
+					</div>
 				</div>
 			</li>
 			<li class="list-group-item d-flex justify-content-between align-items-center">
@@ -103,11 +87,9 @@
 					<div><label for="swPpeWorkArea8">Safety Shoes</label></div>
 				</div>
 				<div class="">
-					@(Html.Kendo().Switch()
-							.Name("swPpeWorkArea8")
-							.Size(ComponentSize.Small)
-							.HtmlAttributes(new { data_elem = "safetyShoes" })
-							.Messages(x => x.Checked("YES").Unchecked("NO")))
+					<div class="form-check form-switch fc-switch">
+						<input type="checkbox" role="switch" class="form-check-input" id="swPpeWorkArea8" name="swPpeWorkArea8" data-control="switch" data-elem="safetyShoes" />
+					</div>
 				</div>
 			</li>
 			<li class="list-group-item d-flex justify-content-between align-items-center">
@@ -115,11 +97,9 @@
 					<div><label for="swPpeWorkArea9">Ear Protection</label></div>
 				</div>
 				<div class="">
-					@(Html.Kendo().Switch()
-							.Name("swPpeWorkArea9")
-							.Size(ComponentSize.Small)
-							.HtmlAttributes(new { data_elem = "earProtection" })
-							.Messages(x => x.Checked("YES").Unchecked("NO")))
+					<div class="form-check form-switch fc-switch">
+						<input type="checkbox" role="switch" class="form-check-input" id="swPpeWorkArea9" name="swPpeWorkArea9" data-control="switch" data-elem="earProtection" />
+					</div>
 				</div>
 			</li>
 			<li class="list-group-item d-flex justify-content-between align-items-center">
@@ -127,39 +107,27 @@
 					<div><label for="swPpeWorkArea10">Breathing Protection</label></div>
 				</div>
 				<div class="">
-					@(Html.Kendo().Switch()
-							.Name("swPpeWorkArea10")
-							.Size(ComponentSize.Small)
-							.HtmlAttributes(new { data_elem = "breathingProtection" })
-							.Messages(x => x.Checked("YES").Unchecked("NO")))
+					<div class="form-check form-switch fc-switch">
+						<input type="checkbox" role="switch" class="form-check-input" id="swPpeWorkArea10" name="swPpeWorkArea10" data-control="switch" data-elem="breathingProtection" />
+					</div>
 				</div>
 			</li>
 			<li class="list-group-item d-flex justify-content-between align-items-center">
 				<div class="me-auto">
 					<div class="mb-2"><label for="swPpeWorkArea12">Other (please specify)</label></div>
-					@(Html.Kendo().TextBox()
-							.Size(ComponentSize.Medium)
-							.Rounded(Rounded.Large)
-							.FillMode(FillMode.Outline)
-							.Name("tbPpeWorkArea11"))
+					<input type="text" class="form-control" id="tbPpeWorkArea11" name="tbPpeWorkArea11" autocomplete="off" data-control="textbox" />
 				</div>
 				<div class="">
-					@(Html.Kendo().Switch()
-							.Name("swPpeWorkArea11")
-							.Size(ComponentSize.Small)
-							.HtmlAttributes(new { data_elem = "otherPpe" })
-							.Messages(x => x.Checked("YES").Unchecked("NO")))
+					<div class="form-check form-switch fc-switch">
+						<input type="checkbox" role="switch" class="form-check-input" id="swPpeWorkArea11" name="swPpeWorkArea11" data-control="switch" data-elem="otherPpe" />
+					</div>
 				</div>
 			</li>
 		</ul>
 		<hr />
 		<div class="form-group mb-4">
 			<label class="form-label">Any further PPE required to be included in the JHA</label>
-			@(Html.Kendo().TextBox()
-					.Size(ComponentSize.Medium)
-					.Rounded(Rounded.Large)
-					.FillMode(FillMode.Outline)
-					.Name("otherPpeRequiredInJHA"))
+			<input type="text" class="form-control" id="otherPpeRequiredInJHA" name="otherPpeRequiredInJHA" autocomplete="off" data-control="textbox" />
 		</div>
 		<hr />
 		<div>
@@ -171,11 +139,9 @@
 							<div><label for="swPpeWorkArea14">Demarcation</label></div>
 						</div>
 						<div class="">
-							@(Html.Kendo().Switch()
-									.Name("swPpeWorkArea12")
-									.Size(ComponentSize.Small)
-									.HtmlAttributes(new { data_elem = "demarcation" })
-									.Messages(x => x.Checked("YES").Unchecked("NO")))
+							<div class="form-check form-switch fc-switch">
+								<input type="checkbox" role="switch" class="form-check-input" id="swPpeWorkArea12" name="swPpeWorkArea12" data-control="switch" data-elem="demarcation" />
+							</div>
 						</div>
 					</li>
 					<li class="list-group-item d-flex justify-content-between align-items-center">
@@ -183,11 +149,9 @@
 							<div><label for="swPpeWorkArea15">Fire Extinguisher</label></div>
 						</div>
 						<div class="">
-							@(Html.Kendo().Switch()
-									.Name("swPpeWorkArea13")
-									.Size(ComponentSize.Small)
-									.HtmlAttributes(new { data_elem = "fireExtinguisher" })
-									.Messages(x => x.Checked("YES").Unchecked("NO")))
+							<div class="form-check form-switch fc-switch">
+								<input type="checkbox" role="switch" class="form-check-input" id="swPpeWorkArea13" name="swPpeWorkArea13" data-control="switch" data-elem="fireExtinguisher" />
+							</div>
 						</div>
 					</li>
 					<li class="list-group-item d-flex justify-content-between align-items-center">
@@ -195,29 +159,20 @@
 							<div><label for="swPpeWorkArea16">Warning Signs</label></div>
 						</div>
 						<div class="">
-							@(Html.Kendo().Switch()
-									.Name("swPpeWorkArea14")
-									.Size(ComponentSize.Small)
-									.HtmlAttributes(new { data_elem = "warningSigns" })
-									.Messages(x => x.Checked("YES").Unchecked("NO")))
+							<div class="form-check form-switch fc-switch">
+								<input type="checkbox" role="switch" class="form-check-input" id="swPpeWorkArea14" name="swPpeWorkArea14" data-control="switch" data-elem="warningSigns" />
+							</div>
 						</div>
 					</li>
 					<li class="list-group-item d-flex justify-content-between align-items-center">
 						<div class="me-auto">
 							<div><label for="swPpeWorkArea18">Others (please specify)</label></div>
-							@(Html.Kendo().TextBox()
-									.Size(ComponentSize.Medium)
-									.Rounded(Rounded.Large)
-									.FillMode(FillMode.Outline)
-									.HtmlAttributes(new { @class = "swPpeWorkArea15" })
-									.Name("tbPpeWorkArea15"))
+							<input type="text" class="form-control swPpeWorkArea15" id="tbPpeWorkArea15" name="tbPpeWorkArea15" autocomplete="off" data-control="textbox" />
 						</div>
 						<div class="">
-							@(Html.Kendo().Switch()
-									.Name("swPpeWorkArea15")
-									.Size(ComponentSize.Small)
-									.HtmlAttributes(new { data_elem = "otherPpeWorkArea" })
-									.Messages(x => x.Checked("YES").Unchecked("NO")))
+							<div class="form-check form-switch fc-switch">
+								<input type="checkbox" role="switch" class="form-check-input" id="swPpeWorkArea15" name="swPpeWorkArea15" data-control="switch" data-elem="otherPpeWorkArea" />
+							</div>
 						</div>
 					</li>
 				</ul>

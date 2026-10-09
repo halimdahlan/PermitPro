@@ -1,6 +1,4 @@
-﻿@using Kendo.Mvc.UI
-
-<!-- Modal: FORM E /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+﻿<!-- Modal: FORM E /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
 <div class="modal fade" id="dlgFormE" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="dlgFormELabel" aria-hidden="true">
 	<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
 		<div class="modal-content">
@@ -26,12 +24,10 @@
 						(specific valves, pumps, motors, switch gears, etc.)
 					</div>
 					<div>
-						@(Html.Kendo().TextArea()
-								.Name("txtFormE-EquipmentUsed")
-								.Label(x => x.Content("Equipment Being worked on and verified to be at a zero energy state prior to work starting (describe or sketch to make clear)"))
-								.Rounded(Rounded.Large)
-								.FillMode(FillMode.Outline)
-								.Rows(8))
+						<div class="form-floating">
+							<textarea class="form-control" id="txtFormE-EquipmentUsed" name="txtFormE-EquipmentUsed" data-control="textarea" rows="8" placeholder=" "></textarea>
+							<label for="txtFormE-EquipmentUsed">Equipment Being worked on and verified to be at a zero energy state prior to work starting (describe or sketch to make clear)</label>
+						</div>
 					</div>
 				</div>
 
@@ -41,18 +37,16 @@
 				<div class="px-2 mb-4">
 					<div class="d-flex flex-column flex-md-row">
 						<div class="me-0 me-md-5">
-							@(Html.Kendo().CheckBox()
-									.Name("chkFormE-LOTOType1")
-									.Label("  Each authorized individual will apply LO/TO to each isolation device")
-									.Size(ComponentSize.Large)
-									.Rounded(Rounded.Medium))
+							<div class="form-check fc-check">
+								<input type="checkbox" class="form-check-input" id="chkFormE-LOTOType1" name="chkFormE-LOTOType1" data-control="checkbox" />
+								<label class="form-check-label" for="chkFormE-LOTOType1">Each authorized individual will apply LO/TO to each isolation device</label>
+							</div>
 						</div>
 						<div>
-							@(Html.Kendo().CheckBox()
-									.Name("chkFormE-LOTOType2")
-									.Label("  Use of Group LO/TO Using Lock Box")
-									.Size(ComponentSize.Large)
-									.Rounded(Rounded.Medium))
+							<div class="form-check fc-check">
+								<input type="checkbox" class="form-check-input" id="chkFormE-LOTOType2" name="chkFormE-LOTOType2" data-control="checkbox" />
+								<label class="form-check-label" for="chkFormE-LOTOType2">Use of Group LO/TO Using Lock Box</label>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -66,57 +60,45 @@
 					</div>
 					<div class="d-flex flex-column flex-md-row">
 						<div class="me-0 me-md-5">
-							@(Html.Kendo().CheckBox()
-									.Name("chkFormE-EnergyType1")
-									.Label("  Electrical")
-									.Size(ComponentSize.Large)
-									.Rounded(Rounded.Medium))
+							<div class="form-check fc-check">
+								<input type="checkbox" class="form-check-input" id="chkFormE-EnergyType1" name="chkFormE-EnergyType1" data-control="checkbox" />
+								<label class="form-check-label" for="chkFormE-EnergyType1">Electrical</label>
+							</div>
 						</div>
 						<div class="me-0 me-md-5">
-							@(Html.Kendo().CheckBox()
-									.Name("chkFormE-EnergyType2")
-									.Label("  Steam")
-									.Size(ComponentSize.Large)
-									.Rounded(Rounded.Medium))
+							<div class="form-check fc-check">
+								<input type="checkbox" class="form-check-input" id="chkFormE-EnergyType2" name="chkFormE-EnergyType2" data-control="checkbox" />
+								<label class="form-check-label" for="chkFormE-EnergyType2">Steam</label>
+							</div>
 						</div>
 						<div class="me-0 me-md-5">
-							@(Html.Kendo().CheckBox()
-									.Name("chkFormE-EnergyType3")
-									.Label("  Hydraulic")
-									.Size(ComponentSize.Large)
-									.Rounded(Rounded.Medium))
+							<div class="form-check fc-check">
+								<input type="checkbox" class="form-check-input" id="chkFormE-EnergyType3" name="chkFormE-EnergyType3" data-control="checkbox" />
+								<label class="form-check-label" for="chkFormE-EnergyType3">Hydraulic</label>
+							</div>
 						</div>
 						<div class="me-0 me-md-5">
-							@(Html.Kendo().CheckBox()
-									.Name("chkFormE-EnergyType4")
-									.Label("  Mechanical")
-									.Size(ComponentSize.Large)
-									.Rounded(Rounded.Medium))
+							<div class="form-check fc-check">
+								<input type="checkbox" class="form-check-input" id="chkFormE-EnergyType4" name="chkFormE-EnergyType4" data-control="checkbox" />
+								<label class="form-check-label" for="chkFormE-EnergyType4">Mechanical</label>
+							</div>
 						</div>
 						<div class="me-0 me-md-5">
-							@(Html.Kendo().CheckBox()
-									.Name("chkFormE-EnergyType5")
-									.Label("  Pneumatic")
-									.Size(ComponentSize.Large)
-									.Rounded(Rounded.Medium))
+							<div class="form-check fc-check">
+								<input type="checkbox" class="form-check-input" id="chkFormE-EnergyType5" name="chkFormE-EnergyType5" data-control="checkbox" />
+								<label class="form-check-label" for="chkFormE-EnergyType5">Pneumatic</label>
+							</div>
 						</div>
 						<div>
 							<div class="d-flex flex-row align-items-center">
 								<div>
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormE-EnergyType6")
-											.Label("  Other")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium)
-											.Events(x => x.Change("onChangeFormEEnergyType")))
+									<div class="form-check fc-check">
+										<input type="checkbox" class="form-check-input" id="chkFormE-EnergyType6" name="chkFormE-EnergyType6" data-control="checkbox" data-change="onChangeFormEEnergyType" />
+										<label class="form-check-label" for="chkFormE-EnergyType6">Other</label>
+									</div>
 								</div>
 								<div class="ms-5 ms-md-3">
-									@(Html.Kendo().TextBox()
-											.Name("tbxFormE-EnergyType6")
-											.Size(ComponentSize.Small)
-											.Rounded(Rounded.Medium)
-											.FillMode(FillMode.Outline)
-											.Enable(false))
+									<input type="text" class="form-control" id="tbxFormE-EnergyType6" name="tbxFormE-EnergyType6" autocomplete="off" data-control="textbox" disabled />
 								</div>
 							</div>
 						</div>
@@ -132,50 +114,39 @@
 					</div>
 					<div class="d-flex flex-column flex-md-row align-items-center">
 						<div class="me-0 me-md-5">
-							@(Html.Kendo().CheckBox()
-									.Name("chkFormE-IsolationMethod1")
-									.Label("  Lock & Tag")
-									.Size(ComponentSize.Large)
-									.Rounded(Rounded.Medium))
+							<div class="form-check fc-check">
+								<input type="checkbox" class="form-check-input" id="chkFormE-IsolationMethod1" name="chkFormE-IsolationMethod1" data-control="checkbox" />
+								<label class="form-check-label" for="chkFormE-IsolationMethod1">Lock &amp; Tag</label>
+							</div>
 						</div>
 						<div class="me-0 me-md-5">
-							@(Html.Kendo().CheckBox()
-									.Name("chkFormE-IsolationMethod2")
-									.Label("  Tag Only")
-									.Size(ComponentSize.Large)
-									.Rounded(Rounded.Medium))
+							<div class="form-check fc-check">
+								<input type="checkbox" class="form-check-input" id="chkFormE-IsolationMethod2" name="chkFormE-IsolationMethod2" data-control="checkbox" />
+								<label class="form-check-label" for="chkFormE-IsolationMethod2">Tag Only</label>
+							</div>
 						</div>
 						<div class="me-0 me-md-5">
-							@(Html.Kendo().CheckBox()
-									.Name("chkFormE-IsolationMethod3")
-									.Label("  Blinds")
-									.Size(ComponentSize.Large)
-									.Rounded(Rounded.Medium))
+							<div class="form-check fc-check">
+								<input type="checkbox" class="form-check-input" id="chkFormE-IsolationMethod3" name="chkFormE-IsolationMethod3" data-control="checkbox" />
+								<label class="form-check-label" for="chkFormE-IsolationMethod3">Blinds</label>
+							</div>
 						</div>
 						<div class="me-0 me-md-5">
-							@(Html.Kendo().CheckBox()
-									.Name("chkFormE-IsolationMethod4")
-									.Label("  Double Block & Bleed")
-									.Size(ComponentSize.Large)
-									.Rounded(Rounded.Medium))
+							<div class="form-check fc-check">
+								<input type="checkbox" class="form-check-input" id="chkFormE-IsolationMethod4" name="chkFormE-IsolationMethod4" data-control="checkbox" />
+								<label class="form-check-label" for="chkFormE-IsolationMethod4">Double Block &amp; Bleed</label>
+							</div>
 						</div>
 						<div>
 							<div class="d-flex flex-row align-items-center">
 								<div>
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormE-IsolationMethod5")
-											.Label("  Other")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium)
-											.Events(x => x.Change("onChangeFormEIsolationMethod")))
+									<div class="form-check fc-check">
+										<input type="checkbox" class="form-check-input" id="chkFormE-IsolationMethod5" name="chkFormE-IsolationMethod5" data-control="checkbox" data-change="onChangeFormEIsolationMethod" />
+										<label class="form-check-label" for="chkFormE-IsolationMethod5">Other</label>
+									</div>
 								</div>
 								<div class="ms-3">
-									@(Html.Kendo().TextBox()
-											.Name("tbxFormE-IsolationMethod5")
-											.Size(ComponentSize.Medium)
-											.Rounded(Rounded.Large)
-											.FillMode(FillMode.Outline)
-											.Enable(false))
+									<input type="text" class="form-control" id="tbxFormE-IsolationMethod5" name="tbxFormE-IsolationMethod5" autocomplete="off" data-control="textbox" disabled />
 								</div>
 							</div>
 						</div>
@@ -242,15 +213,15 @@
 						</div>
 						<div class="d-flex flex-column flex-md-row justify-content-evenly mb-3">
 							<div class="w-100 me-0 me-md-3 mb-3 mb-md-0">
-								@(Html.Kendo().TimePicker()
-										.Name("tmpFormE-TimeAllowedFrom")
-										.Label(x => x.Content("From"))
-										.DateInput())
+								<div class="form-floating">
+									<input type="text" class="form-control" id="tmpFormE-TimeAllowedFrom" name="tmpFormE-TimeAllowedFrom" autocomplete="off" data-control="time" placeholder=" " />
+									<label for="tmpFormE-TimeAllowedFrom">From</label>
+								</div>
 							</div><div class="w-100 ms-0 ms-md-3">
-								@(Html.Kendo().TimePicker()
-										.Name("tmpFormE-TimeAllowedTo")
-										.Label(x => x.Content("To"))
-										.DateInput())
+								<div class="form-floating">
+									<input type="text" class="form-control" id="tmpFormE-TimeAllowedTo" name="tmpFormE-TimeAllowedTo" autocomplete="off" data-control="time" placeholder=" " />
+									<label for="tmpFormE-TimeAllowedTo">To</label>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -308,37 +279,22 @@
 			<div class="modal-body">
 
 				<div class="mb-3">
-					@(Html.Kendo().DatePicker()
-							.Name("ddpFormE-AuthPerson-Date")
-							.Label(x => x.Content("Date"))
-							.Format("{0:dd/MM/yyyy}")
-							.Min(DateTime.Today)
-							.Value(DateTime.Now)
-							.Size(ComponentSize.Medium)
-							.Rounded(Rounded.Large)
-							.FillMode(FillMode.Outline)
-							.AdaptiveMode(AdaptiveMode.Auto)
-							.ComponentType("modern")
-							.DateInput()
-							.Events(x => x.Change("onChangeFormETbl1")))
+					<div class="form-floating">
+						<input type="text" class="form-control" id="ddpFormE-AuthPerson-Date" name="ddpFormE-AuthPerson-Date" autocomplete="off" data-control="date" data-min="@DateTime.Today.ToString("yyyy-MM-ddTHH:mm:ss")" data-value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss")" data-change="onChangeFormETbl1" placeholder=" " />
+						<label for="ddpFormE-AuthPerson-Date">Date</label>
+					</div>
 				</div>
 				<div class="mb-3">
-					@(Html.Kendo().TextBox()
-							.Name("tbxFormE-AuthPerson-Name")
-							.Label(x => x.Content("Name"))
-							.Size(ComponentSize.Medium)
-							.Rounded(Rounded.Large)
-							.FillMode(FillMode.Outline)
-							.Events(x => x.Change("onChangeFormETbl1")))
+					<div class="form-floating">
+						<input type="text" class="form-control" id="tbxFormE-AuthPerson-Name" name="tbxFormE-AuthPerson-Name" autocomplete="off" data-control="textbox" data-change="onChangeFormETbl1" placeholder=" " />
+						<label for="tbxFormE-AuthPerson-Name">Name</label>
+					</div>
 				</div>
 				<div class="mb-3">
-					@(Html.Kendo().TextBox()
-							.Name("tbxFormE-AuthPerson-Company")
-							.Label(x => x.Content("Company"))
-							.Size(ComponentSize.Medium)
-							.Rounded(Rounded.Large)
-							.FillMode(FillMode.Outline)
-							.Events(x => x.Change("onChangeFormETbl1")))
+					<div class="form-floating">
+						<input type="text" class="form-control" id="tbxFormE-AuthPerson-Company" name="tbxFormE-AuthPerson-Company" autocomplete="off" data-control="textbox" data-change="onChangeFormETbl1" placeholder=" " />
+						<label for="tbxFormE-AuthPerson-Company">Company</label>
+					</div>
 				</div>
 
 			</div>
@@ -358,23 +314,18 @@
 			</div>
 			<div class="modal-body">
 				<div class="mb-3">
-					@(Html.Kendo().TextBox()
-							.Name("tbxFormE-IsolationPoint-ID")
-							.Label(x => x.Content("Isolation point ID"))
-							.Size(ComponentSize.Medium)
-							.Rounded(Rounded.Large)
-							.FillMode(FillMode.Outline)
-							.Events(x => x.Change("onChangeFormEIsolationPointID")))
+					<div class="form-floating">
+						<input type="text" class="form-control" id="tbxFormE-IsolationPoint-ID" name="tbxFormE-IsolationPoint-ID" autocomplete="off" data-control="textbox" data-change="onChangeFormEIsolationPointID" placeholder=" " />
+						<label for="tbxFormE-IsolationPoint-ID">Isolation point ID</label>
+					</div>
 				</div>
 				<div class="mb-3">
 					<div class="d-flex flex-row align-items-center">
 						<label>Tag installed?</label>
 						<div class="ms-3">
-							@(Html.Kendo().Switch()
-									.Name("swtFormE-IsolationPoint-TagInstalled")
-									.Size(ComponentSize.Small)
-									.Messages(x => x.Checked("YES").Unchecked("NO"))
-									.Events(x => x.Change("onChangeFormEIsolationPointID")))
+							<div class="form-check form-switch fc-switch">
+								<input type="checkbox" role="switch" class="form-check-input" id="swtFormE-IsolationPoint-TagInstalled" name="swtFormE-IsolationPoint-TagInstalled" data-control="switch" data-change="onChangeFormEIsolationPointID" />
+							</div>
 						</div>
 					</div>
 				</div>
@@ -382,11 +333,9 @@
 					<div class="d-flex flex-row align-items-center">
 						<label>Lock installed?</label>
 						<div class="ms-3">
-							@(Html.Kendo().Switch()
-									.Name("swtFormE-IsolationPoint-LockInstalled")
-									.Size(ComponentSize.Small)
-									.Messages(x => x.Checked("YES").Unchecked("NO"))
-									.Events(x => x.Change("onChangeFormEIsolationPointID")))
+							<div class="form-check form-switch fc-switch">
+								<input type="checkbox" role="switch" class="form-check-input" id="swtFormE-IsolationPoint-LockInstalled" name="swtFormE-IsolationPoint-LockInstalled" data-control="switch" data-change="onChangeFormEIsolationPointID" />
+							</div>
 						</div>
 					</div>
 				</div>
@@ -394,40 +343,29 @@
 					<div class="d-flex flex-row align-items-center">
 						<label>Blind installed?</label>
 						<div class="ms-3">
-							@(Html.Kendo().Switch()
-									.Name("swtFormE-IsolationPoint-BlindInstalled")
-									.Size(ComponentSize.Small)
-									.Messages(x => x.Checked("YES").Unchecked("NO"))
-									.Events(x => x.Change("onChangeFormEIsolationPointID")))
+							<div class="form-check form-switch fc-switch">
+								<input type="checkbox" role="switch" class="form-check-input" id="swtFormE-IsolationPoint-BlindInstalled" name="swtFormE-IsolationPoint-BlindInstalled" data-control="switch" data-change="onChangeFormEIsolationPointID" />
+							</div>
 						</div>
 					</div>
 				</div>
 				<div class="mb-3">
-					@(Html.Kendo().TextBox()
-							.Name("tbxFormE-IsolationPoint-NormalOperatePosition")
-							.Label(x => x.Content("Normal operating position"))
-							.Size(ComponentSize.Medium)
-							.Rounded(Rounded.Large)
-							.FillMode(FillMode.Outline)
-							.Events(x => x.Change("onChangeFormEIsolationPointID")))
+					<div class="form-floating">
+						<input type="text" class="form-control" id="tbxFormE-IsolationPoint-NormalOperatePosition" name="tbxFormE-IsolationPoint-NormalOperatePosition" autocomplete="off" data-control="textbox" data-change="onChangeFormEIsolationPointID" placeholder=" " />
+						<label for="tbxFormE-IsolationPoint-NormalOperatePosition">Normal operating position</label>
+					</div>
 				</div>
 				<div class="mb-3">
-					@(Html.Kendo().DatePicker()
-							.Name("ddpFormE-IsolationPoint-DateInstalled")
-							.Label(x => x.Content("Date installed"))
-							.Size(ComponentSize.Medium)
-							.Rounded(Rounded.Large)
-							.FillMode(FillMode.Outline)
-							.Events(x => x.Change("onChangeFormEIsolationPointID")))
+					<div class="form-floating">
+						<input type="text" class="form-control" id="ddpFormE-IsolationPoint-DateInstalled" name="ddpFormE-IsolationPoint-DateInstalled" autocomplete="off" data-control="date" data-change="onChangeFormEIsolationPointID" placeholder=" " />
+						<label for="ddpFormE-IsolationPoint-DateInstalled">Date installed</label>
+					</div>
 				</div>
 				<div>
-					@(Html.Kendo().DatePicker()
-							.Name("ddpFormE-IsolationPoint-DateRemoved")
-							.Label(x => x.Content("Date removed"))
-							.Size(ComponentSize.Medium)
-							.Rounded(Rounded.Large)
-							.FillMode(FillMode.Outline)
-							.Events(x => x.Change("onChangeFormEIsolationPointID")))
+					<div class="form-floating">
+						<input type="text" class="form-control" id="ddpFormE-IsolationPoint-DateRemoved" name="ddpFormE-IsolationPoint-DateRemoved" autocomplete="off" data-control="date" data-change="onChangeFormEIsolationPointID" placeholder=" " />
+						<label for="ddpFormE-IsolationPoint-DateRemoved">Date removed</label>
+					</div>
 				</div>
 			</div>
 			<div class="modal-footer">

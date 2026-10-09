@@ -1,4 +1,4 @@
-﻿#nullable disable
+#nullable disable
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -136,7 +136,11 @@ public class WorkflowController : AppControllerBase
 		var workflowSteps = await _dbContext.WorkflowSteps
 			.AsNoTracking()
 			.Where(e => e.WorkflowStepWorkflow.Id == workflowId)
-			.OrderBy(e => e.StepOrder)
+			// Draft first and Completed last, even if a custom step's StepOrder clashes with theirs.
+			.OrderByDescending(e => e.IsFirst)
+			.ThenBy(e => e.IsLast)
+			.ThenBy(e => e.StepOrder)
+			.ThenBy(e => e.CreatedWhen)
 			.Select(e => new
 			{
 				e.Id,
@@ -447,41 +451,50 @@ public class WorkflowController : AppControllerBase
 	}
 
 
+	// Moves a custom step one place up or down. The custom steps (everything except Draft/IsFirst
+	// and Completed/IsLast) are first renumbered 1..n in their current order, which also repairs
+	// gaps or duplicates left by older bugs, then the step swaps places with its neighbour.
 	[HttpPut("{company}/workflow/workflows/{workflowId}/steps/{stepId}/move")]
-	public async Task<ActionResult> StepMove(Guid company, AjaxStepMoveRequest request, Guid workflowId, Guid stepId)
+	public async Task<ActionResult> StepMove(Guid company, [FromBody] AjaxStepMoveRequest request, Guid workflowId, Guid stepId)
 	{
-		var workflowStep = _dbContext.WorkflowSteps.SingleOrDefault(e => e.Id == stepId);
+		if (request == null)
+			return BadRequest(new { HasError = true, ErrorMessage = "Missing move request." });
 
-		if (workflowStep != null)
+		var customSteps = await _dbContext.WorkflowSteps
+			.Where(e => e.WorkflowStepWorkflow.Id == workflowId && !e.IsFirst && !e.IsLast)
+			.OrderBy(e => e.StepOrder)
+			.ThenBy(e => e.CreatedWhen)
+			.ToListAsync();
+
+		var index = customSteps.FindIndex(e => e.Id == stepId);
+
+		if (index < 0)
+			return NotFound();
+
+		var target = request.MoveUp ? index - 1 : index + 1;
+
+		if (target < 0 || target >= customSteps.Count)
 		{
-			int moveTo = 0;
-
-			if (request.MoveUp)
-			{
-				moveTo = request.Previous;
-			}
-			else
-			{
-				moveTo = request.Next;
-			}
-
-			var stepToMove = _dbContext.WorkflowSteps.SingleOrDefault(e => e.WorkflowStepWorkflow.Id == workflowId && e.StepOrder == moveTo);
-
-			stepToMove.StepOrder = request.Current;
-			_dbContext.Update(stepToMove);
-
-			workflowStep.StepOrder = moveTo;
-			_dbContext.Update(workflowStep);
-
-			await _dbContext.SaveChangesAsync();
-
 			return Ok(new
 			{
-				HasError = false
+				HasError = true,
+				ErrorMessage = request.MoveUp ? "This step is already the first step." : "This step is already the last step.",
 			});
 		}
 
-		return NotFound();
+		(customSteps[index], customSteps[target]) = (customSteps[target], customSteps[index]);
+
+		for (var i = 0; i < customSteps.Count; i++)
+		{
+			customSteps[i].StepOrder = i + 1;
+		}
+
+		await _dbContext.SaveChangesAsync();
+
+		return Ok(new
+		{
+			HasError = false
+		});
 	}
 
 
@@ -580,8 +593,10 @@ public class WorkflowController : AppControllerBase
 			await _dbContext.SaveChangesAsync();
 
 			// Get remaining workflow steps to re-arrange order
+			// Keep the existing order while closing the gap left by the deleted step.
 			var workflowSteps = _dbContext.WorkflowSteps
 				.Where(e => e.WorkflowStepWorkflow.Id == workflowId && e.StepOrder != 0 && e.StepOrder != 100)
+				.OrderBy(e => e.StepOrder)
 				.Select(e => new
 				{
 					e.Id

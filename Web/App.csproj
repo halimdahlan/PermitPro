@@ -13,18 +13,10 @@
   </PropertyGroup>
 
 	<ItemGroup>
-	  <Compile Remove="Views\Locations\**" />
 	  <Compile Remove="wwwroot\lib\threejs\**" />
-	  <Content Remove="Views\Locations\**" />
 	  <Content Remove="wwwroot\lib\threejs\**" />
-	  <EmbeddedResource Remove="Views\Locations\**" />
 	  <EmbeddedResource Remove="wwwroot\lib\threejs\**" />
-	  <None Remove="Views\Locations\**" />
 	  <None Remove="wwwroot\lib\threejs\**" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Compile Remove="Controllers\LocationsController.cs" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -48,7 +40,6 @@
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="5.9.0" />
 		<PackageReference Include="PuppeteerSharp" Version="25.12.0" />
 		<PackageReference Include="Scriban.Signed" Version="7.5.0" />
-		<PackageReference Include="Telerik.UI.for.AspNet.Core" Version="2025.2.520" />
 	</ItemGroup>
 
 	<ItemGroup>

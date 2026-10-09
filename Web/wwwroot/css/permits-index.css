@@ -1,0 +1,14 @@
+/* Permit list (Views/Permits/Index.cshtml). Shared grid styles are in datagrid.css. */
+
+#tblPermits .submitted-on {
+	font-size: 11px;
+}
+
+#tblPermits .certificate-icons img {
+	width: 26px !important;
+	height: 26px !important;
+}
+
+#tblPermits td.col-description {
+	min-width: 240px;
+}

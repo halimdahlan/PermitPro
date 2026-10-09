@@ -1,6 +1,4 @@
-﻿@using Kendo.Mvc.UI
-
-<div class="modal fade" id="dlgFormG" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="dlgFormGLabel" aria-hidden="true">
+﻿<div class="modal fade" id="dlgFormG" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="dlgFormGLabel" aria-hidden="true">
 	<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
 		<div class="modal-content">
 			<div class="modal-header bg-primary-soft">
@@ -21,22 +19,16 @@
 				</div>
 				<div class="mb-3 d-flex flex-row justify-content-evenly">
 					<div class="me-4 w-100">
-						@(Html.Kendo()
-							.TextBox()
-							.Name("formG-general-1")
-							.Label(x => x.Content("Specify location within terminal"))
-							.Size(ComponentSize.Medium)
-							.Rounded(Rounded.Large)
-							.FillMode(FillMode.Outline))
+						<div class="form-floating">
+							<input type="text" class="form-control" id="formG-general-1" name="formG-general-1" autocomplete="off" data-control="textbox" placeholder=" " />
+							<label for="formG-general-1">Specify location within terminal</label>
+						</div>
 					</div>
 					<div class="ms-4 w-100">
-						@(Html.Kendo()
-							.TextBox()
-							.Name("formG-general-2")
-							.Label(x => x.Content("Lifting Plan No."))
-							.Size(ComponentSize.Medium)
-							.Rounded(Rounded.Large)
-							.FillMode(FillMode.Outline))
+						<div class="form-floating">
+							<input type="text" class="form-control" id="formG-general-2" name="formG-general-2" autocomplete="off" data-control="textbox" placeholder=" " />
+							<label for="formG-general-2">Lifting Plan No.</label>
+						</div>
 						<div class="mt-1">
 							(Lifting Plan to be attached for Level 2 lift)
 						</div>
@@ -46,18 +38,16 @@
 					<div class="mb-2">Type of lift (Get advise from HSSE Department)</div>
 					<div class="d-flex flex-row">
 						<div class="me-4">
-							@(Html.Kendo().CheckBox()
-								.Name("formG-general-3")
-								.Label("   Level 1 (Simple Lift")
-								.Size(ComponentSize.Large)
-								.Rounded(Rounded.Medium))
+							<div class="form-check fc-check">
+								<input type="checkbox" class="form-check-input" id="formG-general-3" name="formG-general-3" data-control="checkbox" />
+								<label class="form-check-label" for="formG-general-3">Level 1 (Simple Lift)</label>
+							</div>
 						</div>
 						<div class="ms-4">
-							@(Html.Kendo().CheckBox()
-								.Name("formG-general-4")
-								.Label("   Level 2 (Complicated and Complex Lift")
-								.Size(ComponentSize.Large)
-								.Rounded(Rounded.Medium))
+							<div class="form-check fc-check">
+								<input type="checkbox" class="form-check-input" id="formG-general-4" name="formG-general-4" data-control="checkbox" />
+								<label class="form-check-label" for="formG-general-4">Level 2 (Complicated and Complex Lift)</label>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -76,22 +66,13 @@
 							Trained/qualified person undertaking this work and screened by Terminal Team
 						</div>
 						<div class="text-center" style="width:50px;">
-							@(Html.Kendo().CheckBox()
-								.Name("formG-safeCheck-1a")
-								.Size(ComponentSize.Large)
-								.Rounded(Rounded.Medium))
+							<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-1a" name="formG-safeCheck-1a" data-control="checkbox" />
 						</div>
 						<div class="text-center" style="width:50px;">
-							@(Html.Kendo().CheckBox()
-								.Name("formG-safeCheck-1b")
-								.Size(ComponentSize.Large)
-								.Rounded(Rounded.Medium))
+							<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-1b" name="formG-safeCheck-1b" data-control="checkbox" />
 						</div>
 						<div class="text-center" style="width:50px;">
-							@(Html.Kendo().CheckBox()
-								.Name("formG-safeCheck-1c")
-								.Size(ComponentSize.Large)
-								.Rounded(Rounded.Medium))
+							<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-1c" name="formG-safeCheck-1c" data-control="checkbox" />
 						</div>
 					</div>
 				</div>
@@ -100,22 +81,13 @@
 						Crane inspected and all related certificate still valid (upload the document)
 					</div>
 					<div class="text-center" style="width:50px;">
-						@(Html.Kendo().CheckBox()
-							.Name("formG-safeCheck-2a")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+						<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-2a" name="formG-safeCheck-2a" data-control="checkbox" />
 					</div>
 					<div class="text-center" style="width:50px;">
-						@(Html.Kendo().CheckBox()
-							.Name("formG-safeCheck-2b")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+						<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-2b" name="formG-safeCheck-2b" data-control="checkbox" />
 					</div>
 					<div class="text-center" style="width:50px;">
-						@(Html.Kendo().CheckBox()
-							.Name("formG-safeCheck-2c")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+						<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-2c" name="formG-safeCheck-2c" data-control="checkbox" />
 					</div>
 				</div>
 				<div class="mb-3 d-flex flex-row align-items-center">
@@ -123,22 +95,13 @@
 						Lifting plan communicated with Terminal team and ground team
 					</div>
 					<div class="text-center" style="width:50px;">
-						@(Html.Kendo().CheckBox()
-							.Name("formG-safeCheck-3a")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+						<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-3a" name="formG-safeCheck-3a" data-control="checkbox" />
 					</div>
 					<div class="text-center" style="width:50px;">
-						@(Html.Kendo().CheckBox()
-							.Name("formG-safeCheck-3b")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+						<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-3b" name="formG-safeCheck-3b" data-control="checkbox" />
 					</div>
 					<div class="text-center" style="width:50px;">
-						@(Html.Kendo().CheckBox()
-							.Name("formG-safeCheck-3c")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+						<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-3c" name="formG-safeCheck-3c" data-control="checkbox" />
 					</div>
 				</div>
 				<div class="mb-3 d-flex flex-row align-items-center">
@@ -146,22 +109,13 @@
 						Pre-job discussion conducted
 					</div>
 					<div class="text-center" style="width:50px;">
-						@(Html.Kendo().CheckBox()
-							.Name("formG-safeCheck-4a")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+						<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-4a" name="formG-safeCheck-4a" data-control="checkbox" />
 					</div>
 					<div class="text-center" style="width:50px;">
-						@(Html.Kendo().CheckBox()
-							.Name("formG-safeCheck-4b")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+						<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-4b" name="formG-safeCheck-4b" data-control="checkbox" />
 					</div>
 					<div class="text-center" style="width:50px;">
-						@(Html.Kendo().CheckBox()
-							.Name("formG-safeCheck-4c")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+						<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-4c" name="formG-safeCheck-4c" data-control="checkbox" />
 					</div>
 				</div>
 				<div class="mb-3 d-flex flex-row align-items-center">
@@ -169,22 +123,13 @@
 						Person in charge and lifting team (signalman, banksman, rigger etc.) identified
 					</div>
 					<div class="text-center" style="width:50px;">
-						@(Html.Kendo().CheckBox()
-							.Name("formG-safeCheck-5a")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+						<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-5a" name="formG-safeCheck-5a" data-control="checkbox" />
 					</div>
 					<div class="text-center" style="width:50px;">
-						@(Html.Kendo().CheckBox()
-							.Name("formG-safeCheck-5b")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+						<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-5b" name="formG-safeCheck-5b" data-control="checkbox" />
 					</div>
 					<div class="text-center" style="width:50px;">
-						@(Html.Kendo().CheckBox()
-							.Name("formG-safeCheck-5c")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+						<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-5c" name="formG-safeCheck-5c" data-control="checkbox" />
 					</div>
 				</div>
 				<div class="mb-3 d-flex flex-row align-items-center">
@@ -192,22 +137,13 @@
 						Lifting plan communicated with Terminal team and ground team
 					</div>
 					<div class="text-center" style="width:50px;">
-						@(Html.Kendo().CheckBox()
-							.Name("formG-safeCheck-6a")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+						<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-6a" name="formG-safeCheck-6a" data-control="checkbox" />
 					</div>
 					<div class="text-center" style="width:50px;">
-						@(Html.Kendo().CheckBox()
-							.Name("formG-safeCheck-6b")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+						<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-6b" name="formG-safeCheck-6b" data-control="checkbox" />
 					</div>
 					<div class="text-center" style="width:50px;">
-						@(Html.Kendo().CheckBox()
-							.Name("formG-safeCheck-6c")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+						<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-6c" name="formG-safeCheck-6c" data-control="checkbox" />
 					</div>
 				</div>
 				<div class="mb-3 d-flex flex-row align-items-center">
@@ -215,22 +151,13 @@
 						JHA and JMS communicated with Terminal team and ground team
 					</div>
 					<div class="text-center" style="width:50px;">
-						@(Html.Kendo().CheckBox()
-							.Name("formG-safeCheck-7a")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+						<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-7a" name="formG-safeCheck-7a" data-control="checkbox" />
 					</div>
 					<div class="text-center" style="width:50px;">
-						@(Html.Kendo().CheckBox()
-							.Name("formG-safeCheck-7b")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+						<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-7b" name="formG-safeCheck-7b" data-control="checkbox" />
 					</div>
 					<div class="text-center" style="width:50px;">
-						@(Html.Kendo().CheckBox()
-							.Name("formG-safeCheck-7c")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+						<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-7c" name="formG-safeCheck-7c" data-control="checkbox" />
 					</div>
 				</div>
 				<div class="mb-3 d-flex flex-row align-items-center">
@@ -238,22 +165,13 @@
 						The working area is defined with barriers/signs
 					</div>
 					<div class="text-center" style="width:50px;">
-						@(Html.Kendo().CheckBox()
-							.Name("formG-safeCheck-8a")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+						<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-8a" name="formG-safeCheck-8a" data-control="checkbox" />
 					</div>
 					<div class="text-center" style="width:50px;">
-						@(Html.Kendo().CheckBox()
-							.Name("formG-safeCheck-8b")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+						<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-8b" name="formG-safeCheck-8b" data-control="checkbox" />
 					</div>
 					<div class="text-center" style="width:50px;">
-						@(Html.Kendo().CheckBox()
-							.Name("formG-safeCheck-8c")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+						<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-8c" name="formG-safeCheck-8c" data-control="checkbox" />
 					</div>
 				</div>
 				<div class="mb-3 d-flex flex-row align-items-center">
@@ -261,22 +179,13 @@
 						The lift area controlled and is everyone clear if the load falls or swings
 					</div>
 					<div class="text-center" style="width:50px;">
-						@(Html.Kendo().CheckBox()
-							.Name("formG-safeCheck-9a")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+						<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-9a" name="formG-safeCheck-9a" data-control="checkbox" />
 					</div>
 					<div class="text-center" style="width:50px;">
-						@(Html.Kendo().CheckBox()
-							.Name("formG-safeCheck-9b")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+						<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-9b" name="formG-safeCheck-9b" data-control="checkbox" />
 					</div>
 					<div class="text-center" style="width:50px;">
-						@(Html.Kendo().CheckBox()
-							.Name("formG-safeCheck-9c")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+						<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-9c" name="formG-safeCheck-9c" data-control="checkbox" />
 					</div>
 				</div>
 				<div class="mb-3 d-flex flex-row align-items-center">
@@ -284,22 +193,13 @@
 						Environmental limits  (e.g. maximum permissible wind speed) for the lift communicated
 					</div>
 					<div class="text-center" style="width:50px;">
-						@(Html.Kendo().CheckBox()
-							.Name("formG-safeCheck-10a")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+						<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-10a" name="formG-safeCheck-10a" data-control="checkbox" />
 					</div>
 					<div class="text-center" style="width:50px;">
-						@(Html.Kendo().CheckBox()
-							.Name("formG-safeCheck-10b")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+						<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-10b" name="formG-safeCheck-10b" data-control="checkbox" />
 					</div>
 					<div class="text-center" style="width:50px;">
-						@(Html.Kendo().CheckBox()
-							.Name("formG-safeCheck-10c")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+						<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-10c" name="formG-safeCheck-10c" data-control="checkbox" />
 					</div>
 				</div>
 				<div class="mb-3 d-flex flex-row align-items-center">
@@ -307,22 +207,13 @@
 						Signalling methods and communication agreed and clear
 					</div>
 					<div class="text-center" style="width:50px;">
-						@(Html.Kendo().CheckBox()
-							.Name("formG-safeCheck-11a")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+						<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-11a" name="formG-safeCheck-11a" data-control="checkbox" />
 					</div>
 					<div class="text-center" style="width:50px;">
-						@(Html.Kendo().CheckBox()
-							.Name("formG-safeCheck-11b")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+						<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-11b" name="formG-safeCheck-11b" data-control="checkbox" />
 					</div>
 					<div class="text-center" style="width:50px;">
-						@(Html.Kendo().CheckBox()
-							.Name("formG-safeCheck-11c")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+						<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-11c" name="formG-safeCheck-11c" data-control="checkbox" />
 					</div>
 				</div>
 				<div class="mb-3 d-flex flex-row align-items-center">
@@ -330,22 +221,13 @@
 						Space constrain addressed and terminal critical equipment identified
 					</div>
 					<div class="text-center" style="width:50px;">
-						@(Html.Kendo().CheckBox()
-							.Name("formG-safeCheck-12a")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+						<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-12a" name="formG-safeCheck-12a" data-control="checkbox" />
 					</div>
 					<div class="text-center" style="width:50px;">
-						@(Html.Kendo().CheckBox()
-							.Name("formG-safeCheck-12b")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+						<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-12b" name="formG-safeCheck-12b" data-control="checkbox" />
 					</div>
 					<div class="text-center" style="width:50px;">
-						@(Html.Kendo().CheckBox()
-							.Name("formG-safeCheck-12c")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+						<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-12c" name="formG-safeCheck-12c" data-control="checkbox" />
 					</div>
 				</div>
 				<div class="mb-4 d-flex flex-row align-items-center">
@@ -353,22 +235,13 @@
 						Terminal critical equipment and property at the load swinging radius safeguarded (removed, hard barricaded etc.)
 					</div>
 					<div class="text-center" style="width:50px;">
-						@(Html.Kendo().CheckBox()
-							.Name("formG-safeCheck-13a")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+						<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-13a" name="formG-safeCheck-13a" data-control="checkbox" />
 					</div>
 					<div class="text-center" style="width:50px;">
-						@(Html.Kendo().CheckBox()
-							.Name("formG-safeCheck-13b")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+						<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-13b" name="formG-safeCheck-13b" data-control="checkbox" />
 					</div>
 					<div class="text-center" style="width:50px;">
-						@(Html.Kendo().CheckBox()
-							.Name("formG-safeCheck-13c")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium))
+						<input type="checkbox" class="form-check-input fc-check-input" id="formG-safeCheck-13c" name="formG-safeCheck-13c" data-control="checkbox" />
 					</div>
 				</div>
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
@@ -383,32 +256,16 @@
 					</div>
 					<div class="d-flex flex-row align-items-center">
 						<div class="me-3 w-100">
-							@(Html.Kendo()
-								.DateTimePicker()
-								.Name("formG-validity-1")
-								.Label(x => x.Content("From"))
-								.Format("{0:dd/MM/yyyy hh:mm tt}")
-								.Min(DateTime.Today)
-								.Size(ComponentSize.Medium)
-								.Rounded(Rounded.Large)
-								.FillMode(FillMode.Outline)
-								.AdaptiveMode(AdaptiveMode.Auto)
-								.ComponentType("modern")
-								.DateInput())
+							<div class="form-floating">
+								<input type="text" class="form-control" id="formG-validity-1" name="formG-validity-1" autocomplete="off" data-control="datetime" data-min="@DateTime.Today.ToString("yyyy-MM-ddTHH:mm:ss")" placeholder=" " />
+								<label for="formG-validity-1">From</label>
+							</div>
 						</div>
 						<div class="ms-3 w-100">
-							@(Html.Kendo()
-								.DateTimePicker()
-								.Name("formG-validity-2")
-								.Label(x => x.Content("Until"))
-								.Format("{0:dd/MM/yyyy hh:mm tt}")
-								.Min(DateTime.Today)
-								.Size(ComponentSize.Medium)
-								.Rounded(Rounded.Large)
-								.FillMode(FillMode.Outline)
-								.AdaptiveMode(AdaptiveMode.Auto)
-								.ComponentType("modern")
-								.DateInput())
+							<div class="form-floating">
+								<input type="text" class="form-control" id="formG-validity-2" name="formG-validity-2" autocomplete="off" data-control="datetime" data-min="@DateTime.Today.ToString("yyyy-MM-ddTHH:mm:ss")" placeholder=" " />
+								<label for="formG-validity-2">Until</label>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -419,11 +276,7 @@
 					</div>
 					<div class="mb-2 d-flex flex-row">
 						<div class="me-4">
-							@(Html.Kendo()
-								.CheckBox()
-								.Name("formG-signed-1")
-								.Size(ComponentSize.Large)
-								.Rounded(Rounded.Medium))
+							<input type="checkbox" class="form-check-input fc-check-input" id="formG-signed-1" name="formG-signed-1" data-control="checkbox" />
 						</div>
 						<div>
 							<label for="formG-signed-1">
@@ -440,11 +293,7 @@
 					</div>
 					<div class="mb-2 d-flex flex-row">
 						<div class="me-4">
-							@(Html.Kendo()
-								.CheckBox()
-								.Name("formG-signed-2")
-								.Size(ComponentSize.Large)
-								.Rounded(Rounded.Medium))
+							<input type="checkbox" class="form-check-input fc-check-input" id="formG-signed-2" name="formG-signed-2" data-control="checkbox" />
 						</div>
 						<div>
 							<label for="formG-signed-2">
@@ -460,22 +309,13 @@
 				</div>
 				<div class="mb-3 d-flex flex-row align-items-center">
 					<div class="me-5">
-						@(Html.Kendo()
-							.Switch()
-							.Name("formG-withdrawn")
-							.Size(ComponentSize.Small)
-							.Messages(x => x.Checked("YES").Unchecked("NO"))
-							.Events(x => x.Change("onChangeWithdrawnFormG")))
+						<div class="form-check form-switch fc-switch">
+							<input type="checkbox" role="switch" class="form-check-input" id="formG-withdrawn" name="formG-withdrawn" data-control="switch" data-change="onChangeWithdrawnFormG" />
+						</div>
 					</div>
 					<label class="form-label me-3" for="formG-withdrawnReason">Reason</label>
 					<div class="flex-grow-1">
-						@(Html.Kendo()
-							.TextBox()
-							.Name("formG-withdrawnReason")
-							.Enable(false)
-							.Size(ComponentSize.Medium)
-							.Rounded(Rounded.Large)
-							.FillMode(FillMode.Outline))
+						<input type="text" class="form-control" id="formG-withdrawnReason" name="formG-withdrawnReason" autocomplete="off" data-control="textbox" disabled />
 					</div>
 				</div>
 			</div>

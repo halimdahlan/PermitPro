@@ -157,56 +157,13 @@ xthead tr, xtfoot tr {
 	outline: 0;
 }
 
-.k-picker-outline {
-	border-color: rgb(210, 221, 236) !important;
-	/*color: #212529;*/
-	background-color: #fff !important;
-}
-
-	.k-picker-outline.k-hover, .k-picker-outline:hover {
-		/*border-color: #212529;*/
-		color: #12263f !important;
-		background-color: #fff !important;
-	}
-
-	.k-picker-outline.k-focus,
-	.k-picker-outline:focus,
-	.k-input-solid.k-focus,
-	.k-input-solid:focus,
-	.k-input-outline.k-focus,
-	.k-input-outline:focus,
-	.k-checkbox.k-checked.k-focus,
-	.k-checkbox:checked:focus,
-	.k-switch:focus {
-		/*box-shadow: 0 0 0 .25rem rgba(228,231,235,.5);*/
-		/*background-color: #fff !important;*/
-		border-color: #2c7be5 !important;
-		box-shadow: none !important;
-		color: #12263f !important;
-		outline: 0 !important;
-	}
-
-.k-input-outline {
-	border-color: rgb(210, 221, 236) !important;
-	background-color: #fff !important;
-}
-
-.form-control, .k-input-outline, .k-picker-outline {
+.form-control {
 	font-family: 'Poppins' !important;
 	font-size: 14px !important;
 }
 
-.k-checkbox.k-focus, .k-checkbox:focus {
-	border-color: #d2ddec;
-	box-shadow: none !important;
-}
-
 .attached-certs {
 	min-width: 100%;
-}
-
-.k-input-label {
-	margin-bottom: 3px !important;
 }
 
 .cert-class {
@@ -262,38 +219,6 @@ xthead tr, xtfoot tr {
 }
 
 
-#grid, #grid .k-input-inner {
-	font-family: 'Poppins';
-	font-size: 14px;
-}
-
-	#grid table thead th {
-		color: #95aac9;
-		font-weight: 600;
-	}
-
-	#grid table thead th.text-center .k-column-title {
-		margin: 0 auto;
-	}
-
-	#grid .k-grid-norecords-template {
-		border: 0;
-	}
-
-.k-treeview-leaf {
-	font-family: 'Poppins', sans-serif;
-	font-size: 14px;
-}
-
-.k-chip {
-	font-family: 'Poppins', sans-serif;
-	font-size: 12px;
-}
-
-.k-searchbox {
-	width: 18em !important;
-}
-
 .attachment-list-loading {
 	background-color: rgba(0,0,0,0);
 	height: 100%;
@@ -303,10 +228,6 @@ xthead tr, xtfoot tr {
 	display: none;
 	justify-items: center;
 	align-items: center;
-}
-
-.k-column-title {
-  font-size: 14px !important;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -321,15 +242,7 @@ a:hover {
 	color: var(--bs-btn-disabled-bg);
 }
 
-.k-grid a {
-	text-decoration: none !important;
-	color: rgba(var(--bs-link-color-rgb), var(--bs-link-opacity,1));
-}
-
-.k-grid a:hover {
-	color: var(--bs-btn-disabled-bg);
-}
-
-.k-calendar, .k-title, .k-button {
-	font-family: 'Poppins', sans-serif !important;
+.cert-heading {
+	font-size: 14px !important;
+	font-weight: 600 !important;
 }

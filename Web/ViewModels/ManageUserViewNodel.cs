@@ -51,7 +51,9 @@ public class ManageUserViewNodel
 
 	public bool OriginFromContractors { get; set; }
 
-	public string DefaultContractorRole { get; set; }
+	// Nullable: only set when the form is opened from Contractors. As a non-nullable string it was
+	// implicitly [Required], so saving a normal user failed validation with no visible message.
+	public string? DefaultContractorRole { get; set; }
 
 }
 

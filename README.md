@@ -12,7 +12,7 @@ A multi-tenant, enterprise web application for managing **Permit-to-Work (PTW)**
 | **Web Framework** | ASP.NET Core 10.0 (MVC + Razor Pages) |
 | **ORM** | Entity Framework Core 10.0.8 (SQL Server) |
 | **Auth** | ASP.NET Identity + JWT Bearer |
-| **UI Components** | Kendo UI for ASP.NET MVC (Telerik) |
+| **UI Components** | Bootstrap 5.3, DataTables 2, Tom Select, Flatpickr, Treeselect.js, Chart.js |
 | **Real-time** | ASP.NET Core SignalR |
 | **Background Jobs** | Hangfire 1.8.14 (currently disabled) |
 | **Rate Limiting** | ASP.NET Core built-in rate limiter (fixed-window, per-IP) |
@@ -64,7 +64,6 @@ PermitPro-1.2/
 │   ├── Extensions/             # Core DI registration (AddPermitProServices)
 │   ├── Migrations/             # EF Core database migrations
 │   └── PTW/                    # Permit-to-Work template data
-├── Telerik/                    # Kendo UI / Telerik DLL references
 ├── .github/workflows/          # GitHub Actions (currently empty — no CI/CD)
 └── PermitPro.sln
 ```
@@ -99,9 +98,9 @@ PermitPro-1.2/
 - Workflow history and full audit trail
 - Background jobs for automatic permit closure and auto-resume logic (configurable threshold via `SUSPEND_AUTORESUME_DAYS`)
 - Enhanced three-page workflow UI (runs alongside original routes):
-  - **Overview** (`/workflow/overview`) — 4 KPI cards (Total, Active, Inactive, Permits Assigned), status doughnut chart, top-6 permits-by-workflow bar chart, summary Kendo grid
-  - **Manage** (`/workflow/manage`) — filter pills (ALL / ACTIVE / INACTIVE), Kendo grid with step count and permit count columns, inline "New Workflow" modal that redirects to Builder on create
-  - **Builder** (`/workflow/builder/{id}`) — two-column view: left = workflow info form with mini stat cards; right = visual step pipeline with inline Bootstrap collapse panels per step (General + Approvers tabs), Kendo grid approver picker modal
+  - **Overview** (`/workflow/overview`) — 4 KPI cards (Total, Active, Inactive, Permits Assigned), status doughnut chart, top-6 permits-by-workflow bar chart, summary grid
+  - **Manage** (`/workflow/manage`) — filter pills (ALL / ACTIVE / INACTIVE), grid with step count and permit count columns, inline "New Workflow" modal that redirects to Builder on create
+  - **Builder** (`/workflow/builder/{id}`) — two-column view: left = workflow info form with mini stat cards; right = visual step pipeline with inline Bootstrap collapse panels per step (General + Approvers tabs), approver picker modal
 
 ### Multi-Tenancy
 - Each company operates in an isolated namespace
@@ -166,13 +165,13 @@ PermitPro-1.2/
 - The delete/authorization checks also close a pre-existing gap where any tenant could delete an arbitrary category/setting row by `Id`, regardless of which company owned it
 
 ### Reporting & Export
-- Kendo UI grid-based permit report with date range, location, certificate type, permit holder, and status filters
+- Grid-based permit report with date range, location, certificate type, permit holder, and status filters
 - **Reports Dashboard** — activated on "View Report" click, showing:
   - 5 KPI cards: Total, Pending, Approved, Closed, Overdue (overdue card highlights red when count > 0)
   - Status distribution doughnut chart
   - Monthly trend stacked bar chart (always last 12 months, independent of date filter)
   - Top 8 locations horizontal bar chart
-- 4 report tabs: All Permits (Kendo Grid), Overdue (paginated, 20 per page), By Holder (with approval rate progress bar), By Location
+- 4 report tabs: All Permits (DataTables grid with Excel export and grouping), Overdue (paginated, 20 per page), By Holder (with approval rate progress bar), By Location
 - Excel export via ClosedXML
 
 ### System Menu Management
@@ -256,7 +255,7 @@ Roles support soft-delete via `ISoftDeletable` and carry audit fields (`CreatedW
 
 ## Enhancements (Phases 1–6 complete)
 
-Phases 1–6 of a seven-phase enhancement have been implemented. Phase 7 (Telerik removal) is in progress.
+All seven phases of the enhancement have been implemented, including Phase 7 (Telerik removal).
 
 ### Phase 1 — Database & Entity Foundation ✅
 
@@ -373,21 +372,23 @@ private bool IsNewSystemPermit(Permit permit) =>
 - Old hardcoded certificate partials (`_HotWork.cshtml` etc.) preserved for pre-cutover permits.
 - **Templates** sidebar group added (collapsible): Form Controls, Form Templates, Certificate Templates — visible to Super Users.
 
-### Phase 7 — Telerik (Kendo UI) Removal ⏳ In progress
+### Phase 7 — Telerik (Kendo UI) Removal ✅ Done
 
-New views (Phases 2–6) use no Telerik/Kendo. Old views still use Kendo Grid, DatePicker, Switch, Upload etc. Replacement strategy:
+Telerik/Kendo is gone: no NuGet package, CDN scripts/theme, local `wwwroot/lib/kendo-ui` library or CSP entries.
 
 | Kendo Component | Replacement |
 |---|---|
-| Kendo Grid | Plain `<table>` + server-side AJAX pagination |
-| Kendo DropDownList | Native `<select>` |
-| Kendo DateTimePicker | **Flatpickr** (CDN, used in new forms) |
+| Kendo Grid | DataTables 2 (Bootstrap 5), `wwwroot/js/datagrid.js`; Buttons (Excel) + RowGroup on Reports |
+| Kendo DropDownList | Native `<select>` + Tom Select |
+| Kendo DropDownTree | Treeselect.js (`wwwroot/js/location-picker.js`) |
+| Kendo Date/Time pickers | Flatpickr |
+| Kendo CheckBox / Switch / TextBox / NumericTextBox | Bootstrap form controls |
 | Kendo Upload | Custom dropzone (JS `File[]` array, no `<input type="file">` in form) |
 | Kendo Window/Dialog | BS5 modal |
 | Kendo Notification | Toast via `showToast()` helper |
 | Kendo Chart | Chart.js |
 
-Order: Admin pages (done for Phases 2–3) → Permits new-system pages (done for Phase 4) → remaining old-system pages → remove Telerik NuGet + `Telerik/` DLL folder → tighten CSP.
+The old-system permit form (New/Edit, panels, certificates A–H) uses `wwwroot/js/form-controls.js`, which keeps Kendo's value semantics so saved permits and their PDFs are unchanged.
 
 ---
 

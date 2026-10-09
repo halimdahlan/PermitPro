@@ -1,6 +1,4 @@
-﻿@using Kendo.Mvc.UI
-
-@model EditPermitViewModel
+﻿@model EditPermitViewModel
 
 <h2 class="accordion-header">
 	<button class="accordion-button fw-semibold text-uppercase collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
@@ -18,171 +16,128 @@
 			<div class="d-flex flex-column flex-md-row justify-content-evently">
 				<div class="w-33">
 					<div>
-						@(Html.Kendo().CheckBox()
-								.Name("chkOpInfo1")
-								.Size(ComponentSize.Large)
-								.Rounded(Rounded.Medium)
-								.HtmlAttributes(new { @class = "what-activities", data_hasvalue = "false" })
-								.Label("  Excavation"))
+						<div class="form-check fc-check">
+							<input type="checkbox" class="form-check-input what-activities" id="chkOpInfo1" name="chkOpInfo1" data-control="checkbox" data-hasvalue="false" />
+							<label class="form-check-label" for="chkOpInfo1">Excavation</label>
+						</div>
 					</div>
 					<div>
-						@(Html.Kendo().CheckBox()
-								.Name("chkOpInfo2")
-								.Size(ComponentSize.Large)
-								.Rounded(Rounded.Medium)
-								.HtmlAttributes(new { @class = "what-activities", data_hasvalue = "false" })
-								.Label("  Entering Confined Space"))
+						<div class="form-check fc-check">
+							<input type="checkbox" class="form-check-input what-activities" id="chkOpInfo2" name="chkOpInfo2" data-control="checkbox" data-hasvalue="false" />
+							<label class="form-check-label" for="chkOpInfo2">Entering Confined Space</label>
+						</div>
 					</div>
 					<div>
-						@(Html.Kendo().CheckBox()
-								.Name("chkOpInfo3")
-								.Size(ComponentSize.Large)
-								.Rounded(Rounded.Medium)
-								.HtmlAttributes(new { @class = "what-activities", data_hasvalue = "false" })
-								.Label("  Assemble"))
+						<div class="form-check fc-check">
+							<input type="checkbox" class="form-check-input what-activities" id="chkOpInfo3" name="chkOpInfo3" data-control="checkbox" data-hasvalue="false" />
+							<label class="form-check-label" for="chkOpInfo3">Assemble</label>
+						</div>
 					</div>
 					<div>
-						@(Html.Kendo().CheckBox()
-								.Name("chkOpInfo4")
-								.Size(ComponentSize.Large)
-								.Rounded(Rounded.Medium)
-								.HtmlAttributes(new { @class = "what-activities", data_hasvalue = "false" })
-								.Label("  Disassemble"))
+						<div class="form-check fc-check">
+							<input type="checkbox" class="form-check-input what-activities" id="chkOpInfo4" name="chkOpInfo4" data-control="checkbox" data-hasvalue="false" />
+							<label class="form-check-label" for="chkOpInfo4">Disassemble</label>
+						</div>
 					</div>
 					<div>
-						@(Html.Kendo().CheckBox()
-								.Name("chkOpInfo5")
-								.Size(ComponentSize.Large)
-								.Rounded(Rounded.Medium)
-								.HtmlAttributes(new { @class = "what-activities", data_hasvalue = "false" })
-								.Label("  Prefabrication"))
+						<div class="form-check fc-check">
+							<input type="checkbox" class="form-check-input what-activities" id="chkOpInfo5" name="chkOpInfo5" data-control="checkbox" data-hasvalue="false" />
+							<label class="form-check-label" for="chkOpInfo5">Prefabrication</label>
+						</div>
 					</div>
 					<div>
-						@(Html.Kendo().CheckBox()
-								.Name("chkOpInfo6")
-								.Size(ComponentSize.Large)
-								.Rounded(Rounded.Medium)
-								.HtmlAttributes(new { @class = "what-activities", data_hasvalue = "false" })
-								.Label("  Opening Confined Space"))
+						<div class="form-check fc-check">
+							<input type="checkbox" class="form-check-input what-activities" id="chkOpInfo6" name="chkOpInfo6" data-control="checkbox" data-hasvalue="false" />
+							<label class="form-check-label" for="chkOpInfo6">Opening Confined Space</label>
+						</div>
 					</div>
 				</div>
 				<div class="w-33">
 					<div>
-						@(Html.Kendo().CheckBox()
-								.Name("chkOpInfo7")
-								.Size(ComponentSize.Large)
-								.Rounded(Rounded.Medium)
-								.HtmlAttributes(new { @class = "what-activities", data_hasvalue = "false" })
-								.Label("  Welding"))
+						<div class="form-check fc-check">
+							<input type="checkbox" class="form-check-input what-activities" id="chkOpInfo7" name="chkOpInfo7" data-control="checkbox" data-hasvalue="false" />
+							<label class="form-check-label" for="chkOpInfo7">Welding</label>
+						</div>
 					</div>
 					<div>
-						@(Html.Kendo().CheckBox()
-								.Name("chkOpInfo8")
-								.Size(ComponentSize.Large)
-								.Rounded(Rounded.Medium)
-								.HtmlAttributes(new { @class = "what-activities", data_hasvalue = "false" })
-								.Label("  Working at Height"))
+						<div class="form-check fc-check">
+							<input type="checkbox" class="form-check-input what-activities" id="chkOpInfo8" name="chkOpInfo8" data-control="checkbox" data-hasvalue="false" />
+							<label class="form-check-label" for="chkOpInfo8">Working at Height</label>
+						</div>
 					</div>
 					<div>
-						@(Html.Kendo().CheckBox()
-								.Name("chkOpInfo9")
-								.Size(ComponentSize.Large)
-								.Rounded(Rounded.Medium)
-								.HtmlAttributes(new { @class = "what-activities", data_hasvalue = "false" })
-								.Label("  Cutting"))
+						<div class="form-check fc-check">
+							<input type="checkbox" class="form-check-input what-activities" id="chkOpInfo9" name="chkOpInfo9" data-control="checkbox" data-hasvalue="false" />
+							<label class="form-check-label" for="chkOpInfo9">Cutting</label>
+						</div>
 					</div>
 					<div>
-						@(Html.Kendo().CheckBox()
-								.Name("chkOpInfo10")
-								.Size(ComponentSize.Large)
-								.Rounded(Rounded.Medium)
-								.HtmlAttributes(new { @class = "what-activities", data_hasvalue = "false" })
-								.Label("  Drilling/Grinding"))
+						<div class="form-check fc-check">
+							<input type="checkbox" class="form-check-input what-activities" id="chkOpInfo10" name="chkOpInfo10" data-control="checkbox" data-hasvalue="false" />
+							<label class="form-check-label" for="chkOpInfo10">Drilling/Grinding</label>
+						</div>
 					</div>
 					<div>
-						@(Html.Kendo().CheckBox()
-								.Name("chkOpInfo11")
-								.Size(ComponentSize.Large)
-								.Rounded(Rounded.Medium)
-								.HtmlAttributes(new { @class = "what-activities", data_hasvalue = "false" })
-								.Label("  High-Pressure Jetting"))
+						<div class="form-check fc-check">
+							<input type="checkbox" class="form-check-input what-activities" id="chkOpInfo11" name="chkOpInfo11" data-control="checkbox" data-hasvalue="false" />
+							<label class="form-check-label" for="chkOpInfo11">High-Pressure Jetting</label>
+						</div>
 					</div>
 					<div>
-						@(Html.Kendo().CheckBox()
-								.Name("chkOpInfo12")
-								.Size(ComponentSize.Large)
-								.Rounded(Rounded.Medium)
-								.HtmlAttributes(new { @class = "what-activities", data_hasvalue = "false" })
-								.Label("  Grit Blasting"))
+						<div class="form-check fc-check">
+							<input type="checkbox" class="form-check-input what-activities" id="chkOpInfo12" name="chkOpInfo12" data-control="checkbox" data-hasvalue="false" />
+							<label class="form-check-label" for="chkOpInfo12">Grit Blasting</label>
+						</div>
 					</div>
 				</div>
 				<div class="w-33">
 					<div>
-						@(Html.Kendo().CheckBox()
-								.Name("chkOpInfo13")
-								.Size(ComponentSize.Large)
-								.Rounded(Rounded.Medium)
-								.HtmlAttributes(new { @class = "what-activities", data_hasvalue = "false" })
-								.Label("  X-Ray/Radiography"))
+						<div class="form-check fc-check">
+							<input type="checkbox" class="form-check-input what-activities" id="chkOpInfo13" name="chkOpInfo13" data-control="checkbox" data-hasvalue="false" />
+							<label class="form-check-label" for="chkOpInfo13">X-Ray/Radiography</label>
+						</div>
 					</div>
 					<div>
-						@(Html.Kendo().CheckBox()
-								.Name("chkOpInfo14")
-								.Size(ComponentSize.Large)
-								.Rounded(Rounded.Medium)
-								.HtmlAttributes(new { @class = "what-activities", data_hasvalue = "false" })
-								.Label("  Lifting/Crane Activities"))
+						<div class="form-check fc-check">
+							<input type="checkbox" class="form-check-input what-activities" id="chkOpInfo14" name="chkOpInfo14" data-control="checkbox" data-hasvalue="false" />
+							<label class="form-check-label" for="chkOpInfo14">Lifting/Crane Activities</label>
+						</div>
 					</div>
 					<div>
-						@(Html.Kendo().CheckBox()
-								.Name("chkOpInfo15")
-								.Size(ComponentSize.Large)
-								.Rounded(Rounded.Medium)
-								.HtmlAttributes(new { @class = "what-activities", data_hasvalue = "false" })
-								.Label("  Calibration"))
+						<div class="form-check fc-check">
+							<input type="checkbox" class="form-check-input what-activities" id="chkOpInfo15" name="chkOpInfo15" data-control="checkbox" data-hasvalue="false" />
+							<label class="form-check-label" for="chkOpInfo15">Calibration</label>
+						</div>
 					</div>
 					<div>
-						@(Html.Kendo().CheckBox()
-								.Name("chkOpInfo16")
-								.Size(ComponentSize.Large)
-								.Rounded(Rounded.Medium)
-								.HtmlAttributes(new { @class = "what-activities", data_hasvalue = "false" })
-								.Label("  Electrical Activities"))
+						<div class="form-check fc-check">
+							<input type="checkbox" class="form-check-input what-activities" id="chkOpInfo16" name="chkOpInfo16" data-control="checkbox" data-hasvalue="false" />
+							<label class="form-check-label" for="chkOpInfo16">Electrical Activities</label>
+						</div>
 					</div>
 					<div>
-						@(Html.Kendo().CheckBox()
-								.Name("chkOpInfo17")
-								.Size(ComponentSize.Large)
-								.Rounded(Rounded.Medium)
-								.HtmlAttributes(new { @class = "what-activities", data_hasvalue = "false" })
-								.Label("  Nitrogen Pressure Test"))
+						<div class="form-check fc-check">
+							<input type="checkbox" class="form-check-input what-activities" id="chkOpInfo17" name="chkOpInfo17" data-control="checkbox" data-hasvalue="false" />
+							<label class="form-check-label" for="chkOpInfo17">Nitrogen Pressure Test</label>
+						</div>
 					</div>
 					<div>
-						@(Html.Kendo().CheckBox()
-								.Name("chkOpInfo18")
-								.Size(ComponentSize.Large)
-								.Rounded(Rounded.Medium)
-								.HtmlAttributes(new { @class = "what-activities", data_hasvalue = "false" })
-								.Label("  Hydrostatic Test"))
+						<div class="form-check fc-check">
+							<input type="checkbox" class="form-check-input what-activities" id="chkOpInfo18" name="chkOpInfo18" data-control="checkbox" data-hasvalue="false" />
+							<label class="form-check-label" for="chkOpInfo18">Hydrostatic Test</label>
+						</div>
 					</div>
 				</div>
 			</div>
 			<div>
 				<div>
-					@(Html.Kendo().CheckBox()
-							.Name("chkOpInfo19")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium)
-							.HtmlAttributes(new { @class = "what-activities", data_hasvalue = "true", data_textbox = "tbOpInfo19" })
-							.Label("  Other (please specify)"))
+					<div class="form-check fc-check">
+						<input type="checkbox" class="form-check-input what-activities" id="chkOpInfo19" name="chkOpInfo19" data-control="checkbox" data-hasvalue="true" data-textbox="tbOpInfo19" />
+						<label class="form-check-label" for="chkOpInfo19">Other (please specify)</label>
+					</div>
 				</div>
 				<div class="ps-4 mt-2">
-					@(Html.Kendo().TextBox()
-							.Name("tbOpInfo19")
-							.Size(ComponentSize.Medium)
-							.Rounded(Rounded.Large)
-							.FillMode(FillMode.Outline)
-							.HtmlAttributes(new { @class = "chkOpInfo19" }))
+					<input type="text" class="form-control chkOpInfo19" id="tbOpInfo19" name="tbOpInfo19" autocomplete="off" data-control="textbox" />
 				</div>
 			</div>
 		</div>
@@ -192,40 +147,32 @@
 			<div class="d-flex flex-column flex-md-row justify-content-evenly">
 				<div class="w-33">
 					<div>
-						@(Html.Kendo().CheckBox()
-								.Name("chkOpInfo20")
-								.Size(ComponentSize.Large)
-								.Rounded(Rounded.Medium)
-								.HtmlAttributes(new { @class = "where-activities" })
-								.Label("  Zone 0"))
+						<div class="form-check fc-check">
+							<input type="checkbox" class="form-check-input where-activities" id="chkOpInfo20" name="chkOpInfo20" data-control="checkbox" />
+							<label class="form-check-label" for="chkOpInfo20">Zone 0</label>
+						</div>
 					</div>
 					<div>
-						@(Html.Kendo().CheckBox()
-								.Name("chkOpInfo21")
-								.Size(ComponentSize.Large)
-								.Rounded(Rounded.Medium)
-								.HtmlAttributes(new { @class = "where-activities" })
-								.Label("  Unclassified"))
+						<div class="form-check fc-check">
+							<input type="checkbox" class="form-check-input where-activities" id="chkOpInfo21" name="chkOpInfo21" data-control="checkbox" />
+							<label class="form-check-label" for="chkOpInfo21">Unclassified</label>
+						</div>
 					</div>
 				</div>
 				<div class="w-33">
 					<div>
-						@(Html.Kendo().CheckBox()
-								.Name("chkOpInfo22")
-								.Size(ComponentSize.Large)
-								.Rounded(Rounded.Medium)
-								.HtmlAttributes(new { @class = "where-activities" })
-								.Label("  Zone 1"))
+						<div class="form-check fc-check">
+							<input type="checkbox" class="form-check-input where-activities" id="chkOpInfo22" name="chkOpInfo22" data-control="checkbox" />
+							<label class="form-check-label" for="chkOpInfo22">Zone 1</label>
+						</div>
 					</div>
 				</div>
 				<div class="w-33">
 					<div>
-						@(Html.Kendo().CheckBox()
-								.Name("chkOpInfo23")
-								.Size(ComponentSize.Large)
-								.Rounded(Rounded.Medium)
-								.HtmlAttributes(new { @class = "where-activities" })
-								.Label("  Zone 2"))
+						<div class="form-check fc-check">
+							<input type="checkbox" class="form-check-input where-activities" id="chkOpInfo23" name="chkOpInfo23" data-control="checkbox" />
+							<label class="form-check-label" for="chkOpInfo23">Zone 2</label>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -236,59 +183,44 @@
 			<div class="d-flex flex-column flex-md-row justify-content-around">
 				<div class="w-33">
 					<div>
-						@(Html.Kendo().CheckBox()
-								.Name("chkOpInfo24")
-								.Size(ComponentSize.Large)
-								.Rounded(Rounded.Medium)
-								.HtmlAttributes(new { @class = "where-activities" })
-								.Label("  Explosion Proof/Intrisically Safe"))
+						<div class="form-check fc-check">
+							<input type="checkbox" class="form-check-input where-activities" id="chkOpInfo24" name="chkOpInfo24" data-control="checkbox" />
+							<label class="form-check-label" for="chkOpInfo24">Explosion Proof/Intrisically Safe</label>
+						</div>
 					</div>
 					<div>
-						@(Html.Kendo().CheckBox()
-								.Name("chkOpInfo25")
-								.Size(ComponentSize.Large)
-								.Rounded(Rounded.Medium)
-								.HtmlAttributes(new { @class = "where-activities" })
-								.Label("  Spark-free Tools"))
+						<div class="form-check fc-check">
+							<input type="checkbox" class="form-check-input where-activities" id="chkOpInfo25" name="chkOpInfo25" data-control="checkbox" />
+							<label class="form-check-label" for="chkOpInfo25">Spark-free Tools</label>
+						</div>
 					</div>
 				</div>
 				<div class="w-33">
 					<div>
-						@(Html.Kendo().CheckBox()
-								.Name("chkOpInfo26")
-								.Size(ComponentSize.Large)
-								.Rounded(Rounded.Medium)
-								.HtmlAttributes(new { @class = "where-activities" })
-								.Label("  Lifting Equipment/Crane"))
+						<div class="form-check fc-check">
+							<input type="checkbox" class="form-check-input where-activities" id="chkOpInfo26" name="chkOpInfo26" data-control="checkbox" />
+							<label class="form-check-label" for="chkOpInfo26">Lifting Equipment/Crane</label>
+						</div>
 					</div>
 				</div>
 				<div class="w-33">
 					<div>
-						@(Html.Kendo().CheckBox()
-								.Name("chkOpInfo27")
-								.Size(ComponentSize.Large)
-								.Rounded(Rounded.Medium)
-								.HtmlAttributes(new { @class = "where-activities" })
-								.Label("  Scaffold"))
+						<div class="form-check fc-check">
+							<input type="checkbox" class="form-check-input where-activities" id="chkOpInfo27" name="chkOpInfo27" data-control="checkbox" />
+							<label class="form-check-label" for="chkOpInfo27">Scaffold</label>
+						</div>
 					</div>
 				</div>
 			</div>
 			<div>
 				<div>
-					@(Html.Kendo().CheckBox()
-							.Name("chkOpInfo27a")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium)
-							.HtmlAttributes(new { @class = "where-activities", data_hasvalue = "true", data_textbox = "#tbOpInfo27a" })
-							.Label("  Other (please specify)"))
+					<div class="form-check fc-check">
+						<input type="checkbox" class="form-check-input where-activities" id="chkOpInfo27a" name="chkOpInfo27a" data-control="checkbox" data-hasvalue="true" data-textbox="#tbOpInfo27a" />
+						<label class="form-check-label" for="chkOpInfo27a">Other (please specify)</label>
+					</div>
 				</div>
 				<div class="ps-4 mt-2">
-					@(Html.Kendo().TextBox()
-							.Size(ComponentSize.Medium)
-							.Rounded(Rounded.Large)
-							.FillMode(FillMode.Outline)
-							.HtmlAttributes(new { @class = "chkOpInfo27a" })
-							.Name("tbOpInfo27a"))
+					<input type="text" class="form-control chkOpInfo27a" id="tbOpInfo27a" name="tbOpInfo27a" autocomplete="off" data-control="textbox" />
 				</div>
 			</div>
 		</div>
@@ -298,51 +230,38 @@
 			<div class="d-flex flex-md-row flex-column justify-content-evenly">
 				<div class="w-33">
 					<div>
-						@(Html.Kendo().CheckBox()
-								.Name("chkOpInfo28")
-								.Size(ComponentSize.Large)
-								.Rounded(Rounded.Medium)
-								.HtmlAttributes(new { @class = "where-activities", data_hasvalue = "false" })
-								.Label("  Class 1"))
+						<div class="form-check fc-check">
+							<input type="checkbox" class="form-check-input where-activities" id="chkOpInfo28" name="chkOpInfo28" data-control="checkbox" data-hasvalue="false" />
+							<label class="form-check-label" for="chkOpInfo28">Class 1</label>
+						</div>
 					</div>
 				</div>
 				<div class="w-33">
 					<div>
-						@(Html.Kendo().CheckBox()
-								.Name("chkOpInfo29")
-								.Size(ComponentSize.Large)
-								.Rounded(Rounded.Medium)
-								.HtmlAttributes(new { @class = "where-activities", data_hasvalue = "false" })
-								.Label("  Class 2"))
+						<div class="form-check fc-check">
+							<input type="checkbox" class="form-check-input where-activities" id="chkOpInfo29" name="chkOpInfo29" data-control="checkbox" data-hasvalue="false" />
+							<label class="form-check-label" for="chkOpInfo29">Class 2</label>
+						</div>
 					</div>
 				</div>
 				<div class="w-33">
 					<div>
-						@(Html.Kendo().CheckBox()
-								.Name("chkOpInfo30")
-								.Size(ComponentSize.Large)
-								.Rounded(Rounded.Medium)
-								.HtmlAttributes(new { @class = "where-activities", data_hasvalue = "false" })
-								.Label("  Class 3"))
+						<div class="form-check fc-check">
+							<input type="checkbox" class="form-check-input where-activities" id="chkOpInfo30" name="chkOpInfo30" data-control="checkbox" data-hasvalue="false" />
+							<label class="form-check-label" for="chkOpInfo30">Class 3</label>
+						</div>
 					</div>
 				</div>
 			</div>
 			<div>
 				<div>
-					@(Html.Kendo().CheckBox()
-							.Name("chkOpInfo31")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium)
-							.HtmlAttributes(new { @class = "where-activities", data_hasvalue = "true", data_textbox = "#tbOpInfo32" })
-							.Label("  Other (please specify)"))
+					<div class="form-check fc-check">
+						<input type="checkbox" class="form-check-input where-activities" id="chkOpInfo31" name="chkOpInfo31" data-control="checkbox" data-hasvalue="true" data-textbox="#tbOpInfo32" />
+						<label class="form-check-label" for="chkOpInfo31">Other (please specify)</label>
+					</div>
 				</div>
 				<div class="ps-4 mt-2">
-					@(Html.Kendo().TextBox()
-							.Size(ComponentSize.Medium)
-							.Rounded(Rounded.Large)
-							.FillMode(FillMode.Outline)
-							.HtmlAttributes(new { @class = "chkOpInfo31" })
-							.Name("tbOpInfo31"))
+					<input type="text" class="form-control chkOpInfo31" id="tbOpInfo31" name="tbOpInfo31" autocomplete="off" data-control="textbox" />
 				</div>
 			</div>
 		</div>

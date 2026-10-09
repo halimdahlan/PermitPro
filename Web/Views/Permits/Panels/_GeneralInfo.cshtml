@@ -1,6 +1,4 @@
-﻿@using Kendo.Mvc.UI
-
-@model EditPermitViewModel
+﻿@model EditPermitViewModel
 
 <h2 class="accordion-header">
 	<button class="accordion-button fw-semibold text-uppercase" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
@@ -15,63 +13,20 @@
 		}
 		<div class="form-group mb-3">
 			<label class="form-label">Location</label>
-			@(Html.Kendo().DropDownTree()
-				.Name("ddtLocation")
-				.DataValueField("id")
-				.DataTextField("name")
-				.Placeholder("(select location)")
-				.Events(events => events
-					.Change("onChangeSites")
-				)
-				.FillMode(FillMode.Outline)
-				.Rounded(Rounded.Large)
-				.CheckAll(false)
-				.AutoClose(true)
-				.DataSource(ds => ds
-					.Read(read => read
-						.Url($"/api/data/{Model.CompanyId}/sites/hierarchical").Type(HttpVerbs.Get)
-					)
-					.Events(ev => ev.RequestEnd("dsOnRequestEnd"))
-				)
-			)
+			<div id="ddtLocation" data-control="tree" data-url="/@Model.CompanyId/sites/tree" data-placeholder="(select location)"></div>
 		</div>
 		<div class="mb-3">
 			<label class="form-label">Description of work</label>
-			@(Html.Kendo().TextArea()
-				.Name("tbPermitDesc")
-				.Rounded(Rounded.Large)
-				.FillMode(FillMode.Outline)
-				.Rows(2))
+			<textarea class="form-control" id="tbPermitDesc" name="tbPermitDesc" data-control="textarea" rows="2"></textarea>
 		</div>
 		<div class="d-flex flex-md-row flex-column mb-3 w-100">
 			<div class="flex-grow-1 me-md-3">
 				<label class="form-label">Start date/time</label>
-				@(Html.Kendo()
-					.DatePicker()
-					.Name("startDateTime")
-					.Format("{0:dd/MM/yyyy}")
-					.Size(ComponentSize.Medium)
-					.Rounded(Rounded.Large)
-					.FillMode(FillMode.Outline)
-					.AdaptiveMode(AdaptiveMode.Auto)
-					.ComponentType("modern")
-					.Events(e => e.Change("onStartDateChange"))
-					.Culture("ms-MY")
-					.DateInput())
+				<input type="text" class="form-control" id="startDateTime" name="startDateTime" autocomplete="off" data-control="date" data-change="onStartDateChange" />
 			</div>
 			<div class="flex-grow-1 ms-md-3 mt-3 mt-md-0">
 				<label class="form-label">End date/time</label>
-				@(Html.Kendo()
-					.DatePicker()
-					.Name("endDateTime")
-					.Format("{0:dd/MM/yyyy}")
-					.Size(ComponentSize.Medium)
-					.Rounded(Rounded.Medium)
-					.FillMode(FillMode.Outline)
-					.AdaptiveMode(AdaptiveMode.Auto)
-					.ComponentType("modern")
-					.Culture("ms-MY")
-					.DateInput())
+				<input type="text" class="form-control" id="endDateTime" name="endDateTime" autocomplete="off" data-control="date" />
 			</div>
 		</div>
 		<hr />
@@ -80,80 +35,56 @@
 			<div class="d-flex flex-md-row flex-column justify-content-evenly">
 				<div class="w-33">
 					<div>
-						@(Html.Kendo().CheckBox()
-							.Name("chkCertHotWork")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium)
-							.HtmlAttributes(new { @class = "certificates", @data_certname = "hotwork|A|HOT WORK" })
-							.Events(events => events.Change("onChangeCertificate"))
-							.Label("  Hot Work"))
+						<div class="form-check fc-check">
+							<input type="checkbox" class="form-check-input certificates" id="chkCertHotWork" name="chkCertHotWork" data-control="checkbox" data-certname="hotwork|A|HOT WORK" data-change="onChangeCertificate" />
+							<label class="form-check-label" for="chkCertHotWork">Hot Work</label>
+						</div>
 					</div>
 					<div>
-						@(Html.Kendo().CheckBox()
-							.Name("chkCertConfinedSpace")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium)
-							.HtmlAttributes(new { @class = "certificates", @data_certname = "confinedspace|B|CONFINED SPACE" })
-							.Events(events => events.Change("onChangeCertificate"))
-							.Label("  Confined Space"))
+						<div class="form-check fc-check">
+							<input type="checkbox" class="form-check-input certificates" id="chkCertConfinedSpace" name="chkCertConfinedSpace" data-control="checkbox" data-certname="confinedspace|B|CONFINED SPACE" data-change="onChangeCertificate" />
+							<label class="form-check-label" for="chkCertConfinedSpace">Confined Space</label>
+						</div>
 					</div>
 					<div>
-						@(Html.Kendo().CheckBox()
-							.Name("chkCertRadiation")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium)
-							.HtmlAttributes(new { @class = "certificates", @data_certname = "radiation|C|RADIATION" })
-							.Events(events => events.Change("onChangeCertificate"))
-							.Label("  Radiation"))
+						<div class="form-check fc-check">
+							<input type="checkbox" class="form-check-input certificates" id="chkCertRadiation" name="chkCertRadiation" data-control="checkbox" data-certname="radiation|C|RADIATION" data-change="onChangeCertificate" />
+							<label class="form-check-label" for="chkCertRadiation">Radiation</label>
+						</div>
 					</div>
 				</div>
 				<div class="w-33">
 					<div>
-						@(Html.Kendo().CheckBox()
-							.Name("chkCertExcavation")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium)
-							.HtmlAttributes(new { @class = "certificates", @data_certname = "excavation|D|EXCAVATION" })
-							.Events(events => events.Change("onChangeCertificate"))
-							.Label("  Excavation"))
+						<div class="form-check fc-check">
+							<input type="checkbox" class="form-check-input certificates" id="chkCertExcavation" name="chkCertExcavation" data-control="checkbox" data-certname="excavation|D|EXCAVATION" data-change="onChangeCertificate" />
+							<label class="form-check-label" for="chkCertExcavation">Excavation</label>
+						</div>
 					</div>
 					<div>
-						@(Html.Kendo().CheckBox()
-							.Name("chkCertIsolation")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium)
-							.HtmlAttributes(new { @class = "certificates", @data_certname = "isolation|E|ISOLATION" })
-							.Events(events => events.Change("onChangeCertificate"))
-							.Label("  Isolation"))
+						<div class="form-check fc-check">
+							<input type="checkbox" class="form-check-input certificates" id="chkCertIsolation" name="chkCertIsolation" data-control="checkbox" data-certname="isolation|E|ISOLATION" data-change="onChangeCertificate" />
+							<label class="form-check-label" for="chkCertIsolation">Isolation</label>
+						</div>
 					</div>
 					<div>
-						@(Html.Kendo().CheckBox()
-							.Name("chkCertF")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium)
-							.HtmlAttributes(new { @class = "certificates", @data_certname = "methodStatement|F|METHOD STATEMENT" })
-							.Events(events => events.Change("onChangeCertificate"))
-							.Label("  Method Statement"))
+						<div class="form-check fc-check">
+							<input type="checkbox" class="form-check-input certificates" id="chkCertF" name="chkCertF" data-control="checkbox" data-certname="methodStatement|F|METHOD STATEMENT" data-change="onChangeCertificate" />
+							<label class="form-check-label" for="chkCertF">Method Statement</label>
+						</div>
 					</div>
 				</div>
 				<div class="w-33">
 					<div>
-						@(Html.Kendo().CheckBox()
-							.Name("chkCertG")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium)
-							.HtmlAttributes(new { @class = "certificates", @data_certname = "liftingHoisting|G|LIFTING & HOISTING" })
-							.Events(events => events.Change("onChangeCertificate"))
-							.Label("  Lifting & Hoisting"))
+						<div class="form-check fc-check">
+							<input type="checkbox" class="form-check-input certificates" id="chkCertG" name="chkCertG" data-control="checkbox" data-certname="liftingHoisting|G|LIFTING &amp; HOISTING" data-change="onChangeCertificate" />
+							<label class="form-check-label" for="chkCertG">Lifting &amp; Hoisting</label>
+						</div>
 					</div>
 					<div>
-						@(Html.Kendo().CheckBox()
-							.Name("chkCertH")
-							.Size(ComponentSize.Large)
-							.Rounded(Rounded.Medium)
-							.HtmlAttributes(new { @class = "certificates", @data_certname = "override|H|OVERRIDE" })
-							.Events(events => events.Change("onChangeCertificate"))
-							.Label("  Override"))
+						<div class="form-check fc-check">
+							<input type="checkbox" class="form-check-input certificates" id="chkCertH" name="chkCertH" data-control="checkbox" data-certname="override|H|OVERRIDE" data-change="onChangeCertificate" />
+							<label class="form-check-label" for="chkCertH">Override</label>
+						</div>
 					</div>
 				</div>
 			</div>

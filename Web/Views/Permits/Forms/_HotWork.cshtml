@@ -1,6 +1,4 @@
-﻿@using Kendo.Mvc.UI
-
-<!-- Modal: FORM A /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+﻿<!-- Modal: FORM A /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
 <div class="modal fade" id="dlgFormA" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="dlgFormALabel" aria-hidden="true">
 	<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
 		<div class="modal-content">
@@ -23,13 +21,10 @@
 				</div>
 				<div class="d-flex flex-column flex-md-row justify-content-evenly mb-4 px-2">
 					<div class="w-100 me-md-3">
-						@(Html.Kendo().TextBox()
-								.Name("tbFormAEmergencyContact")
-								.Label(x => x.Content("Emergency Contact"))
-								.Size(ComponentSize.Medium)
-								.Rounded(Rounded.Large)
-								.FillMode(FillMode.Outline)
-								.Events(e => e.Change("hotWorkOnChange")))
+						<div class="form-floating">
+							<input type="text" class="form-control" id="tbFormAEmergencyContact" name="tbFormAEmergencyContact" autocomplete="off" data-control="textbox" data-change="hotWorkOnChange" placeholder=" " />
+							<label for="tbFormAEmergencyContact">Emergency Contact</label>
+						</div>
 					</div>
 				</div>
 
@@ -39,11 +34,7 @@
 				<div class="px-2 mb-4">
 					<div class="d-flex flex-row align-items-md-center">
 						<div class="mt-1 mt-md-0">
-							@(Html.Kendo().CheckBox()
-									.Name("chkFormACheckList1")
-									.Size(ComponentSize.Large)
-									.Rounded(Rounded.Medium)
-									.Events(e => e.Change("hotWorkOnChange")))
+							<input type="checkbox" class="form-check-input fc-check-input" id="chkFormACheckList1" name="chkFormACheckList1" data-control="checkbox" data-change="hotWorkOnChange" />
 						</div>
 						<div class="ms-3">
 							<label class="form-label" for="chkFormACheckList1" style="margin-top: 4px;">
@@ -53,11 +44,7 @@
 					</div>
 					<div class="d-flex flex-row align-items-md-center">
 						<div class="mt-1 mt-md-0">
-							@(Html.Kendo().CheckBox()
-									.Name("chkFormACheckList2")
-									.Size(ComponentSize.Large)
-									.Rounded(Rounded.Medium)
-									.Events(e => e.Change("hotWorkOnChange")))
+							<input type="checkbox" class="form-check-input fc-check-input" id="chkFormACheckList2" name="chkFormACheckList2" data-control="checkbox" data-change="hotWorkOnChange" />
 						</div>
 						<div class="ms-3">
 							<label class="form-label" for="chkFormACheckList2" style="margin-top: 4px;">
@@ -67,11 +54,7 @@
 					</div>
 					<div class="d-flex flex-row align-items-md-center">
 						<div class="mt-1 mt-md-0">
-							@(Html.Kendo().CheckBox()
-									.Name("chkFormACheckList3")
-									.Size(ComponentSize.Large)
-									.Rounded(Rounded.Medium)
-									.Events(e => e.Change("hotWorkOnChange")))
+							<input type="checkbox" class="form-check-input fc-check-input" id="chkFormACheckList3" name="chkFormACheckList3" data-control="checkbox" data-change="hotWorkOnChange" />
 						</div>
 						<div class="ms-3">
 							<label class="form-label" for="chkFormACheckList3" style="margin-top: 4px;">
@@ -81,11 +64,7 @@
 					</div>
 					<div class="d-flex flex-row align-items-md-center">
 						<div class="mt-1 mt-md-0">
-							@(Html.Kendo().CheckBox()
-									.Name("chkFormACheckList4")
-									.Size(ComponentSize.Large)
-									.Rounded(Rounded.Medium)
-									.Events(e => e.Change("hotWorkOnChange")))
+							<input type="checkbox" class="form-check-input fc-check-input" id="chkFormACheckList4" name="chkFormACheckList4" data-control="checkbox" data-change="hotWorkOnChange" />
 						</div>
 						<div class="ms-3">
 							<label class="form-label" for="chkFormACheckList4" style="margin-top: 4px;">
@@ -95,11 +74,7 @@
 					</div>
 					<div class="d-flex flex-row align-items-md-center">
 						<div class="mt-1 mt-md-0">
-							@(Html.Kendo().CheckBox()
-									.Name("chkFormACheckList5")
-									.Size(ComponentSize.Large)
-									.Rounded(Rounded.Medium)
-									.Events(e => e.Change("hotWorkOnChange")))
+							<input type="checkbox" class="form-check-input fc-check-input" id="chkFormACheckList5" name="chkFormACheckList5" data-control="checkbox" data-change="hotWorkOnChange" />
 						</div>
 						<div class="ms-3">
 							<label class="form-label" for="chkFormACheckList5" style="margin-top: 4px;">
@@ -110,11 +85,7 @@
 					</div>
 					<div class="d-flex flex-row align-items-md-center">
 						<div class="mt-1 mt-md-0">
-							@(Html.Kendo().CheckBox()
-									.Name("chkFormACheckList6")
-									.Size(ComponentSize.Large)
-									.Rounded(Rounded.Medium)
-									.Events(e => e.Change("hotWorkOnChange")))
+							<input type="checkbox" class="form-check-input fc-check-input" id="chkFormACheckList6" name="chkFormACheckList6" data-control="checkbox" data-change="hotWorkOnChange" />
 						</div>
 						<div class="ms-3">
 							<label class="form-label" for="chkFormACheckList6" style="margin-top: 4px;">
@@ -124,11 +95,7 @@
 					</div>
 					<div class="d-flex flex-row align-items-md-center">
 						<div class="mt-1 mt-md-0">
-							@(Html.Kendo().CheckBox()
-									.Name("chkFormACheckList7")
-									.Size(ComponentSize.Large)
-									.Rounded(Rounded.Medium)
-									.Events(e => e.Change("hotWorkOnChange")))
+							<input type="checkbox" class="form-check-input fc-check-input" id="chkFormACheckList7" name="chkFormACheckList7" data-control="checkbox" data-change="hotWorkOnChange" />
 						</div>
 						<div class="ms-3">
 							<label class="form-label" for="chkFormACheckList7" style="margin-top: 4px;">
@@ -144,11 +111,7 @@
 				<div class="px-2 mb-4 d-flex flex-column flex-md-row">
 					<div class="d-flex flex-md-row align-items-center ignition-source">
 						<div>
-							@(Html.Kendo().CheckBox()
-									.Name("chkFormAIgnitionSource1")
-									.Size(ComponentSize.Large)
-									.Rounded(Rounded.Medium)
-									.Events(e => e.Change("hotWorkOnChange")))
+							<input type="checkbox" class="form-check-input fc-check-input" id="chkFormAIgnitionSource1" name="chkFormAIgnitionSource1" data-control="checkbox" data-change="hotWorkOnChange" />
 						</div>
 						<div class="ms-3">
 							<label class="form-label" for="chkFormAIgnitionSource1" style="margin-top: 4px;">
@@ -158,11 +121,7 @@
 					</div>
 					<div class="d-flex flex-row align-items-center ignition-source">
 						<div>
-							@(Html.Kendo().CheckBox()
-									.Name("chkFormAIgnitionSource2")
-									.Size(ComponentSize.Large)
-									.Rounded(Rounded.Medium)
-									.Events(e => e.Change("hotWorkOnChange")))
+							<input type="checkbox" class="form-check-input fc-check-input" id="chkFormAIgnitionSource2" name="chkFormAIgnitionSource2" data-control="checkbox" data-change="hotWorkOnChange" />
 						</div>
 						<div class="ms-3">
 							<label class="form-label" for="chkFormAIgnitionSource2" style="margin-top: 4px;">
@@ -172,11 +131,7 @@
 					</div>
 					<div class="d-flex flex-row align-items-center ignition-source">
 						<div>
-							@(Html.Kendo().CheckBox()
-									.Name("chkFormAIgnitionSource3")
-									.Size(ComponentSize.Large)
-									.Rounded(Rounded.Medium)
-									.Events(e => e.Change("hotWorkOnChange")))
+							<input type="checkbox" class="form-check-input fc-check-input" id="chkFormAIgnitionSource3" name="chkFormAIgnitionSource3" data-control="checkbox" data-change="hotWorkOnChange" />
 						</div>
 						<div class="ms-3">
 							<label class="form-label" for="chkFormAIgnitionSource3" style="margin-top: 4px;">
@@ -186,11 +141,7 @@
 					</div>
 					<div class="d-flex flex-row align-items-center ignition-source">
 						<div>
-							@(Html.Kendo().CheckBox()
-									.Name("chkFormAIgnitionSource4")
-									.Size(ComponentSize.Large)
-									.Rounded(Rounded.Medium)
-									.Events(e => e.Change("hotWorkOnChange")))
+							<input type="checkbox" class="form-check-input fc-check-input" id="chkFormAIgnitionSource4" name="chkFormAIgnitionSource4" data-control="checkbox" data-change="hotWorkOnChange" />
 						</div>
 						<div class="ms-3">
 							<label class="form-label" for="chkFormAIgnitionSource4" style="margin-top: 4px;">
@@ -200,11 +151,7 @@
 					</div>
 					<div class="d-flex flex-row align-items-center ignition-source">
 						<div>
-							@(Html.Kendo().CheckBox()
-									.Name("chkFormAIgnitionSource5")
-									.Size(ComponentSize.Large)
-									.Rounded(Rounded.Medium)
-									.Events(e => e.Change("onIgnitionSourceCheckBoxChange")))
+							<input type="checkbox" class="form-check-input fc-check-input" id="chkFormAIgnitionSource5" name="chkFormAIgnitionSource5" data-control="checkbox" data-change="onIgnitionSourceCheckBoxChange" />
 						</div>
 						<div class="ms-3">
 							<div class="d-flex flex-row align-items-center">
@@ -212,13 +159,7 @@
 									Other
 								</label>
 								<div class="ms-5 ms-md-3">
-									@(Html.Kendo().TextBox()
-											.Size(ComponentSize.Small)
-											.Enable(false)
-											.Rounded(Rounded.Large)
-											.FillMode(FillMode.Outline)
-											.Name("tbFormAIgnitionSource5")
-											.Events(e => e.Change("hotWorkOnChange")))
+									<input type="text" class="form-control" id="tbFormAIgnitionSource5" name="tbFormAIgnitionSource5" autocomplete="off" data-control="textbox" data-change="hotWorkOnChange" disabled />
 								</div>
 							</div>
 						</div>
@@ -229,12 +170,7 @@
 					<h6 class="mb-0">GAS TEST PERFORMED BY (AGT name and signature)</h6>
 				</div>
 				<div class="px-2 mb-4">
-					@(Html.Kendo().TextArea()
-							.Name("tbFormAGasTestBy")
-							.Rounded(Rounded.Large)
-							.FillMode(FillMode.Outline)
-							.Rows(2)
-							.Events(e => e.Change("hotWorkOnChange")))
+					<textarea class="form-control" id="tbFormAGasTestBy" name="tbFormAGasTestBy" data-control="textarea" rows="2" data-change="hotWorkOnChange"></textarea>
 				</div>
 
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
@@ -243,26 +179,16 @@
 				<div class="px-2 mb-4">
 					<div class="d-flex flex-column flex-md-row justify-content-evenly">
 						<div class="w-100 me-md-3 mt-3 mt-md-0">
-							@(Html.Kendo().DateTimePicker()
-									.Name("dtmFormA1")
-									.Label(x => x.Content("Date and Time"))
-									.Format("{0:dd/MM/yyyy hh:mm tt}")
-									.Size(ComponentSize.Medium)
-									.Rounded(Rounded.Large)
-									.FillMode(FillMode.Outline)
-									.AdaptiveMode(AdaptiveMode.Auto)
-									.ComponentType("modern")
-									.DateInput()
-									.Events(e => e.Change("hotWorkOnChange")))
+							<div class="form-floating">
+								<input type="text" class="form-control" id="dtmFormA1" name="dtmFormA1" autocomplete="off" data-control="datetime" data-change="hotWorkOnChange" placeholder=" " />
+								<label for="dtmFormA1">Date and Time</label>
+							</div>
 						</div>
 						<div class="w-100 ms-md-3 mt-3 mt-md-0">
-							@(Html.Kendo().TextBox()
-									.Name("tbFormALelReading")
-									.Label(x => x.Content("Initial LEL % reading"))
-									.Size(ComponentSize.Medium)
-									.Rounded(Rounded.Large)
-									.FillMode(FillMode.Outline)
-									.Events(e => e.Change("hotWorkOnChange")))
+							<div class="form-floating">
+								<input type="text" class="form-control" id="tbFormALelReading" name="tbFormALelReading" autocomplete="off" data-control="textbox" data-change="hotWorkOnChange" placeholder=" " />
+								<label for="tbFormALelReading">Initial LEL % reading</label>
+							</div>
 						</div>
 					</div>
 					<div class="my-2">
@@ -271,12 +197,7 @@
 					<div class="d-flex flex-row align-items-center">
 						<label class="form-label">Enter required frequency</label>
 						<div class="ms-3">
-							@(Html.Kendo().TextBox()
-									.Name("tbLELFrequency")
-									.Size(ComponentSize.Small)
-									.Rounded(Rounded.Medium)
-									.FillMode(FillMode.Outline)
-									.Events(e => e.Change("hotWorkOnChange")))
+							<input type="text" class="form-control" id="tbLELFrequency" name="tbLELFrequency" autocomplete="off" data-control="textbox" data-change="hotWorkOnChange" />
 						</div>
 					</div>
 					<div class="mt-3">
@@ -330,17 +251,15 @@
 						</div>
 						<div class="d-flex flex-column flex-md-row justify-content-evenly mb-3">
 							<div class="w-100 me-0 me-md-3 mb-3 mb-md-0">
-								@(Html.Kendo().TimePicker()
-										.Name("tmpFormA-TimeAllowedFrom")
-										.Label(x => x.Content("From"))
-										.DateInput()
-										.Events(e => e.Change("hotWorkOnChange")))
+								<div class="form-floating">
+									<input type="text" class="form-control" id="tmpFormA-TimeAllowedFrom" name="tmpFormA-TimeAllowedFrom" autocomplete="off" data-control="time" data-change="hotWorkOnChange" placeholder=" " />
+									<label for="tmpFormA-TimeAllowedFrom">From</label>
+								</div>
 							</div><div class="w-100 ms-0 ms-md-3">
-								@(Html.Kendo().TimePicker()
-										.Name("tmpFormA-TimeAllowedTo")
-										.Label(x => x.Content("To"))
-										.DateInput()
-										.Events(e => e.Change("hotWorkOnChange")))
+								<div class="form-floating">
+									<input type="text" class="form-control" id="tmpFormA-TimeAllowedTo" name="tmpFormA-TimeAllowedTo" autocomplete="off" data-control="time" data-change="hotWorkOnChange" placeholder=" " />
+									<label for="tmpFormA-TimeAllowedTo">To</label>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -352,21 +271,13 @@
 				<div class="px-2">
 					<div class="d-flex flex-row align-items-center">
 						<div class="me-5">
-							@(Html.Kendo().Switch()
-									.Name("swHotworkWithdrawn")
-									.Size(ComponentSize.Small)
-									.Messages(x => x.Checked("YES").Unchecked("NO"))
-									.Events(x => x.Change("onChangeWithdrawnFormA")))
+							<div class="form-check form-switch fc-switch">
+								<input type="checkbox" role="switch" class="form-check-input" id="swHotworkWithdrawn" name="swHotworkWithdrawn" data-control="switch" data-change="onChangeWithdrawnFormA" />
+							</div>
 						</div>
 						<label class="form-label me-3" for="tbWithdrawnReason">Reason</label>
 						<div class="flex-grow-1">
-							@(Html.Kendo().TextBox()
-									.Name("tbWithdrawnReason")
-									.Enable(false)
-									.Size(ComponentSize.Medium)
-									.Rounded(Rounded.Large)
-									.FillMode(FillMode.Outline)
-									.Events(e => e.Change("hotWorkOnChange")))
+							<input type="text" class="form-control" id="tbWithdrawnReason" name="tbWithdrawnReason" autocomplete="off" data-control="textbox" data-change="hotWorkOnChange" disabled />
 						</div>
 					</div>
 				</div>
@@ -391,20 +302,16 @@
 			<div class="modal-body">
 				<div>
 					<div class="mb-3">
-						@(Html.Kendo().TimePicker()
-								.Name("dtmReadTime")
-								.Label(x => x.Content("Time of reading"))
-								.DateInput()
-								.Events(e => e.Change("hotWorkOnChange")))
+						<div class="form-floating">
+							<input type="text" class="form-control" id="dtmReadTime" name="dtmReadTime" autocomplete="off" data-control="time" data-change="hotWorkOnChange" placeholder=" " />
+							<label for="dtmReadTime">Time of reading</label>
+						</div>
 					</div>
 					<div>
-						@(Html.Kendo().TextBox()
-								.Name("tbReadValue")
-								.Label(x => x.Content("LEL reading"))
-								.Size(ComponentSize.Medium)
-								.Rounded(Rounded.Large)
-								.FillMode(FillMode.Outline)
-								.Events(e => e.Change("hotWorkOnChange")))
+						<div class="form-floating">
+							<input type="text" class="form-control" id="tbReadValue" name="tbReadValue" autocomplete="off" data-control="textbox" data-change="hotWorkOnChange" placeholder=" " />
+							<label for="tbReadValue">LEL reading</label>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -427,20 +334,16 @@
 			<div class="modal-body">
 				<div>
 					<div class="mb-3">
-						@(Html.Kendo().TimePicker()
-								.Name("dtmAtmosReadTime")
-								.Label(x => x.Content("Time of reading"))
-								.DateInput()
-								.Events(e => e.Change("hotWorkOnChange")))
+						<div class="form-floating">
+							<input type="text" class="form-control" id="dtmAtmosReadTime" name="dtmAtmosReadTime" autocomplete="off" data-control="time" data-change="hotWorkOnChange" placeholder=" " />
+							<label for="dtmAtmosReadTime">Time of reading</label>
+						</div>
 					</div>
 					<div>
-						@(Html.Kendo().TextBox()
-								.Name("tbAtmosReadValue")
-								.Label(x => x.Content("O<sub>2</sub> reading"))
-								.Size(ComponentSize.Medium)
-								.Rounded(Rounded.Large)
-								.FillMode(FillMode.Outline)
-								.Events(e => e.Change("hotWorkOnChange")))
+						<div class="form-floating">
+							<input type="text" class="form-control" id="tbAtmosReadValue" name="tbAtmosReadValue" autocomplete="off" data-control="textbox" data-change="hotWorkOnChange" placeholder=" " />
+							<label for="tbAtmosReadValue">O&lt;sub&gt;2&lt;/sub&gt; reading</label>
+						</div>
 					</div>
 				</div>
 			</div>

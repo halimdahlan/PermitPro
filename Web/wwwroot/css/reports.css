@@ -1,13 +1,9 @@
-﻿.view-report {
+.view-report {
 
 }
 
 .label-width {
 	width: 110px;
-}
-
-.k-readonly {
-	color: gray;
 }
 
 .selected-value {
@@ -20,41 +16,7 @@
 	border-radius: 50%;
 }
 
-#categories-list .k-list-item-text {
-	line-height: 1em;
-	min-width: 300px;
-}
-
 /* Material Theme padding adjustment*/
-.k-material #categories-list .k-list-item-text,
-.k-material #categories-list .k-list-item-text.k-hover,
-.k-materialblack #categories-list .k-list-item-text,
-.k-materialblack #categories-list .k-list-item-text.k-hover {
-	padding-left: 5px;
-	border-left: 0;
-}
-
-#categories-list .k-list-item-text > span {
-	-webkit-box-sizing: border-box;
-	-moz-box-sizing: border-box;
-	box-sizing: border-box;
-	vertical-align: middle;
-	display: table-cell;
-	vertical-align: central;
-	margin: 10px 10px 10px 5px;
-}
-
-	#categories-list .k-list-item-text > span:first-child {
-		-moz-box-shadow: inset 0 0 30px rgba(0,0,0,.3);
-		-webkit-box-shadow: inset 0 0 30px rgba(0,0,0,.3);
-		box-shadow: inset 0 0 30px rgba(0,0,0,.3);
-		margin: 10px;
-		width: 50px;
-		height: 50px;
-		border-radius: 50%;
-		background-size: 100%;
-		background-repeat: no-repeat;
-	}
 
 #categories-list h3 {
 	font-size: 1.2em;
@@ -69,50 +31,10 @@
 	font-size: .8em;
 }
 
-.k-picker.k-dropdownlist {
-	width: 140px;
-}
-
-.k-picker, .k-input {
-	font-family: 'Cerebri Sans', sans-serif;
-	font-size: 14px;
-}
-
-.k-picker-solid {
-	background-color: #fff;
-}
-
-	.k-picker-solid:focus {
-		background-color: #fff;
-		box-shadow: none;
-	}
-
-	.k-picker-solid:hover {
-		background-color: unset !important;
-	}
-
-	.k-input-solid:focus, .k-input-solid:focus-within {
-		border-color: none;
-		box-shadow: none;
-	}
-
-.k-readonly {
-	color: unset !important;
-}
-
-.k-button, #gridResult {
+#gridResult {
 	font-family: 'Poppins', sans-serif;
 	font-size: 14px;
 }
-
-.k-column-title {
-	font-weight: 600;
-}
-
-.k-toolbar .k-input, .k-toolbar .k-picker {
-	width: 15em !important;
-}
-
 
 /* ── KPI Cards ──────────────────────────────────────────── */
 .kpi-card {
@@ -145,7 +67,6 @@
 	background-color: rgba(230, 55, 87, 0.05);
 }
 
-
 /* ── Chart Containers ───────────────────────────────────── */
 .chart-section-title {
 	font-size: 0.68rem;
@@ -160,7 +81,6 @@
 	position: relative;
 	height: 230px;
 }
-
 
 /* ── Aggregation Tables (By Holder / By Location / Overdue) ─ */
 .report-table {
@@ -192,15 +112,45 @@ a:hover {
 	color: var(--bs-btn-disabled-bg);
 }
 
-.k-grid a {
-	text-decoration: none !important;
-	color: rgba(var(--bs-link-color-rgb), var(--bs-link-opacity,1));
+/* ── Filter panel (Tom Select / Flatpickr / Treeselect) ─── */
+.report-filter {
+	width: 380px;
 }
 
-.k-grid a:hover {
-	color: var(--bs-btn-disabled-bg);
+.report-filter-sm {
+	width: 170px;
 }
 
-.k-calendar, .k-title, .k-button {
-	font-family: 'Poppins', sans-serif !important;
+.report-filter-md {
+	width: 260px;
+}
+
+.report-filters .ts-control,
+.report-filters .ts-dropdown {
+	font-family: 'Poppins', sans-serif;
+	font-size: 14px;
+}
+
+.report-filters .form-check-label {
+	white-space: nowrap;
+}
+
+/* ── All Permits grid: "Group by" control and group rows ── */
+.report-group-by .grid-filter {
+	width: 190px;
+}
+
+.data-grid table.dataTable tr.dtrg-group.dtrg-start th,
+.data-grid table.dataTable tr.dtrg-group.dtrg-start td {
+	font-weight: 600;
+	background-color: var(--bs-tertiary-bg);
+}
+
+.data-grid table.dataTable tr.dtrg-group.dtrg-end th,
+.data-grid table.dataTable tr.dtrg-group.dtrg-end td {
+	font-size: 13px;
+	font-weight: 500;
+	color: var(--bs-secondary-color);
+	background-color: transparent;
+	text-align: right;
 }
