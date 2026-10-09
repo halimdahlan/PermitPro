@@ -1,4 +1,4 @@
-﻿.view-report {
+.view-report {
 
 }
 
@@ -203,4 +203,46 @@ a:hover {
 
 .k-calendar, .k-title, .k-button {
 	font-family: 'Poppins', sans-serif !important;
+}
+/* ── Filter panel (Tom Select / Flatpickr / Treeselect) ─── */
+.report-filter {
+	width: 380px;
+}
+
+.report-filter-sm {
+	width: 170px;
+}
+
+.report-filter-md {
+	width: 260px;
+}
+
+.report-filters .ts-control,
+.report-filters .ts-dropdown {
+	font-family: 'Poppins', sans-serif;
+	font-size: 14px;
+}
+
+.report-filters .form-check-label {
+	white-space: nowrap;
+}
+
+/* ── All Permits grid: "Group by" control and group rows ── */
+.report-group-by .grid-filter {
+	width: 190px;
+}
+
+.data-grid table.dataTable tr.dtrg-group.dtrg-start th,
+.data-grid table.dataTable tr.dtrg-group.dtrg-start td {
+	font-weight: 600;
+	background-color: var(--bs-tertiary-bg);
+}
+
+.data-grid table.dataTable tr.dtrg-group.dtrg-end th,
+.data-grid table.dataTable tr.dtrg-group.dtrg-end td {
+	font-size: 13px;
+	font-weight: 500;
+	color: var(--bs-secondary-color);
+	background-color: transparent;
+	text-align: right;
 }

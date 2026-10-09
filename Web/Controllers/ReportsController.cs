@@ -1,8 +1,9 @@
-﻿#nullable disable
+#nullable disable
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 using System.Text.Json;
@@ -40,102 +41,87 @@ public class ReportsController : AppControllerBase
 
 	#region "GET"
 
-	public IActionResult Index(Guid company)
+	public async Task<IActionResult> Index(Guid company, CancellationToken cancellationToken)
 	{
 		var model = new ReportsViewModel
 		{
 			CompanyId = company,
-			GridParamaters = new RouteValueDictionary { { "company", company } }
+			Months = GetMonthOptions(),
+			Years = GetYearOptions(),
+			PermitHolders = await GetPermitHolderOptions(company, cancellationToken),
+			Certificates = GetCertificateOptions(),
+			PermitStatuses = GetPermitStatusOptions(),
 		};
 
 		return View(model);
 	}
 
 
-	public JsonResult GetDropdownMonths()
+	// Values match ReportGridModel.CreatedMonth (e.g. "January").
+	private static List<SelectListItem> GetMonthOptions()
 	{
-		var dtm = new DateTime(2024, 1, 1);
+		var months = new List<SelectListItem> { new("(select)", "") };
 
-		List<dynamic> months = new(){
-			new { Text = "(select)", Value = "" }
-		};
-
-		for (var n = 1; n < 13; n++)
+		for (var n = 1; n <= 12; n++)
 		{
-			months.Add(new
-			{
-				Text = dtm.ToString("MMMM"),
-				Value = dtm.ToString("MMMM"),
-			});
-
-			dtm = dtm.AddMonths(1);
+			var name = new DateTime(2024, n, 1).ToString("MMMM");
+			months.Add(new SelectListItem(name, name));
 		}
 
-		return Json(months);
+		return months;
 	}
 
 
-	public JsonResult GetDropdownYears()
+	private static List<SelectListItem> GetYearOptions()
 	{
-		var startYear = 2023;
-		var endYear = DateTime.Now.Year + 1;
+		var years = new List<SelectListItem> { new("(select)", "") };
 
-		List<dynamic> years = new()
+		for (var year = 2023; year <= DateTime.Now.Year; year++)
 		{
-			new { Text = "(select)", Value = "" }
-		};
-
-		for (var n = startYear; n < endYear; n++)
-		{
-			years.Add(new
-			{
-				Text = n,
-				Value = n,
-			});
+			years.Add(new SelectListItem(year.ToString(), year.ToString()));
 		}
 
-		return Json(years);
+		return years;
 	}
 
 
-	public JsonResult GetDropdownCertificates()
+	// Values match the certificate letters in ReportGridModel.Certificates.
+	private static List<SelectListItem> GetCertificateOptions()
 	{
-		var certificates = new[]
+		return new List<SelectListItem>
 		{
-			new { Text = "(select)", Value = "" },
-			new { Text = "Hot Work", Value = "A" },
-			new { Text = "Confined Space", Value = "B" },
-			new { Text = "Radiation", Value = "C" },
-			new { Text = "Excavation", Value = "D" },
-			new { Text = "Isolation", Value = "E" },
-			new { Text = "Method Statement", Value = "F" },
-			new { Text = "Lifting & Hoisting", Value = "G" },
-			new { Text = "Override", Value = "H" },
+			new("(select)", ""),
+			new("Hot Work", "A"),
+			new("Confined Space", "B"),
+			new("Radiation", "C"),
+			new("Excavation", "D"),
+			new("Isolation", "E"),
+			new("Method Statement", "F"),
+			new("Lifting & Hoisting", "G"),
+			new("Override", "H"),
 		};
-
-		return Json(certificates);
 	}
 
 
-	public JsonResult GetDropdownPermitStatus()
+	// Values match ReportGridModel.PermitStatusEnum.
+	private static List<SelectListItem> GetPermitStatusOptions()
 	{
-		var certificates = new[]
+		return new List<SelectListItem>
 		{
-			new { Text = "(select)", Value = "" },
-			new { Text = "Draft", Value = "0" },
-			new { Text = "Pending", Value = "1" },
-			new { Text = "Approved", Value = "2" },
-			new { Text = "Rejected", Value = "3" },
-			new { Text = "Suspended", Value = "4" },
-			new { Text = "Closed", Value = "6" },
+			new("(select)", ""),
+			new("Draft", "0"),
+			new("Pending", "1"),
+			new("Approved", "2"),
+			new("Rejected", "3"),
+			new("Suspended", "4"),
+			new("Closed", "6"),
 		};
-
-		return Json(certificates);
 	}
 
 
-	[ResponseCache(Duration = 60, VaryByQueryKeys = ["company"])]
-	public async Task<JsonResult> GetDropdownPermitHolders(Guid company, CancellationToken cancellationToken)
+	// Users who have created at least one permit that entered a workflow.
+	// Values match ReportGridModel.PermitHolderId (lowercase user id).
+	private async Task<List<SelectListItem>> GetPermitHolderOptions(Guid company, CancellationToken cancellationToken)
 	{
 		var holderGuids = await _dbContext.Permits
 			.AsNoTracking()
@@ -149,11 +135,14 @@ public class ReportsController : AppControllerBase
 		var holders = await _dbContext.Users
 			.AsNoTracking()
 			.Where(u => holderIds.Contains(u.Id))
-			.Select(u => new { text = (u.FirstName + " " + u.LastName).Trim(), value = u.Id })
-			.OrderBy(u => u.text)
+			.Select(u => new { Text = (u.FirstName + " " + u.LastName).Trim(), Value = u.Id })
+			.OrderBy(u => u.Text)
 			.ToListAsync(cancellationToken);
 
-		return Json(new object[] { new { text = "(select)", value = "" } }.Concat(holders));
+		var options = new List<SelectListItem> { new("(select)", "") };
+		options.AddRange(holders.Select(h => new SelectListItem(h.Text, h.Value.ToLower())));
+
+		return options;
 	}
 
 
