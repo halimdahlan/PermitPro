@@ -87,7 +87,7 @@ Two engines coexist:
 
 ### UI Framework
 
-**In progress — Telerik removal (Phase 7).** Kendo UI for ASP.NET Core (Telerik) is being replaced across all views. Replacements: plain `<table>` + AJAX pagination for grids, native `<select>` + Tom Select for dropdowns, native `<dialog>` for modals, `wwwroot/js/toast.js` for notifications, Chart.js for charts, native `<input type="file">` for uploads. Licensed DLLs remain in `Telerik/` until all views are migrated; `'unsafe-inline'` in CSP remains required until Kendo is fully removed. New views (Phases 2–6) must not use Telerik/Kendo.
+**In progress — Telerik removal (Phase 7).** Kendo UI for ASP.NET Core (Telerik) is being replaced across all views. Replacements: DataTables 2 (Bootstrap 5 styling, client-side search/sort/paging over the existing JSON endpoint) for grids, native `<select>` + Tom Select for dropdowns, native `<dialog>` for modals, `wwwroot/js/toast.js` for notifications, Chart.js for charts, native `<input type="file">` for uploads. Licensed DLLs remain in `Telerik/` until all views are migrated; `'unsafe-inline'` in CSP remains required until Kendo is fully removed. New views (Phases 2–6) must not use Telerik/Kendo.
 
 Kendo is loaded in `_Layout.cshtml` from `https://kendo.cdn.telerik.com`: the 2025.2.520 scripts and font icons, and the Bootstrap theme 10.0.0. That version matches the `Telerik.UI.for.AspNet.Core` NuGet package. The bundled `wwwroot/lib/kendo-ui` JS was 2023.1.117, which did not match. The CDN is allowed in the CSP in `Program.cs` under script-src, style-src, font-src and img-src. If the Kendo version changes, update the CDN URLs and the NuGet package together. `_LayoutPdf.cshtml` still loads Kendo from the local `~/lib/kendo-ui/` folder.
 

@@ -1,5 +1,7 @@
 ﻿#nullable disable
 
+using Microsoft.AspNetCore.Mvc.Rendering;
+
 namespace PermitPro.App.ViewModels;
 
 public class PermitViewModel
@@ -9,4 +11,5 @@ public class PermitViewModel
 	public EditPermitViewModel EditPermitViewModel { get; set; }
 	public string GridFilter { get; set; }
 	public string GridFilterField { get; set; }
+	public IList<SelectListItem> StatusOptions { get; set; } = new List<SelectListItem>();
 }

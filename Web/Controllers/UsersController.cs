@@ -542,31 +542,6 @@ public class UsersController : AppControllerBase
 	}
 
 
-	[HttpGet("{company}/users/filters")]
-	public JsonResult GetUserFilters(Guid company)
-	{
-		var filters = new List<dynamic>
-		{
-			new { text = "All", value = "all|all" },
-			new { text = "Active", value = "isActive|true" },
-			new { text = "Inactive", value = "isActive|false" }
-		};
-
-		var roles = _dbContext.Roles
-			.Where(e => e.NormalizedName != "SUPERUSER")
-			.OrderBy(e => e.Name)
-			.Select(e => new { text = e.Name, value = $"roles|{e.Name}" })
-			.ToList();
-
-		filters.AddRange(roles);
-
-		return new JsonResult(filters, new JsonSerializerOptions
-		{
-			PropertyNamingPolicy = null,
-		});
-	}
-
-
 	[HttpGet("{company}/users/workflowusers/all")]
 	public ActionResult<IEnumerable<object>> GetWorkflowUsers(Guid company)
 	{

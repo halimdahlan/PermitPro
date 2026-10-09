@@ -75,6 +75,7 @@ public class PermitsController : AppControllerBase
 			UserRoles = await _currentUserService.GetCurrentUserRoles(),
 			GridFilter = filter,
 			GridFilterField = field,
+			StatusOptions = GetPermitStatusOptions(),
 		};
 
 		return View(model);
@@ -440,13 +441,14 @@ public class PermitsController : AppControllerBase
 	}
 
 
-	public JsonResult GetPermitStatusAll()
+	// Options for the status filter on the permit list. Values match PermitListViewModel.Status.
+	private static List<SelectListItem> GetPermitStatusOptions()
 	{
-		List<SelectListItem> list = new()
+		return new()
 		{
 			new SelectListItem
 			{
-				Text = "(select)",
+				Text = "All statuses",
 				Value = "",
 			},
 			new SelectListItem
@@ -485,8 +487,6 @@ public class PermitsController : AppControllerBase
 				Value = "OVERDUE",
 			},
 		};
-
-		return Json(list.ToList());
 	}
 
 	#endregion
