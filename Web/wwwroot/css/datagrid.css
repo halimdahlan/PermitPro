@@ -36,6 +36,15 @@
 		border-bottom: 1px solid var(--bs-border-color);
 	}
 
+	/* DataTables puts the sort arrow before the title on number columns; keep it after, like the others. */
+	.data-grid table.dataTable thead th.dt-type-numeric div.dt-column-header {
+		flex-direction: row;
+	}
+
+		.data-grid table.dataTable thead th.dt-type-numeric .dt-column-order {
+			left: -.25rem;
+		}
+
 	/* Paging: Bootstrap 5's joined pagination bar. site.css restyles .pagination app-wide
 	   (small grey buttons with gaps), so restore the Bootstrap defaults inside grids. */
 	.data-grid .pagination .page-link {
@@ -104,9 +113,10 @@
 		padding-bottom: .3rem;
 	}
 
-	/* Contractors, Users, Locations and Workflows grids. */
+	/* Contractors, Users, User roles, Locations and Workflows grids. */
 	.data-grid table.dataTable#tblContractors > tbody > tr > td,
 	.data-grid table.dataTable#tblUsers > tbody > tr > td,
+	.data-grid table.dataTable#tblRoles > tbody > tr > td,
 	.data-grid table.dataTable#tblSites > tbody > tr > td,
 	.data-grid table.dataTable#tblWorkflows > tbody > tr > td {
 		padding-top: 10px;

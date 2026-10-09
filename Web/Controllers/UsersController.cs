@@ -542,6 +542,36 @@ public class UsersController : AppControllerBase
 	}
 
 
+	// Whole location tree for the "Locations" picker on the user New/Edit pages,
+	// shaped for Treeselect.js: [{ name, value, children: [...] }]. Values are lowercase
+	// GUID strings, matching how a user's locations are stored (UserInfoForm.Locations).
+	[HttpGet("{company}/users/locations/tree")]
+	public async Task<JsonResult> GetLocationsTree(Guid company, CancellationToken cancellationToken)
+	{
+		var sites = await _dbContext.Sites
+			.AsNoTracking()
+			.Where(e => e.SiteType == SiteTypeEnum.Site && e.SiteCompany.Id == company)
+			.OrderBy(e => e.Name)
+			.Select(e => new { e.Id, e.Name, e.ParentId })
+			.ToListAsync(cancellationToken);
+
+		var byParent = sites.ToLookup(e => e.ParentId);
+		var visited = new HashSet<Guid>();
+
+		List<object> Build(Guid parentId) => byParent[parentId]
+			.Where(e => visited.Add(e.Id)) // guards against a cycle in bad data
+			.Select(e => (object)new
+			{
+				name = e.Name,
+				value = e.Id.ToString(),
+				children = Build(e.Id),
+			})
+			.ToList();
+
+		return new JsonResult(Build(Guid.Empty));
+	}
+
+
 	[HttpGet("{company}/users/workflowusers/all")]
 	public ActionResult<IEnumerable<object>> GetWorkflowUsers(Guid company)
 	{

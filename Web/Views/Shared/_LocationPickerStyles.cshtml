@@ -1,0 +1,21 @@
+@* Styles for the Treeselect "Locations" picker. Render inside @section CustomCss. *@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/treeselectjs@1.0.2/dist/treeselectjs.css" />
+<style>
+	/* Match Bootstrap's form controls. */
+	:root {
+		--treeselectjs-border-color: var(--bs-border-color);
+		--treeselectjs-border-focus: #2c7be5;
+		--treeselectjs-checkbox-checked-bg: var(--bs-primary);
+		--treeselectjs-tag-bg: var(--bs-secondary-bg);
+	}
+
+	.treeselect, .treeselect-list {
+		font-family: 'Poppins', sans-serif;
+		font-size: 14px;
+	}
+
+	.treeselect-input {
+		min-height: calc(1.5em + .9rem + 2px);
+		border-radius: var(--bs-border-radius);
+	}
+</style>
