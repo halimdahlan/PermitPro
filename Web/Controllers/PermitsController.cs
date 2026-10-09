@@ -133,11 +133,6 @@ public class PermitsController : AppControllerBase
 				})
 				.ToList();
 
-			var pattern = @"'";
-			var toReplace = @"\'";
-			var regExOptions = RegexOptions.Multiline;
-			var regEx = new Regex(pattern, regExOptions);
-
 			var permitUpdatedByInfo = "N/A";
 			var permitCreatedByInfo = "N/A";
 
@@ -177,7 +172,8 @@ public class PermitsController : AppControllerBase
 			{
 				PermitNo = $"PTW{permit.RunningNumber:000000}",
 				PermitId = permit.Id,
-				PermitJson = permit.PermitForm != null ? regEx.Replace(permit.PermitForm, toReplace) : string.Empty,
+				// Raw JSON; the view encodes it as a JavaScript string.
+				PermitJson = permit.PermitForm ?? string.Empty,
 				PermitStatus = permit.PermitStatus,
 				PermitStatusDisplay = GeneralHelper.GetPermitStatusDisplay(permit.PermitStatus, permit.PermitWorkflowStep.Name),
 				WorkflowStepName = permit.PermitWorkflowStep != null ? permit.PermitWorkflowStep.Name : null,

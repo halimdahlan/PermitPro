@@ -145,14 +145,16 @@ window.FormControls = (() => {
 
 	const DATE_FORMATS = {
 		date: 'd/m/Y',
-		datetime: 'd/m/Y h:i K',
+		datetime: 'd/m/Y G:i K',   // G: 12-hour with leading zero, like Kendo's hh
 		time: 'h:i K',
 	};
 
 	// Accepts a Date, an ISO string, a string in the picker's display format, or "now"/"today".
-	const toDate = (value, format) => {
+	// Pass the picker so a time-only string ("09:30 AM") lands on today's date, as Kendo's did;
+	// flatpickr's static parseDate would put it on 1 January.
+	const toDate = (value, format, picker) => {
 		if (value === null || value === undefined || value === '') return null;
-		if (value instanceof Date) return value;
+		if (value instanceof Date) return isNaN(value) ? null : value;
 		if (value === 'now') return new Date();
 		if (value === 'today') {
 			const d = new Date();
@@ -160,7 +162,7 @@ window.FormControls = (() => {
 			return d;
 		}
 
-		const parsed = flatpickr.parseDate(String(value), format);
+		const parsed = (picker ? picker.parseDate : flatpickr.parseDate)(String(value), format);
 		if (parsed && !isNaN(parsed)) return parsed;
 
 		const fallback = new Date(value);
@@ -178,6 +180,8 @@ window.FormControls = (() => {
 			this.picker = flatpickr(el, {
 				dateFormat: this._format,
 				allowInput: true,
+				// Like Kendo: the button opens the picker; clicking or tabbing into the field is for typing.
+				clickOpens: false,
 				enableTime: mode !== 'date',
 				noCalendar: mode === 'time',
 				time_24hr: false,
@@ -213,10 +217,21 @@ window.FormControls = (() => {
 		}
 
 		value(value) {
-			if (value === undefined) return this.picker.selectedDates[0] ?? null;
+			if (value === undefined) {
+				const selected = this.picker.selectedDates[0] ?? null;
+				// Flatpickr drops milliseconds; return the value as set while the user hasn't changed it.
+				if (selected && this._set && Math.abs(selected - this._set) < 1000) return this._set;
+				return selected;
+			}
 
-			const date = toDate(value, this._format);
+			const date = toDate(value, this._format, this.picker);
+			this._set = date;
 			if (date) {
+				// Flatpickr drops a date outside minDate/maxDate (Kendo did too), which blanked saved
+				// past dates on Edit. Widen the limit just enough to keep the value being set.
+				const { minDate, maxDate } = this.picker.config;
+				if (minDate && date < minDate) this.picker.set('minDate', date);
+				if (maxDate && date > maxDate) this.picker.set('maxDate', date);
 				this.picker.setDate(date, false);
 			} else {
 				this.picker.clear(false);
@@ -225,12 +240,12 @@ window.FormControls = (() => {
 
 		min(value) {
 			if (value === undefined) return this.picker.config.minDate ?? null;
-			this.picker.set('minDate', toDate(value, this._format));
+			this.picker.set('minDate', toDate(value, this._format, this.picker));
 		}
 
 		max(value) {
 			if (value === undefined) return this.picker.config.maxDate ?? null;
-			this.picker.set('maxDate', toDate(value, this._format));
+			this.picker.set('maxDate', toDate(value, this._format, this.picker));
 		}
 
 		enable(enabled) {

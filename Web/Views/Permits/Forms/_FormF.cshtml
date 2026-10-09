@@ -1,6 +1,4 @@
-﻿@using Kendo.Mvc.UI
-
-<div class="modal fade" id="dlgFormF" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="dlgFormFLabel" aria-hidden="true">
+﻿<div class="modal fade" id="dlgFormF" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="dlgFormFLabel" aria-hidden="true">
 	<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
 		<div class="modal-content">
 			<div class="modal-header bg-primary-soft">
@@ -20,292 +18,195 @@
 					<h6 class="mb-0">DESCRIPTION OF WORKS</h6>
 				</div>
 				<div class="mb-3">
-					@(Html.Kendo()
-						.TextArea()
-						.Name("workDescription-1")
-						.Label(x => x.Content("What the work involve?"))
-						.Rounded(Rounded.Large)
-						.FillMode(FillMode.Outline)
-						.Rows(2))
+					<div class="form-floating">
+						<textarea class="form-control" id="workDescription-1" name="workDescription-1" data-control="textarea" rows="2" placeholder=" "></textarea>
+						<label for="workDescription-1">What the work involve?</label>
+					</div>
 				</div>
 				<div class="mb-3">
-					@(Html.Kendo()
-						.TextArea()
-						.Name("workDescription-2")
-						.Label(x => x.Content("How is it going to be completed? Summarise the operation"))
-						.Rounded(Rounded.Large)
-						.FillMode(FillMode.Outline)
-						.Rows(2))
+					<div class="form-floating">
+						<textarea class="form-control" id="workDescription-2" name="workDescription-2" data-control="textarea" rows="2" placeholder=" "></textarea>
+						<label for="workDescription-2">How is it going to be completed? Summarise the operation</label>
+					</div>
 				</div>
 				<div class="mb-3">
-					@(Html.Kendo()
-						.TextArea()
-						.Name("workDescription-3")
-						.Label(x => x.Content("Where is the work going to be completed? (Summary - more details on 5ection 5)"))
-						.Rounded(Rounded.Large)
-						.FillMode(FillMode.Outline)
-						.Rows(2))
+					<div class="form-floating">
+						<textarea class="form-control" id="workDescription-3" name="workDescription-3" data-control="textarea" rows="2" placeholder=" "></textarea>
+						<label for="workDescription-3">Where is the work going to be completed? (Summary - more details on 5ection 5)</label>
+					</div>
 				</div>
 				<div class="mb-3">
-					@(Html.Kendo()
-						.TextArea()
-						.Name("workDescription-4")
-						.Label(x => x.Content("Duration of the work? (Stating any times when access to the Terminal will not be required)"))
-						.Rounded(Rounded.Large)
-						.FillMode(FillMode.Outline)
-						.Rows(2))
+					<div class="form-floating">
+						<textarea class="form-control" id="workDescription-4" name="workDescription-4" data-control="textarea" rows="2" placeholder=" "></textarea>
+						<label for="workDescription-4">Duration of the work? (Stating any times when access to the Terminal will not be required)</label>
+					</div>
 				</div>
 				<div class="mb-3">
-					@(Html.Kendo()
-						.TextArea()
-						.Name("workDescription-5")
-						.Label(x => x.Content("lnclude site location drawings if appropriate?"))
-						.Rounded(Rounded.Large)
-						.FillMode(FillMode.Outline)
-						.Rows(2))
+					<div class="form-floating">
+						<textarea class="form-control" id="workDescription-5" name="workDescription-5" data-control="textarea" rows="2" placeholder=" "></textarea>
+						<label for="workDescription-5">lnclude site location drawings if appropriate?</label>
+					</div>
 				</div>
 				<div class="mb-3">
-					@(Html.Kendo()
-						.TextArea()
-						.Name("workDescription-6")
-						.Label(x => x.Content("Are there any restrictions e.g. overhead power lines?"))
-						.Rounded(Rounded.Large)
-						.FillMode(FillMode.Outline)
-						.Rows(2))
+					<div class="form-floating">
+						<textarea class="form-control" id="workDescription-6" name="workDescription-6" data-control="textarea" rows="2" placeholder=" "></textarea>
+						<label for="workDescription-6">Are there any restrictions e.g. overhead power lines?</label>
+					</div>
 				</div>
 				<div class="mb-3">
-					@(Html.Kendo()
-						.TextArea()
-						.Name("workDescription-7")
-						.Label(x => x.Content("Are local permits required (Local regulations)?"))
-						.Rounded(Rounded.Large)
-						.FillMode(FillMode.Outline)
-						.Rows(2))
+					<div class="form-floating">
+						<textarea class="form-control" id="workDescription-7" name="workDescription-7" data-control="textarea" rows="2" placeholder=" "></textarea>
+						<label for="workDescription-7">Are local permits required (Local regulations)?</label>
+					</div>
 				</div>
 				<div class="mb-4">
-					@(Html.Kendo()
-						.TextArea()
-						.Name("workDescription-8")
-						.Label(x => x.Content("Any other details"))
-						.Rounded(Rounded.Large)
-						.FillMode(FillMode.Outline)
-						.Rows(2))
+					<div class="form-floating">
+						<textarea class="form-control" id="workDescription-8" name="workDescription-8" data-control="textarea" rows="2" placeholder=" "></textarea>
+						<label for="workDescription-8">Any other details</label>
+					</div>
 				</div>
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
 					<h6 class="mb-0">NAMES OF RESPONSIBLE PERSONS</h6>
 				</div>
 				<div class="mb-3">
-					@(Html.Kendo()
-						.TextBox()
-						.Name("names-1")
-						.Label(x => x.Content("Who is going to be working on the project?"))
-						.Size(ComponentSize.Medium)
-						.Rounded(Rounded.Large)
-						.FillMode(FillMode.Outline))
+					<div class="form-floating">
+						<input type="text" class="form-control" id="names-1" name="names-1" autocomplete="off" data-control="textbox" placeholder=" " />
+						<label for="names-1">Who is going to be working on the project?</label>
+					</div>
 				</div>
 				<div class="mb-3">
-					@(Html.Kendo()
-						.TextBox()
-						.Name("names-2")
-						.Label(x => x.Content("Who will be in charge?"))
-						.Size(ComponentSize.Medium)
-						.Rounded(Rounded.Large)
-						.FillMode(FillMode.Outline))
+					<div class="form-floating">
+						<input type="text" class="form-control" id="names-2" name="names-2" autocomplete="off" data-control="textbox" placeholder=" " />
+						<label for="names-2">Who will be in charge?</label>
+					</div>
 				</div>
 				<div class="mb-3">
-					@(Html.Kendo()
-						.TextBox()
-						.Name("names-3")
-						.Label(x => x.Content("Who has specific responsibilities? e.g. Plant, personnel, materials, etc."))
-						.Size(ComponentSize.Medium)
-						.Rounded(Rounded.Large)
-						.FillMode(FillMode.Outline))
+					<div class="form-floating">
+						<input type="text" class="form-control" id="names-3" name="names-3" autocomplete="off" data-control="textbox" placeholder=" " />
+						<label for="names-3">Who has specific responsibilities? e.g. Plant, personnel, materials, etc.</label>
+					</div>
 				</div>
 				<div class="mb-3">
-					@(Html.Kendo()
-						.TextBox()
-						.Name("names-4")
-						.Label(x => x.Content("Who is to make contact with local authorities?"))
-						.Size(ComponentSize.Medium)
-						.Rounded(Rounded.Large)
-						.FillMode(FillMode.Outline))
+					<div class="form-floating">
+						<input type="text" class="form-control" id="names-4" name="names-4" autocomplete="off" data-control="textbox" placeholder=" " />
+						<label for="names-4">Who is to make contact with local authorities?</label>
+					</div>
 				</div>
 				<div class="mb-4">
-					@(Html.Kendo()
-						.TextBox()
-						.Name("names-5")
-						.Label(x => x.Content("Any other details"))
-						.Size(ComponentSize.Medium)
-						.Rounded(Rounded.Large)
-						.FillMode(FillMode.Outline))
+					<div class="form-floating">
+						<input type="text" class="form-control" id="names-5" name="names-5" autocomplete="off" data-control="textbox" placeholder=" " />
+						<label for="names-5">Any other details</label>
+					</div>
 				</div>
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
 					<h6 class="mb-0">PLANT AND EQUIPMENT</h6>
 				</div>
 				<div class="mb-3">
-					@(Html.Kendo()
-						.TextBox()
-						.Name("plantEquip-1")
-						.Label(x => x.Content("What plant equipment and tools are required to do the job?"))
-						.Size(ComponentSize.Medium)
-						.Rounded(Rounded.Large)
-						.FillMode(FillMode.Outline))
+					<div class="form-floating">
+						<input type="text" class="form-control" id="plantEquip-1" name="plantEquip-1" autocomplete="off" data-control="textbox" placeholder=" " />
+						<label for="plantEquip-1">What plant equipment and tools are required to do the job?</label>
+					</div>
 				</div>
 				<div class="mb-3">
 					<div class="mb-2">Who will be in charge?</div>
 					<div class="ms-3 mb-3">
-						@(Html.Kendo()
-							.TextBox()
-							.Name("plantEquip-2")
-							.Label(x => x.Content("Tools (for cold work)"))
-							.Size(ComponentSize.Medium)
-							.Rounded(Rounded.Large)
-							.FillMode(FillMode.Outline))
+						<div class="form-floating">
+							<input type="text" class="form-control" id="plantEquip-2" name="plantEquip-2" autocomplete="off" data-control="textbox" placeholder=" " />
+							<label for="plantEquip-2">Tools (for cold work)</label>
+						</div>
 					</div>
 					<div class="ms-3 mb-3">
-						@(Html.Kendo()
-							.TextBox()
-							.Name("plantEquip-3")
-							.Label(x => x.Content("Tools (that may generate sparks, ignitions sources, etc.)"))
-							.Size(ComponentSize.Medium)
-							.Rounded(Rounded.Large)
-							.FillMode(FillMode.Outline))
+						<div class="form-floating">
+							<input type="text" class="form-control" id="plantEquip-3" name="plantEquip-3" autocomplete="off" data-control="textbox" placeholder=" " />
+							<label for="plantEquip-3">Tools (that may generate sparks, ignitions sources, etc.)</label>
+						</div>
 					</div>
 					<div class="ms-3 mb-3">
-						@(Html.Kendo()
-							.TextBox()
-							.Name("plantEquip-4")
-							.Label(x => x.Content("Cherry pickers"))
-							.Size(ComponentSize.Medium)
-							.Rounded(Rounded.Large)
-							.FillMode(FillMode.Outline))
+						<div class="form-floating">
+							<input type="text" class="form-control" id="plantEquip-4" name="plantEquip-4" autocomplete="off" data-control="textbox" placeholder=" " />
+							<label for="plantEquip-4">Cherry pickers</label>
+						</div>
 					</div>
 					<div class="ms-3 mb-3">
-						@(Html.Kendo()
-							.TextBox()
-							.Name("plantEquip-5")
-							.Label(x => x.Content("Scaffolding"))
-							.Size(ComponentSize.Medium)
-							.Rounded(Rounded.Large)
-							.FillMode(FillMode.Outline))
+						<div class="form-floating">
+							<input type="text" class="form-control" id="plantEquip-5" name="plantEquip-5" autocomplete="off" data-control="textbox" placeholder=" " />
+							<label for="plantEquip-5">Scaffolding</label>
+						</div>
 					</div>
 					<div class="ms-3 mb-3">
-						@(Html.Kendo()
-							.TextBox()
-							.Name("plantEquip-6")
-							.Label(x => x.Content("Loading of materials"))
-							.Size(ComponentSize.Medium)
-							.Rounded(Rounded.Large)
-							.FillMode(FillMode.Outline))
+						<div class="form-floating">
+							<input type="text" class="form-control" id="plantEquip-6" name="plantEquip-6" autocomplete="off" data-control="textbox" placeholder=" " />
+							<label for="plantEquip-6">Loading of materials</label>
+						</div>
 					</div>
 					<div class="ms-3 mb-3">
-						@(Html.Kendo()
-							.TextBox()
-							.Name("plantEquip-7")
-							.Label(x => x.Content("Others, please specify"))
-							.Size(ComponentSize.Medium)
-							.Rounded(Rounded.Large)
-							.FillMode(FillMode.Outline))
+						<div class="form-floating">
+							<input type="text" class="form-control" id="plantEquip-7" name="plantEquip-7" autocomplete="off" data-control="textbox" placeholder=" " />
+							<label for="plantEquip-7">Others, please specify</label>
+						</div>
 					</div>
 				</div>
 				<div class="mb-3">
-					@(Html.Kendo()
-						.TextBox()
-						.Name("plantEquip-8")
-						.Label(x => x.Content("What certificates, if any, are required for plant or equiprnent?"))
-						.Size(ComponentSize.Medium)
-						.Rounded(Rounded.Large)
-						.FillMode(FillMode.Outline))
+					<div class="form-floating">
+						<input type="text" class="form-control" id="plantEquip-8" name="plantEquip-8" autocomplete="off" data-control="textbox" placeholder=" " />
+						<label for="plantEquip-8">What certificates, if any, are required for plant or equiprnent?</label>
+					</div>
 				</div>
 				<div class="mb-4">
-					@(Html.Kendo()
-						.TextBox()
-						.Name("plantEquip-9")
-						.Label(x => x.Content("What training, if any, is required for operatives?"))
-						.Size(ComponentSize.Medium)
-						.Rounded(Rounded.Large)
-						.FillMode(FillMode.Outline))
+					<div class="form-floating">
+						<input type="text" class="form-control" id="plantEquip-9" name="plantEquip-9" autocomplete="off" data-control="textbox" placeholder=" " />
+						<label for="plantEquip-9">What training, if any, is required for operatives?</label>
+					</div>
 				</div>
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
 					<h6 class="mb-0">COMMUNICATIONS WITH WORKFORCE</h6>
 				</div>
 				<div class="mb-3">
-					@(Html.Kendo()
-						.TextBox()
-						.Name("comms-1")
-						.Label(x => x.Content("How are the procedures, hazards to be communicates to the workforce?"))
-						.Size(ComponentSize.Medium)
-						.Rounded(Rounded.Large)
-						.FillMode(FillMode.Outline))
+					<div class="form-floating">
+						<input type="text" class="form-control" id="comms-1" name="comms-1" autocomplete="off" data-control="textbox" placeholder=" " />
+						<label for="comms-1">How are the procedures, hazards to be communicates to the workforce?</label>
+					</div>
 				</div>
 				<div class="mb-3">
-					@(Html.Kendo()
-						.TextBox()
-						.Name("comms-2")
-						.Label(x => x.Content("Toolbox talks, safety meetings etc."))
-						.Size(ComponentSize.Medium)
-						.Rounded(Rounded.Large)
-						.FillMode(FillMode.Outline))
+					<div class="form-floating">
+						<input type="text" class="form-control" id="comms-2" name="comms-2" autocomplete="off" data-control="textbox" placeholder=" " />
+						<label for="comms-2">Toolbox talks, safety meetings etc.</label>
+					</div>
 				</div>
 				<div class="mb-3">
-					@(Html.Kendo()
-						.TextBox()
-						.Name("comms-3")
-						.Label(x => x.Content("lnclude records of any such meetings and record attendance"))
-						.Size(ComponentSize.Medium)
-						.Rounded(Rounded.Large)
-						.FillMode(FillMode.Outline))
+					<div class="form-floating">
+						<input type="text" class="form-control" id="comms-3" name="comms-3" autocomplete="off" data-control="textbox" placeholder=" " />
+						<label for="comms-3">lnclude records of any such meetings and record attendance</label>
+					</div>
 				</div>
 				<div class="mb-4">
-					@(Html.Kendo()
-						.TextBox()
-						.Name("comms-4")
-						.Label(x => x.Content("Others, please specify"))
-						.Size(ComponentSize.Medium)
-						.Rounded(Rounded.Large)
-						.FillMode(FillMode.Outline))
+					<div class="form-floating">
+						<input type="text" class="form-control" id="comms-4" name="comms-4" autocomplete="off" data-control="textbox" placeholder=" " />
+						<label for="comms-4">Others, please specify</label>
+					</div>
 				</div>
 				<div class="bg-light p-2 mb-3 border-top border-bottom border-secondary">
 					<h6 class="mb-0">HOW WILL THE WORK BE COMPLETED (PROCEDURE STEP-BY-STEP)</h6>
 				</div>
 				<div class="mb-3 d-flex flex-row justify-content-evenly">
 					<div class="me-3 w-100">
-						@(Html.Kendo()
-							.DateTimePicker()
-							.Name("workCompleted-1")
-							.Label(x => x.Content("Proposed start date"))
-							.Format("{0:dd/MM/yyyy hh:mm tt}")
-							.Min(DateTime.Today)
-							.Size(ComponentSize.Medium)
-							.Rounded(Rounded.Large)
-							.FillMode(FillMode.Outline)
-							.AdaptiveMode(AdaptiveMode.Auto)
-							.ComponentType("modern")
-							.DateInput())
+						<div class="form-floating">
+							<input type="text" class="form-control" id="workCompleted-1" name="workCompleted-1" autocomplete="off" data-control="datetime" data-min="@DateTime.Today.ToString("yyyy-MM-ddTHH:mm:ss")" placeholder=" " />
+							<label for="workCompleted-1">Proposed start date</label>
+						</div>
 					</div>
 					<div class="ms-3 w-100">
-						@(Html.Kendo()
-							.DateTimePicker()
-							.Name("workCompleted-2")
-							.Label(x => x.Content("Finish date"))
-							.Format("{0:dd/MM/yyyy hh:mm tt}")
-							.Min(DateTime.Today)
-							.Size(ComponentSize.Medium)
-							.Rounded(Rounded.Large)
-							.FillMode(FillMode.Outline)
-							.AdaptiveMode(AdaptiveMode.Auto)
-							.ComponentType("modern")
-							.DateInput())
+						<div class="form-floating">
+							<input type="text" class="form-control" id="workCompleted-2" name="workCompleted-2" autocomplete="off" data-control="datetime" data-min="@DateTime.Today.ToString("yyyy-MM-ddTHH:mm:ss")" placeholder=" " />
+							<label for="workCompleted-2">Finish date</label>
+						</div>
 					</div>
 				</div>
 				<div class="mb-3">
-					@(Html.Kendo()
-						.TextArea()
-						.Name("workCompleted-3")
-						.Label(x => x.Content("Details"))
-						.Rounded(Rounded.Large)
-						.FillMode(FillMode.Outline)
-						.Rows(15))
+					<div class="form-floating">
+						<textarea class="form-control" id="workCompleted-3" name="workCompleted-3" data-control="textarea" rows="15" placeholder=" "></textarea>
+						<label for="workCompleted-3">Details</label>
+					</div>
 				</div>
 			</div>
 			<div class="modal-footer">

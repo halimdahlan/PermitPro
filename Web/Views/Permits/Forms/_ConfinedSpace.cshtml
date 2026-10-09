@@ -1,6 +1,4 @@
-﻿@using Kendo.Mvc.UI
-
-<!-- Modal: FORM B /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+﻿<!-- Modal: FORM B /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
 <div class="modal fade" id="dlgFormB" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="dlgFormBLabel" aria-hidden="true">
 	<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
 		<div class="modal-content">
@@ -39,19 +37,16 @@
 				</div>
 				<div class="px-2 mb-4">
 					<div class="mb-3">
-						@(Html.Kendo().TextBox()
-								.Name("tbFormBAttendantNames")
-								.Label(x => x.Content("Designated attendant(s) name"))
-								.Rounded(Rounded.Large)
-								.FillMode(FillMode.Outline))
+						<div class="form-floating">
+							<input type="text" class="form-control" id="tbFormBAttendantNames" name="tbFormBAttendantNames" autocomplete="off" data-control="textbox" placeholder=" " />
+							<label for="tbFormBAttendantNames">Designated attendant(s) name</label>
+						</div>
 					</div>
 					<div>
-						@(Html.Kendo().TextArea()
-								.Name("taFormBDescription")
-								.Label(x => x.Content("Description of the confined space"))
-								.Rounded(Rounded.Large)
-								.FillMode(FillMode.Outline)
-								.Rows(3))
+						<div class="form-floating">
+							<textarea class="form-control" id="taFormBDescription" name="taFormBDescription" data-control="textarea" rows="3" placeholder=" "></textarea>
+							<label for="taFormBDescription">Description of the confined space</label>
+						</div>
 					</div>
 				</div>
 
@@ -100,11 +95,7 @@
 					<div class="d-flex flex-row align-items-center">
 						<label class="form-label me-3" for="tbFormBGasTestBy">AGT name</label>
 						<div class="flex-grow-1">
-							@(Html.Kendo().TextBox()
-									.Name("tbFormBGasTestBy")
-									.Size(ComponentSize.Medium)
-									.Rounded(Rounded.Large)
-									.FillMode(FillMode.Outline))
+							<input type="text" class="form-control" id="tbFormBGasTestBy" name="tbFormBGasTestBy" autocomplete="off" data-control="textbox" />
 						</div>
 					</div>
 				</div>
@@ -115,49 +106,34 @@
 				<div class="px-2 mb-4">
 					<div class="d-flex flex-column flex-md-row align-items-center justify-content-evenly mb-3">
 						<div class="w-100 mb-2 mb-md-0 me-0 me-md-3">
-							@(Html.Kendo().DateTimePicker()
-									.Name("dtmFormBInitialGasRead")
-									.Label(x => x.Content("Date and time"))
-									.Format("{0:dd/MM/yyyy hh:mm tt}")
-									.Min(DateTime.Today)
-									.Size(ComponentSize.Medium)
-									.Rounded(Rounded.Large)
-									.FillMode(FillMode.Outline)
-									.AdaptiveMode(AdaptiveMode.Auto)
-									.ComponentType("modern")
-									.DateInput())
+							<div class="form-floating">
+								<input type="text" class="form-control" id="dtmFormBInitialGasRead" name="dtmFormBInitialGasRead" autocomplete="off" data-control="datetime" data-min="@DateTime.Today.ToString("yyyy-MM-ddTHH:mm:ss")" placeholder=" " />
+								<label for="dtmFormBInitialGasRead">Date and time</label>
+							</div>
 						</div>
 						<div class="w-100 mb-2 mb-md-0 ms-0 ms-md-3 me-0 me-md-3">
-							@(Html.Kendo().TextBox()
-									.Name("tbFormBInitialLELPercentage")
-									.Label(x => x.Content("Initial LEL %"))
-									.Size(ComponentSize.Medium)
-									.Rounded(Rounded.Large)
-									.FillMode(FillMode.Outline))
+							<div class="form-floating">
+								<input type="text" class="form-control" id="tbFormBInitialLELPercentage" name="tbFormBInitialLELPercentage" autocomplete="off" data-control="textbox" placeholder=" " />
+								<label for="tbFormBInitialLELPercentage">Initial LEL %</label>
+							</div>
 						</div>
 						<div class="w-100 mb-2 mb-md-0 ms-0 ms-md-3 me-0 me-md-3">
-							@(Html.Kendo().TextBox()
-									.Name("tbFormBInitialO2Percentage")
-									.Label(x => x.Content("Oxygen %"))
-									.Size(ComponentSize.Medium)
-									.Rounded(Rounded.Large)
-									.FillMode(FillMode.Outline))
+							<div class="form-floating">
+								<input type="text" class="form-control" id="tbFormBInitialO2Percentage" name="tbFormBInitialO2Percentage" autocomplete="off" data-control="textbox" placeholder=" " />
+								<label for="tbFormBInitialO2Percentage">Oxygen %</label>
+							</div>
 						</div>
 						<div class="w-100 mb-2 mb-md-0 ms-0 ms-md-3 me-0 me-md-3">
-							@(Html.Kendo().TextBox()
-									.Name("tbFormBInitialToxic1")
-									.Label(x => x.Content("Toxic"))
-									.Size(ComponentSize.Medium)
-									.Rounded(Rounded.Large)
-									.FillMode(FillMode.Outline))
+							<div class="form-floating">
+								<input type="text" class="form-control" id="tbFormBInitialToxic1" name="tbFormBInitialToxic1" autocomplete="off" data-control="textbox" placeholder=" " />
+								<label for="tbFormBInitialToxic1">Toxic</label>
+							</div>
 						</div>
 						<div class="w-100 mb-0 ms-0 ms-md-3">
-							@(Html.Kendo().TextBox()
-									.Name("tbFormBInitialToxic2")
-									.Label(x => x.Content("Toxic"))
-									.Size(ComponentSize.Medium)
-									.Rounded(Rounded.Large)
-									.FillMode(FillMode.Outline))
+							<div class="form-floating">
+								<input type="text" class="form-control" id="tbFormBInitialToxic2" name="tbFormBInitialToxic2" autocomplete="off" data-control="textbox" placeholder=" " />
+								<label for="tbFormBInitialToxic2">Toxic</label>
+							</div>
 						</div>
 					</div>
 					<div class="mb-3 text-secondary">
@@ -168,10 +144,7 @@
 					<div class="d-flex flex-row align-items-center mb-4">
 						<label class="form-label" for="tbFormBDesignatedRequiredFrequency">Designated required frequency of testing</label>
 						<div class="ms-3">
-							@(Html.Kendo().TextBox()
-									.Name("tbFormBDesignatedRequiredFrequency")
-									.Rounded(Rounded.Large)
-									.FillMode(FillMode.Outline))
+							<input type="text" class="form-control" id="tbFormBDesignatedRequiredFrequency" name="tbFormBDesignatedRequiredFrequency" autocomplete="off" data-control="textbox" />
 						</div>
 					</div>
 					<div class="mb-4">
@@ -204,22 +177,13 @@
 							<div class="d-flex flex-row justify-content-end">
 								<div class="flex-grow-1">H<sub>2</sub>S (Hydrogen Sulphide)</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-01-1")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-01-1" name="chkFormBHazard-01-1" data-control="checkbox" />
 								</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-01-2")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-01-2" name="chkFormBHazard-01-2" data-control="checkbox" />
 								</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-01-3")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-01-3" name="chkFormBHazard-01-3" data-control="checkbox" />
 								</div>
 							</div>
 						</div>
@@ -227,22 +191,13 @@
 							<div class="d-flex flex-row justify-content-end">
 								<div class="flex-grow-1">Oxygen Deficiency (e.g. Nitrogen)</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-02-1")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-02-1" name="chkFormBHazard-02-1" data-control="checkbox" />
 								</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-02-2")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-02-2" name="chkFormBHazard-02-2" data-control="checkbox" />
 								</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-02-3")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-02-3" name="chkFormBHazard-02-3" data-control="checkbox" />
 								</div>
 							</div>
 						</div>
@@ -250,22 +205,13 @@
 							<div class="d-flex flex-row justify-content-end">
 								<div class="flex-grow-1">Flammable/Explosive Gas</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-03-1")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-03-1" name="chkFormBHazard-03-1" data-control="checkbox" />
 								</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-03-2")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-03-2" name="chkFormBHazard-03-2" data-control="checkbox" />
 								</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-03-3")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-03-3" name="chkFormBHazard-03-3" data-control="checkbox" />
 								</div>
 							</div>
 						</div>
@@ -273,22 +219,13 @@
 							<div class="d-flex flex-row justify-content-end">
 								<div class="flex-grow-1">Flammable, Liquids/Solids</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-04-1")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-04-1" name="chkFormBHazard-04-1" data-control="checkbox" />
 								</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-04-2")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-04-2" name="chkFormBHazard-04-2" data-control="checkbox" />
 								</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-04-3")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-04-3" name="chkFormBHazard-04-3" data-control="checkbox" />
 								</div>
 							</div>
 						</div>
@@ -296,22 +233,13 @@
 							<div class="d-flex flex-row justify-content-end">
 								<div class="flex-grow-1">Electrical</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-05-1")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-05-1" name="chkFormBHazard-05-1" data-control="checkbox" />
 								</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-05-2")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-05-2" name="chkFormBHazard-05-2" data-control="checkbox" />
 								</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-05-3")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-05-3" name="chkFormBHazard-05-3" data-control="checkbox" />
 								</div>
 							</div>
 						</div>
@@ -319,22 +247,13 @@
 							<div class="d-flex flex-row justify-content-end">
 								<div class="flex-grow-1">Ionizing Radiation (X-Ray)</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-06-1")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-06-1" name="chkFormBHazard-06-1" data-control="checkbox" />
 								</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-06-2")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-06-2" name="chkFormBHazard-06-2" data-control="checkbox" />
 								</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-06-3")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-06-3" name="chkFormBHazard-06-3" data-control="checkbox" />
 								</div>
 							</div>
 						</div>
@@ -342,22 +261,13 @@
 							<div class="d-flex flex-row justify-content-end">
 								<div class="flex-grow-1">Below Ground Level (Cave In)</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-07-1")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-07-1" name="chkFormBHazard-07-1" data-control="checkbox" />
 								</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-07-2")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-07-2" name="chkFormBHazard-07-2" data-control="checkbox" />
 								</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-07-3")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-07-3" name="chkFormBHazard-07-3" data-control="checkbox" />
 								</div>
 							</div>
 						</div>
@@ -365,22 +275,13 @@
 							<div class="d-flex flex-row justify-content-end">
 								<div class="flex-grow-1">Environmental Conditions</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-08-1")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-08-1" name="chkFormBHazard-08-1" data-control="checkbox" />
 								</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-08-2")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-08-2" name="chkFormBHazard-08-2" data-control="checkbox" />
 								</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-08-3")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-08-3" name="chkFormBHazard-08-3" data-control="checkbox" />
 								</div>
 							</div>
 						</div>
@@ -388,22 +289,13 @@
 							<div class="d-flex flex-row justify-content-end">
 								<div class="flex-grow-1">Engulfment by liquids or solids</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-09-1")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-09-1" name="chkFormBHazard-09-1" data-control="checkbox" />
 								</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-09-2")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-09-2" name="chkFormBHazard-09-2" data-control="checkbox" />
 								</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-09-3")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-09-3" name="chkFormBHazard-09-3" data-control="checkbox" />
 								</div>
 							</div>
 						</div>
@@ -411,22 +303,13 @@
 							<div class="d-flex flex-row justify-content-end">
 								<div class="flex-grow-1">Temperature</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-10-1")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-10-1" name="chkFormBHazard-10-1" data-control="checkbox" />
 								</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-10-2")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-10-2" name="chkFormBHazard-10-2" data-control="checkbox" />
 								</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-10-3")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-10-3" name="chkFormBHazard-10-3" data-control="checkbox" />
 								</div>
 							</div>
 						</div>
@@ -434,22 +317,13 @@
 							<div class="d-flex flex-row justify-content-end">
 								<div class="flex-grow-1">Ignition Sources</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-11-1")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-11-1" name="chkFormBHazard-11-1" data-control="checkbox" />
 								</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-11-2")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-11-2" name="chkFormBHazard-11-2" data-control="checkbox" />
 								</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-11-3")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-11-3" name="chkFormBHazard-11-3" data-control="checkbox" />
 								</div>
 							</div>
 						</div>
@@ -459,31 +333,18 @@
 									<div class="d-flex flex-row align-items-center">
 										<label>Other</label>
 										<div class="ms-2">
-											@(Html.Kendo().TextBox()
-													.Name("tbxFormBHazard-12-0")
-													.Size(ComponentSize.Small)
-													.Rounded(Rounded.Medium)
-													.FillMode(FillMode.Outline))
+											<input type="text" class="form-control" id="tbxFormBHazard-12-0" name="tbxFormBHazard-12-0" autocomplete="off" data-control="textbox" />
 										</div>
 									</div>
 								</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-12-1")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-12-1" name="chkFormBHazard-12-1" data-control="checkbox" />
 								</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-12-2")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-12-2" name="chkFormBHazard-12-2" data-control="checkbox" />
 								</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-12-3")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-12-3" name="chkFormBHazard-12-3" data-control="checkbox" />
 								</div>
 							</div>
 						</div>
@@ -493,31 +354,18 @@
 									<div class="d-flex flex-row align-items-center">
 										<label>Other</label>
 										<div class="ms-2">
-											@(Html.Kendo().TextBox()
-													.Name("tbxFormBHazard-13-0")
-													.Size(ComponentSize.Small)
-													.Rounded(Rounded.Medium)
-													.FillMode(FillMode.Outline))
+											<input type="text" class="form-control" id="tbxFormBHazard-13-0" name="tbxFormBHazard-13-0" autocomplete="off" data-control="textbox" />
 										</div>
 									</div>
 								</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-13-1")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-13-1" name="chkFormBHazard-13-1" data-control="checkbox" />
 								</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-13-2")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-13-2" name="chkFormBHazard-13-2" data-control="checkbox" />
 								</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-13-3")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-13-3" name="chkFormBHazard-13-3" data-control="checkbox" />
 								</div>
 							</div>
 						</div>
@@ -527,31 +375,18 @@
 									<div class="d-flex flex-row align-items-center">
 										<label>Other</label>
 										<div class="ms-2">
-											@(Html.Kendo().TextBox()
-													.Name("tbxFormBHazard-14-0")
-													.Size(ComponentSize.Small)
-													.Rounded(Rounded.Medium)
-													.FillMode(FillMode.Outline))
+											<input type="text" class="form-control" id="tbxFormBHazard-14-0" name="tbxFormBHazard-14-0" autocomplete="off" data-control="textbox" />
 										</div>
 									</div>
 								</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-14-1")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-14-1" name="chkFormBHazard-14-1" data-control="checkbox" />
 								</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-14-2")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-14-2" name="chkFormBHazard-14-2" data-control="checkbox" />
 								</div>
 								<div class="hazard-option text-center mx-1">
-									@(Html.Kendo().CheckBox()
-											.Name("chkFormBHazard-14-3")
-											.Size(ComponentSize.Large)
-											.Rounded(Rounded.Medium))
+									<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBHazard-14-3" name="chkFormBHazard-14-3" data-control="checkbox" />
 								</div>
 							</div>
 						</div>
@@ -567,39 +402,31 @@
 					</div>
 					<div class="d-flex flex-column align-items-md-center flex-md-row mb-3">
 						<div class="me-5 mb-3 mb-md-0">
-							@(Html.Kendo().CheckBox()
-									.Name("chkFormBComm1")
-									.Label("  Radio")
-									.Size(ComponentSize.Large)
-									.Rounded(Rounded.Medium))
+							<div class="form-check fc-check">
+								<input type="checkbox" class="form-check-input" id="chkFormBComm1" name="chkFormBComm1" data-control="checkbox" />
+								<label class="form-check-label" for="chkFormBComm1">Radio</label>
+							</div>
 						</div>
 						<div class="me-5 mb-3 mb-md-0">
-							@(Html.Kendo().CheckBox()
-									.Name("chkFormBComm2")
-									.Label("  Voice")
-									.Size(ComponentSize.Large)
-									.Rounded(Rounded.Medium))
+							<div class="form-check fc-check">
+								<input type="checkbox" class="form-check-input" id="chkFormBComm2" name="chkFormBComm2" data-control="checkbox" />
+								<label class="form-check-label" for="chkFormBComm2">Voice</label>
+							</div>
 						</div>
 						<div class="me-5 mb-3 mb-md-0">
-							@(Html.Kendo().CheckBox()
-									.Name("chkFormBComm3")
-									.Label("  Visual")
-									.Size(ComponentSize.Large)
-									.Rounded(Rounded.Medium))
+							<div class="form-check fc-check">
+								<input type="checkbox" class="form-check-input" id="chkFormBComm3" name="chkFormBComm3" data-control="checkbox" />
+								<label class="form-check-label" for="chkFormBComm3">Visual</label>
+							</div>
 						</div>
 						<div class="me-3 mb-3 mb-md-0">
-							@(Html.Kendo().CheckBox()
-									.Name("chkFormBComm4")
-									.Label("  Other")
-									.Size(ComponentSize.Large)
-									.Rounded(Rounded.Medium))
+							<div class="form-check fc-check">
+								<input type="checkbox" class="form-check-input" id="chkFormBComm4" name="chkFormBComm4" data-control="checkbox" />
+								<label class="form-check-label" for="chkFormBComm4">Other</label>
+							</div>
 						</div>
 						<div>
-							@(Html.Kendo().TextBox()
-									.Name("tbxFormBComm4")
-									.Size(ComponentSize.Medium)
-									.Rounded(Rounded.Large)
-									.FillMode(FillMode.Outline))
+							<input type="text" class="form-control" id="tbxFormBComm4" name="tbxFormBComm4" autocomplete="off" data-control="textbox" />
 						</div>
 					</div>
 					<div>
@@ -635,22 +462,13 @@
 								<div class="d-flex flex-row justify-content-end">
 									<div class="flex-grow-1">Self Contained Breathing Apparatus</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBPPEEquip-01-1")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBPPEEquip-01-1" name="chkFormBPPEEquip-01-1" data-control="checkbox" />
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBPPEEquip-01-2")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBPPEEquip-01-2" name="chkFormBPPEEquip-01-2" data-control="checkbox" />
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBPPEEquip-01-3")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBPPEEquip-01-3" name="chkFormBPPEEquip-01-3" data-control="checkbox" />
 									</div>
 								</div>
 							</div>
@@ -658,22 +476,13 @@
 								<div class="d-flex flex-row justify-content-end">
 									<div class="flex-grow-1">Supplied Air Breathing Apparatus</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBPPEEquip-02-1")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBPPEEquip-02-1" name="chkFormBPPEEquip-02-1" data-control="checkbox" />
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBPPEEquip-02-2")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBPPEEquip-02-2" name="chkFormBPPEEquip-02-2" data-control="checkbox" />
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBPPEEquip-02-3")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBPPEEquip-02-3" name="chkFormBPPEEquip-02-3" data-control="checkbox" />
 									</div>
 								</div>
 							</div>
@@ -683,22 +492,13 @@
 										Ground Fault interrupters in place for portable lighting and small electrical tools
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBPPEEquip-03-1")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBPPEEquip-03-1" name="chkFormBPPEEquip-03-1" data-control="checkbox" />
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBPPEEquip-03-2")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBPPEEquip-03-2" name="chkFormBPPEEquip-03-2" data-control="checkbox" />
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBPPEEquip-03-3")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBPPEEquip-03-3" name="chkFormBPPEEquip-03-3" data-control="checkbox" />
 									</div>
 								</div>
 							</div>
@@ -708,22 +508,13 @@
 										Ropes (Life Lines)
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBPPEEquip-04-1")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBPPEEquip-04-1" name="chkFormBPPEEquip-04-1" data-control="checkbox" />
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBPPEEquip-04-2")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBPPEEquip-04-2" name="chkFormBPPEEquip-04-2" data-control="checkbox" />
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBPPEEquip-04-3")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBPPEEquip-04-3" name="chkFormBPPEEquip-04-3" data-control="checkbox" />
 									</div>
 								</div>
 							</div>
@@ -733,22 +524,13 @@
 										Full Body Harness
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBPPEEquip-05-1")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBPPEEquip-05-1" name="chkFormBPPEEquip-05-1" data-control="checkbox" />
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBPPEEquip-05-2")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBPPEEquip-05-2" name="chkFormBPPEEquip-05-2" data-control="checkbox" />
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBPPEEquip-05-3")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBPPEEquip-05-3" name="chkFormBPPEEquip-05-3" data-control="checkbox" />
 									</div>
 								</div>
 							</div>
@@ -758,22 +540,13 @@
 										Head, Hearing, Hand, Foot, And Body Protection Provided
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBPPEEquip-06-1")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBPPEEquip-06-1" name="chkFormBPPEEquip-06-1" data-control="checkbox" />
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBPPEEquip-06-2")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBPPEEquip-06-2" name="chkFormBPPEEquip-06-2" data-control="checkbox" />
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBPPEEquip-06-3")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBPPEEquip-06-3" name="chkFormBPPEEquip-06-3" data-control="checkbox" />
 									</div>
 								</div>
 							</div>
@@ -783,22 +556,13 @@
 										Barriers in place to prevent unauthorized access/entry to confined space
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBPPEEquip-07-1")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBPPEEquip-07-1" name="chkFormBPPEEquip-07-1" data-control="checkbox" />
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBPPEEquip-07-2")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBPPEEquip-07-2" name="chkFormBPPEEquip-07-2" data-control="checkbox" />
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBPPEEquip-07-3")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBPPEEquip-07-3" name="chkFormBPPEEquip-07-3" data-control="checkbox" />
 									</div>
 								</div>
 							</div>
@@ -808,22 +572,13 @@
 										Ventilation equipment
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBPPEEquip-08-1")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBPPEEquip-08-1" name="chkFormBPPEEquip-08-1" data-control="checkbox" />
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBPPEEquip-08-2")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBPPEEquip-08-2" name="chkFormBPPEEquip-08-2" data-control="checkbox" />
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBPPEEquip-08-3")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBPPEEquip-08-3" name="chkFormBPPEEquip-08-3" data-control="checkbox" />
 									</div>
 								</div>
 							</div>
@@ -833,22 +588,13 @@
 										Calibrated Gas testing equipment
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBPPEEquip-09-1")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBPPEEquip-09-1" name="chkFormBPPEEquip-09-1" data-control="checkbox" />
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBPPEEquip-09-2")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBPPEEquip-09-2" name="chkFormBPPEEquip-09-2" data-control="checkbox" />
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBPPEEquip-09-3")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBPPEEquip-09-3" name="chkFormBPPEEquip-09-3" data-control="checkbox" />
 									</div>
 								</div>
 							</div>
@@ -858,22 +604,13 @@
 										Portable Lighting
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBPPEEquip-10-1")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBPPEEquip-10-1" name="chkFormBPPEEquip-10-1" data-control="checkbox" />
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBPPEEquip-10-2")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBPPEEquip-10-2" name="chkFormBPPEEquip-10-2" data-control="checkbox" />
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBPPEEquip-10-3")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBPPEEquip-10-3" name="chkFormBPPEEquip-10-3" data-control="checkbox" />
 									</div>
 								</div>
 							</div>
@@ -883,31 +620,18 @@
 										<div class="d-flex flex-row align-items-center">
 											<label>Other</label>
 											<div class="ms-2">
-												@(Html.Kendo().TextBox()
-														.Name("tbxFormBPPEEquip-11-0")
-														.Size(ComponentSize.Small)
-														.Rounded(Rounded.Medium)
-														.FillMode(FillMode.Outline))
+												<input type="text" class="form-control" id="tbxFormBPPEEquip-11-0" name="tbxFormBPPEEquip-11-0" autocomplete="off" data-control="textbox" />
 											</div>
 										</div>
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBPPEEquip-11-1")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBPPEEquip-11-1" name="chkFormBPPEEquip-11-1" data-control="checkbox" />
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBPPEEquip-11-2")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBPPEEquip-11-2" name="chkFormBPPEEquip-11-2" data-control="checkbox" />
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBPPEEquip-11-3")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBPPEEquip-11-3" name="chkFormBPPEEquip-11-3" data-control="checkbox" />
 									</div>
 								</div>
 							</div>
@@ -922,22 +646,13 @@
 										Confined Space Rescue Package
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBRescueEquip-01-1")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBRescueEquip-01-1" name="chkFormBRescueEquip-01-1" data-control="checkbox" />
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBRescueEquip-01-2")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBRescueEquip-01-2" name="chkFormBRescueEquip-01-2" data-control="checkbox" />
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBRescueEquip-01-3")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBRescueEquip-01-3" name="chkFormBRescueEquip-01-3" data-control="checkbox" />
 									</div>
 								</div>
 							</div>
@@ -947,22 +662,13 @@
 										<span class="ms-4">Horizontal</span>
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBRescueEquip-02-1")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBRescueEquip-02-1" name="chkFormBRescueEquip-02-1" data-control="checkbox" />
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBRescueEquip-02-2")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBRescueEquip-02-2" name="chkFormBRescueEquip-02-2" data-control="checkbox" />
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBRescueEquip-02-3")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBRescueEquip-02-3" name="chkFormBRescueEquip-02-3" data-control="checkbox" />
 									</div>
 								</div>
 							</div>
@@ -972,22 +678,13 @@
 										<span class="ms-4">Vertical</span>
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBRescueEquip-03-1")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBRescueEquip-03-1" name="chkFormBRescueEquip-03-1" data-control="checkbox" />
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBRescueEquip-03-2")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBRescueEquip-03-2" name="chkFormBRescueEquip-03-2" data-control="checkbox" />
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBRescueEquip-03-3")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBRescueEquip-03-3" name="chkFormBRescueEquip-03-3" data-control="checkbox" />
 									</div>
 								</div>
 							</div>
@@ -997,22 +694,13 @@
 										Portable Breathing Air Systems
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBRescueEquip-04-1")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBRescueEquip-04-1" name="chkFormBRescueEquip-04-1" data-control="checkbox" />
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBRescueEquip-04-2")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBRescueEquip-04-2" name="chkFormBRescueEquip-04-2" data-control="checkbox" />
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBRescueEquip-04-3")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBRescueEquip-04-3" name="chkFormBRescueEquip-04-3" data-control="checkbox" />
 									</div>
 								</div>
 							</div>
@@ -1022,22 +710,13 @@
 										Safe exit (ladders or other means in place)
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBRescueEquip-05-1")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBRescueEquip-05-1" name="chkFormBRescueEquip-05-1" data-control="checkbox" />
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBRescueEquip-05-2")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBRescueEquip-05-2" name="chkFormBRescueEquip-05-2" data-control="checkbox" />
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBRescueEquip-05-3")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBRescueEquip-05-3" name="chkFormBRescueEquip-05-3" data-control="checkbox" />
 									</div>
 								</div>
 							</div>
@@ -1047,22 +726,13 @@
 										Defibrillator available?
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBRescueEquip-06-1")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBRescueEquip-06-1" name="chkFormBRescueEquip-06-1" data-control="checkbox" />
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBRescueEquip-06-2")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBRescueEquip-06-2" name="chkFormBRescueEquip-06-2" data-control="checkbox" />
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBRescueEquip-06-3")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBRescueEquip-06-3" name="chkFormBRescueEquip-06-3" data-control="checkbox" />
 									</div>
 								</div>
 							</div>
@@ -1072,22 +742,13 @@
 										Fire Extinguishers available?
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBRescueEquip-07-1")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBRescueEquip-07-1" name="chkFormBRescueEquip-07-1" data-control="checkbox" />
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBRescueEquip-07-2")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBRescueEquip-07-2" name="chkFormBRescueEquip-07-2" data-control="checkbox" />
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBRescueEquip-07-3")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBRescueEquip-07-3" name="chkFormBRescueEquip-07-3" data-control="checkbox" />
 									</div>
 								</div>
 							</div>
@@ -1097,31 +758,18 @@
 										<div class="d-flex flex-row align-items-center">
 											<label>Other</label>
 											<div class="ms-2">
-												@(Html.Kendo().TextBox()
-														.Name("tbxFormBRescueEquip-08-0")
-														.Size(ComponentSize.Small)
-														.Rounded(Rounded.Medium)
-														.FillMode(FillMode.Outline))
+												<input type="text" class="form-control" id="tbxFormBRescueEquip-08-0" name="tbxFormBRescueEquip-08-0" autocomplete="off" data-control="textbox" />
 											</div>
 										</div>
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBRescueEquip-08-1")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBRescueEquip-08-1" name="chkFormBRescueEquip-08-1" data-control="checkbox" />
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBRescueEquip-08-2")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBRescueEquip-08-2" name="chkFormBRescueEquip-08-2" data-control="checkbox" />
 									</div>
 									<div class="hazard-option text-center mx-1">
-										@(Html.Kendo().CheckBox()
-												.Name("chkFormBRescueEquip-08-3")
-												.Size(ComponentSize.Large)
-												.Rounded(Rounded.Medium))
+										<input type="checkbox" class="form-check-input fc-check-input" id="chkFormBRescueEquip-08-3" name="chkFormBRescueEquip-08-3" data-control="checkbox" />
 									</div>
 								</div>
 							</div>
@@ -1143,16 +791,16 @@
 						</div>
 						<div class="d-flex flex-column flex-md-row justify-content-evenly mb-3">
 							<div class="w-100 me-0 me-md-3 mb-3 mb-md-0">
-								@(Html.Kendo().TimePicker()
-										.Name("tmpFormB-TimeAllowedFrom")
-										.Label(x => x.Content("From"))
-										.DateInput())
+								<div class="form-floating">
+									<input type="text" class="form-control" id="tmpFormB-TimeAllowedFrom" name="tmpFormB-TimeAllowedFrom" autocomplete="off" data-control="time" placeholder=" " />
+									<label for="tmpFormB-TimeAllowedFrom">From</label>
+								</div>
 							</div>
 							<div class="w-100 ms-0 ms-md-3">
-								@(Html.Kendo().TimePicker()
-										.Name("tmpFormB-TimeAllowedTo")
-										.Label(x => x.Content("To"))
-										.DateInput())
+								<div class="form-floating">
+									<input type="text" class="form-control" id="tmpFormB-TimeAllowedTo" name="tmpFormB-TimeAllowedTo" autocomplete="off" data-control="time" placeholder=" " />
+									<label for="tmpFormB-TimeAllowedTo">To</label>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -1164,20 +812,13 @@
 				<div class="px-2 mb-4">
 					<div class="d-flex flex-row align-items-center">
 						<div class="me-5">
-							@(Html.Kendo().Switch()
-									.Name("swtFormB-Withdrawn")
-									.Size(ComponentSize.Small)
-									.Messages(x => x.Checked("YES").Unchecked("NO"))
-									.Events(x => x.Change("onChangeWithdrawnFormB")))
+							<div class="form-check form-switch fc-switch">
+								<input type="checkbox" role="switch" class="form-check-input" id="swtFormB-Withdrawn" name="swtFormB-Withdrawn" data-control="switch" data-change="onChangeWithdrawnFormB" />
+							</div>
 						</div>
 						<label class="form-label me-3" for="tbWithdrawnReason">Reason</label>
 						<div class="flex-grow-1">
-							@(Html.Kendo().TextBox()
-									.Name("tbxFormB-Withdrawn-Reason")
-									.Enable(false)
-									.Size(ComponentSize.Medium)
-									.Rounded(Rounded.Large)
-									.FillMode(FillMode.Outline))
+							<input type="text" class="form-control" id="tbxFormB-Withdrawn-Reason" name="tbxFormB-Withdrawn-Reason" autocomplete="off" data-control="textbox" disabled />
 						</div>
 					</div>
 				</div>
@@ -1227,42 +868,34 @@
 			<div class="modal-body">
 				<div>
 					<div class="mb-3">
-						@(Html.Kendo().TimePicker()
-								.Name("dtmFormBGasReadTime")
-								.Label(x => x.Content("Time of test"))
-								.DateInput())
+						<div class="form-floating">
+							<input type="text" class="form-control" id="dtmFormBGasReadTime" name="dtmFormBGasReadTime" autocomplete="off" data-control="time" placeholder=" " />
+							<label for="dtmFormBGasReadTime">Time of test</label>
+						</div>
 					</div>
 					<div class="mb-3">
-						@(Html.Kendo().TextBox()
-								.Name("tbFormBGasReadGasPercentageLEL")
-								.Label(x => x.Content("Flammable gas % LEL"))
-								.Size(ComponentSize.Medium)
-								.Rounded(Rounded.Large)
-								.FillMode(FillMode.Outline))
+						<div class="form-floating">
+							<input type="text" class="form-control" id="tbFormBGasReadGasPercentageLEL" name="tbFormBGasReadGasPercentageLEL" autocomplete="off" data-control="textbox" placeholder=" " />
+							<label for="tbFormBGasReadGasPercentageLEL">Flammable gas % LEL</label>
+						</div>
 					</div>
 					<div class="mb-3">
-						@(Html.Kendo().TextBox()
-								.Name("tbFormBGasReadOxyPercentage")
-								.Label(x => x.Content("Oxygen %"))
-								.Size(ComponentSize.Medium)
-								.Rounded(Rounded.Large)
-								.FillMode(FillMode.Outline))
+						<div class="form-floating">
+							<input type="text" class="form-control" id="tbFormBGasReadOxyPercentage" name="tbFormBGasReadOxyPercentage" autocomplete="off" data-control="textbox" placeholder=" " />
+							<label for="tbFormBGasReadOxyPercentage">Oxygen %</label>
+						</div>
 					</div>
 					<div class="mb-3">
-						@(Html.Kendo().TextBox()
-								.Name("tbFormBGasReadOxyToxic1")
-								.Label(x => x.Content("Toxic 1"))
-								.Size(ComponentSize.Medium)
-								.Rounded(Rounded.Large)
-								.FillMode(FillMode.Outline))
+						<div class="form-floating">
+							<input type="text" class="form-control" id="tbFormBGasReadOxyToxic1" name="tbFormBGasReadOxyToxic1" autocomplete="off" data-control="textbox" placeholder=" " />
+							<label for="tbFormBGasReadOxyToxic1">Toxic 1</label>
+						</div>
 					</div>
 					<div>
-						@(Html.Kendo().TextBox()
-								.Name("tbFormBGasReadOxyToxic2")
-								.Label(x => x.Content("Toxic 2"))
-								.Size(ComponentSize.Medium)
-								.Rounded(Rounded.Large)
-								.FillMode(FillMode.Outline))
+						<div class="form-floating">
+							<input type="text" class="form-control" id="tbFormBGasReadOxyToxic2" name="tbFormBGasReadOxyToxic2" autocomplete="off" data-control="textbox" placeholder=" " />
+							<label for="tbFormBGasReadOxyToxic2">Toxic 2</label>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -1286,45 +919,34 @@
 			<div class="modal-body">
 				<div>
 					<div class="mb-3">
-						@(Html.Kendo().TextBox()
-								.Name("tbxFormB-Entry-WorkerName")
-								.Label(x => x.Content("Worker name"))
-								.Size(ComponentSize.Medium)
-								.Rounded(Rounded.Large)
-								.FillMode(FillMode.Outline)
-								.Events(x => x.Change("entryRecordsOnChange")))
+						<div class="form-floating">
+							<input type="text" class="form-control" id="tbxFormB-Entry-WorkerName" name="tbxFormB-Entry-WorkerName" autocomplete="off" data-control="textbox" data-change="entryRecordsOnChange" placeholder=" " />
+							<label for="tbxFormB-Entry-WorkerName">Worker name</label>
+						</div>
 					</div>
 					<div class="mb-3">
-						@(Html.Kendo().TextBox()
-								.Name("tbxFormB-Entry-WorkerSignature")
-								.Label(x => x.Content("Worker signature"))
-								.Size(ComponentSize.Medium)
-								.Rounded(Rounded.Large)
-								.FillMode(FillMode.Outline)
-								.Events(x => x.Change("entryRecordsOnChange")))
+						<div class="form-floating">
+							<input type="text" class="form-control" id="tbxFormB-Entry-WorkerSignature" name="tbxFormB-Entry-WorkerSignature" autocomplete="off" data-control="textbox" data-change="entryRecordsOnChange" placeholder=" " />
+							<label for="tbxFormB-Entry-WorkerSignature">Worker signature</label>
+						</div>
 					</div>
 					<div class="mb-3">
-						@(Html.Kendo().TextArea()
-								.Name("txtFormB-Entry-Reason")
-								.Label(x => x.Content("Reason for entry"))
-								.Rounded(Rounded.Large)
-								.FillMode(FillMode.Outline)
-								.Rows(2)
-								.Events(x => x.Change("entryRecordsOnChange")))
+						<div class="form-floating">
+							<textarea class="form-control" id="txtFormB-Entry-Reason" name="txtFormB-Entry-Reason" data-control="textarea" rows="2" data-change="entryRecordsOnChange" placeholder=" "></textarea>
+							<label for="txtFormB-Entry-Reason">Reason for entry</label>
+						</div>
 					</div>
 					<div class="mb-3">
-						@(Html.Kendo().TimePicker()
-								.Name("tpkFormB-Entry-TimeEntry")
-								.Label(x => x.Content("Time of entry"))
-								.DateInput()
-								.Events(x => x.Change("entryRecordsOnChange")))
+						<div class="form-floating">
+							<input type="text" class="form-control" id="tpkFormB-Entry-TimeEntry" name="tpkFormB-Entry-TimeEntry" autocomplete="off" data-control="time" data-change="entryRecordsOnChange" placeholder=" " />
+							<label for="tpkFormB-Entry-TimeEntry">Time of entry</label>
+						</div>
 					</div>
 					<div>
-						@(Html.Kendo().TimePicker()
-								.Name("tpkFormB-Entry-TimeExit")
-								.Label(x => x.Content("Time of exit"))
-								.DateInput()
-								.Events(x => x.Change("entryRecordsOnChange")))
+						<div class="form-floating">
+							<input type="text" class="form-control" id="tpkFormB-Entry-TimeExit" name="tpkFormB-Entry-TimeExit" autocomplete="off" data-control="time" data-change="entryRecordsOnChange" placeholder=" " />
+							<label for="tpkFormB-Entry-TimeExit">Time of exit</label>
+						</div>
 					</div>
 				</div>
 			</div>
