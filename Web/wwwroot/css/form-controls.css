@@ -97,3 +97,11 @@ input.form-check-input.fc-check-input {
 	.fc-date .input-group-text:hover {
 		color: var(--bs-body-color);
 	}
+
+	/* Disabled field: the button does nothing, so show it disabled too. */
+	.fc-date:has(.form-control:disabled) .input-group-text {
+		color: var(--bs-secondary-color);
+		background-color: var(--bs-secondary-bg);
+		opacity: .65;
+		cursor: default;
+	}
