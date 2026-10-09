@@ -347,6 +347,7 @@
 
 @section CustomCss {
 	<link rel="stylesheet" href="~/css/permits.css" />
+	<partial name="_FormControlsStyles" />
 
 	<!-- DataTables -->
 	<link rel="stylesheet" href="~/lib/DataTables/datatables.min.css" />
@@ -367,10 +368,10 @@
 }
 
 @section Scripts {
+	<partial name="_FormControlsScripts" />
 	<script src="~/js/permit.module.js"></script>
 	<script>
 		const currentPermitStatus = '@Model.PermitStatus';
-		const selectedCerts = [];
 		const PERMIT_ID_FILES = '@Model.PermitId';
 		const COMPANY_ID_FILES = '@Model.CompanyId';
 
@@ -427,20 +428,20 @@
 			var permitStartDateTime = moment(_permitInfo.general.startDateTime);
 			var permitEndDateTime = moment(_permitInfo.general.endDateTime);
 
-			//$('#ddtLocation').data('kendoDropDownTree').value('@Model.Location.Id.ToString().ToLower()');
-			//$('#ddtLocation').data('kendoDropDownTree').text('@Model.Location.Name');
+			//$('#ddtLocation').data('control').value('@Model.Location.Id.ToString().ToLower()');
+			//$('#ddtLocation').data('control').text('@Model.Location.Name');
 
-			const ddtLocation = $('#ddtLocation').data('kendoDropDownTree');
+			const ddtLocation = $('#ddtLocation').data('control');
 			//ddtLocation.dataSource.filter({});
 			ddtLocation.value('@Model.Location.Id.ToString().ToLower()');
 			ddtLocation.trigger("change");	
 
-			//console.log($('#ddtLocation').data('kendoDropDownTree').value());
+			//console.log($('#ddtLocation').data('control').value());
 
-			$('#tbPermitDesc').data('kendoTextArea').value(_permitInfo.general.description);
-			$('#startDateTime').data('kendoDatePicker').value(permitStartDateTime.format('DD/MM/YYYY'));
-			$('#endDateTime').data('kendoDatePicker').value(permitEndDateTime.format('DD/MM/YYYY'));
-			$('#tbPermitHolderInfo1').data('kendoTextBox').value(_permitInfo.permitHolder.name);
+			$('#tbPermitDesc').data('control').value(_permitInfo.general.description);
+			$('#startDateTime').data('control').value(permitStartDateTime.format('DD/MM/YYYY'));
+			$('#endDateTime').data('control').value(permitEndDateTime.format('DD/MM/YYYY'));
+			$('#tbPermitHolderInfo1').data('control').value(_permitInfo.permitHolder.name);
 
 			//console.log(_permitInfo);
 
@@ -489,7 +490,7 @@
 						li += '</li>';
 
 						$('.selected-certs').append(li);
-						$('#chkCertHotWork').data('kendoCheckBox').value(true);
+						$('#chkCertHotWork').data('control').value(true);
 
 						try {
 
@@ -553,7 +554,7 @@
 						li += '</li>';
 
 						$('.selected-certs').append(li);
-						$('#chkCertConfinedSpace').data('kendoCheckBox').value(true);
+						$('#chkCertConfinedSpace').data('control').value(true);
 
 						try {
 
@@ -721,7 +722,7 @@
 						li += '</li>';
 
 						$('.selected-certs').append(li);
-						$('#chkCertRadiation').data('kendoCheckBox').value(true);
+						$('#chkCertRadiation').data('control').value(true);
 
 						try {
 
@@ -775,7 +776,7 @@
 						li += '</li>';
 
 						$('.selected-certs').append(li);
-						$('#chkCertExcavation').data('kendoCheckBox').value(true);
+						$('#chkCertExcavation').data('control').value(true);
 
 						try {
 
@@ -819,7 +820,7 @@
 						li += '</li>';
 
 						$('.selected-certs').append(li);
-						$('#chkCertIsolation').data('kendoCheckBox').value(true);
+						$('#chkCertIsolation').data('control').value(true);
 
 						try {
 
@@ -881,7 +882,7 @@
 						li += '</li>';
 
 						$('.selected-certs').append(li);
-						$('#chkCertF').data('kendoCheckBox').value(true);
+						$('#chkCertF').data('control').value(true);
 					}
 
 					if (item.name == 'liftingHoisting') {
@@ -900,7 +901,7 @@
 						li += '</li>';
 
 						$('.selected-certs').append(li);
-						$('#chkCertG').data('kendoCheckBox').value(true);
+						$('#chkCertG').data('control').value(true);
 					}
 
 					if (item.name == 'override') {
@@ -919,105 +920,105 @@
 						li += '</li>';
 
 						$('.selected-certs').append(li);
-						$('#chkCertH').data('kendoCheckBox').value(true);
+						$('#chkCertH').data('control').value(true);
 					}
 				});
 			}
 
 			_permitInfo.operation.activities.forEach((item, index) => {
-				$(item.id).data('kendoCheckBox').value(item.status);
+				$(item.id).data('control').value(item.status);
 
 				if (item.id == '#chkOpInfo19') {
-					$('#tbOpInfo19').data('kendoTextBox').value(item.value);
+					$('#tbOpInfo19').data('control').value(item.value);
 				}
 			});
 
 			_permitInfo.operation.activityLocations.forEach((item, index) => {
-				$(item.id).data('kendoCheckBox').value(item.status);
+				$(item.id).data('control').value(item.status);
 			});
 
 			_permitInfo.operation.activityTools.forEach((item, index) => {
-				$(item.id).data('kendoCheckBox').value(item.status);
+				$(item.id).data('control').value(item.status);
 
 				if (item.id == '#chkOpInfo27a') {
-					$('#tbOpInfo27a').data('kendoTextBox').value(item.value);
+					$('#tbOpInfo27a').data('control').value(item.value);
 				}
 			});
 
 			_permitInfo.operation.activityProducts.forEach((item, index) => {
-				$(item.id).data('kendoCheckBox').value(item.status);
+				$(item.id).data('control').value(item.status);
 
 				if (item.id == '#chkOpInfo31') {
-					$('#tbOpInfo31').data('kendoTextBox').value(item.value);
+					$('#tbOpInfo31').data('control').value(item.value);
 				}
 			});
 
-			$('#tbPermitHolderInfo2').data('kendoTextBox').value(_permitInfo.permitHolder.company);
-			$('#tbPermitHolderInfo3').data('kendoNumericTextBox').value(_permitInfo.permitHolder.numOfStaff);
-			$('#tbPermitHolderInfo4').data('kendoTextArea').value(_permitInfo.permitHolder.additionalStaff);
+			$('#tbPermitHolderInfo2').data('control').value(_permitInfo.permitHolder.company);
+			$('#tbPermitHolderInfo3').data('control').value(_permitInfo.permitHolder.numOfStaff);
+			$('#tbPermitHolderInfo4').data('control').value(_permitInfo.permitHolder.additionalStaff);
 
-			$('#swPpeWorkArea1').data('kendoSwitch').value(_permitInfo.ppe.safetyGlass.status);
-			$('#swPpeWorkArea2').data('kendoSwitch').value(_permitInfo.ppe.safetyHelmet.status);
-			$('#swPpeWorkArea3').data('kendoSwitch').value(_permitInfo.ppe.fullFaceMask.status);
-			$('#swPpeWorkArea4').data('kendoSwitch').value(_permitInfo.ppe.leatherGloves.status);
-			$('#swPpeWorkArea5').data('kendoSwitch').value(_permitInfo.ppe.neopreneGloves.status);
-			$('#swPpeWorkArea6').data('kendoSwitch').value(_permitInfo.ppe.safetyHarness.status);
-			$('#swPpeWorkArea7').data('kendoSwitch').value(_permitInfo.ppe.fallProtection.status);
-			$('#swPpeWorkArea8').data('kendoSwitch').value(_permitInfo.ppe.safetyShoes.status);
-			$('#swPpeWorkArea9').data('kendoSwitch').value(_permitInfo.ppe.earProtection.status);
-			$('#swPpeWorkArea10').data('kendoSwitch').value(_permitInfo.ppe.breathingProtection.status);
-			$('#swPpeWorkArea11').data('kendoSwitch').value(_permitInfo.ppe.otherPpe.status);
-			$('#tbPpeWorkArea11').data('kendoTextBox').value(_permitInfo.ppe.otherPpe.value);
-			$('#otherPpeRequiredInJHA').data('kendoTextBox').value(_permitInfo.ppe.otherPpeRequiredInJHA);
+			$('#swPpeWorkArea1').data('control').value(_permitInfo.ppe.safetyGlass.status);
+			$('#swPpeWorkArea2').data('control').value(_permitInfo.ppe.safetyHelmet.status);
+			$('#swPpeWorkArea3').data('control').value(_permitInfo.ppe.fullFaceMask.status);
+			$('#swPpeWorkArea4').data('control').value(_permitInfo.ppe.leatherGloves.status);
+			$('#swPpeWorkArea5').data('control').value(_permitInfo.ppe.neopreneGloves.status);
+			$('#swPpeWorkArea6').data('control').value(_permitInfo.ppe.safetyHarness.status);
+			$('#swPpeWorkArea7').data('control').value(_permitInfo.ppe.fallProtection.status);
+			$('#swPpeWorkArea8').data('control').value(_permitInfo.ppe.safetyShoes.status);
+			$('#swPpeWorkArea9').data('control').value(_permitInfo.ppe.earProtection.status);
+			$('#swPpeWorkArea10').data('control').value(_permitInfo.ppe.breathingProtection.status);
+			$('#swPpeWorkArea11').data('control').value(_permitInfo.ppe.otherPpe.status);
+			$('#tbPpeWorkArea11').data('control').value(_permitInfo.ppe.otherPpe.value);
+			$('#otherPpeRequiredInJHA').data('control').value(_permitInfo.ppe.otherPpeRequiredInJHA);
 
-			$('#swPpeWorkArea12').data('kendoSwitch').value(_permitInfo.workArea.demarcation.status);
-			$('#swPpeWorkArea13').data('kendoSwitch').value(_permitInfo.workArea.fireExtinguisher.status);
-			$('#swPpeWorkArea14').data('kendoSwitch').value(_permitInfo.workArea.warningSigns.status);
-			$('#swPpeWorkArea15').data('kendoSwitch').value(_permitInfo.workArea.otherPpeWorkArea.status);
-			$('#tbPpeWorkArea15').data('kendoTextBox').value(_permitInfo.workArea.otherPpeWorkArea.value);
+			$('#swPpeWorkArea12').data('control').value(_permitInfo.workArea.demarcation.status);
+			$('#swPpeWorkArea13').data('control').value(_permitInfo.workArea.fireExtinguisher.status);
+			$('#swPpeWorkArea14').data('control').value(_permitInfo.workArea.warningSigns.status);
+			$('#swPpeWorkArea15').data('control').value(_permitInfo.workArea.otherPpeWorkArea.status);
+			$('#tbPpeWorkArea15').data('control').value(_permitInfo.workArea.otherPpeWorkArea.value);
 
-			$('#tbOpMeasureMech1').data('kendoTextBox').value(_permitInfo.operationMeasures.mechanical.equipmentName);
-			$('#tbOpMeasureMech2').data('kendoTextBox').value(_permitInfo.operationMeasures.mechanical.tagNumber);
-			$('#swOpMeasureMech1').data('kendoSwitch').value(_permitInfo.operationMeasures.mechanical.pressureFree.status);
-			$('#swOpMeasureMech2').data('kendoSwitch').value(_permitInfo.operationMeasures.mechanical.empty.status);
-			$('#swOpMeasureMech3').data('kendoSwitch').value(_permitInfo.operationMeasures.mechanical.disconnected.status);
-			$('#swOpMeasureMech4').data('kendoSwitch').value(_permitInfo.operationMeasures.mechanical.blankOff.status);
-			$('#swOpMeasureMech5').data('kendoSwitch').value(_permitInfo.operationMeasures.mechanical.lockedOff.status);
-			$('#swOpMeasureMech6').data('kendoSwitch').value(_permitInfo.operationMeasures.mechanical.flushed.status);
-			$('#swOpMeasureMech7').data('kendoSwitch').value(_permitInfo.operationMeasures.mechanical.ventilated.status);
-			$('#swOpMeasureMech8').data('kendoSwitch').value(_permitInfo.operationMeasures.mechanical.other.status);
-			$('#tbOpMeasureMech8').data('kendoTextBox').value(_permitInfo.operationMeasures.mechanical.other.value);
+			$('#tbOpMeasureMech1').data('control').value(_permitInfo.operationMeasures.mechanical.equipmentName);
+			$('#tbOpMeasureMech2').data('control').value(_permitInfo.operationMeasures.mechanical.tagNumber);
+			$('#swOpMeasureMech1').data('control').value(_permitInfo.operationMeasures.mechanical.pressureFree.status);
+			$('#swOpMeasureMech2').data('control').value(_permitInfo.operationMeasures.mechanical.empty.status);
+			$('#swOpMeasureMech3').data('control').value(_permitInfo.operationMeasures.mechanical.disconnected.status);
+			$('#swOpMeasureMech4').data('control').value(_permitInfo.operationMeasures.mechanical.blankOff.status);
+			$('#swOpMeasureMech5').data('control').value(_permitInfo.operationMeasures.mechanical.lockedOff.status);
+			$('#swOpMeasureMech6').data('control').value(_permitInfo.operationMeasures.mechanical.flushed.status);
+			$('#swOpMeasureMech7').data('control').value(_permitInfo.operationMeasures.mechanical.ventilated.status);
+			$('#swOpMeasureMech8').data('control').value(_permitInfo.operationMeasures.mechanical.other.status);
+			$('#tbOpMeasureMech8').data('control').value(_permitInfo.operationMeasures.mechanical.other.value);
 
-			$('#tbOpMeasureElec1').data('kendoTextBox').value(_permitInfo.operationMeasures.electrical.equipmentName);
-			$('#tbOpMeasureElec2').data('kendoTextBox').value(_permitInfo.operationMeasures.electrical.tagNumber);
-			$('#swOpMeasureElec1').data('kendoSwitch').value(_permitInfo.operationMeasures.electrical.lockedOff.status);
-			$('#swOpMeasureElec2').data('kendoSwitch').value(_permitInfo.operationMeasures.electrical.isolated.status);
-			$('#swOpMeasureElec3').data('kendoSwitch').value(_permitInfo.operationMeasures.electrical.isolationCertificate.status);
-			$('#numOpMeasureElec1').data('kendoNumericTextBox').value(_permitInfo.operationMeasures.electrical.numOfIsolationCertificate);
+			$('#tbOpMeasureElec1').data('control').value(_permitInfo.operationMeasures.electrical.equipmentName);
+			$('#tbOpMeasureElec2').data('control').value(_permitInfo.operationMeasures.electrical.tagNumber);
+			$('#swOpMeasureElec1').data('control').value(_permitInfo.operationMeasures.electrical.lockedOff.status);
+			$('#swOpMeasureElec2').data('control').value(_permitInfo.operationMeasures.electrical.isolated.status);
+			$('#swOpMeasureElec3').data('control').value(_permitInfo.operationMeasures.electrical.isolationCertificate.status);
+			$('#numOpMeasureElec1').data('control').value(_permitInfo.operationMeasures.electrical.numOfIsolationCertificate);
 
-			$('#tbOpMeasureInst1').data('kendoTextBox').value(_permitInfo.operationMeasures.instrument.equipmentName);
-			$('#tbOpMeasureInst2').data('kendoTextBox').value(_permitInfo.operationMeasures.instrument.tagNumber);
-			$('#numOpMeasureInst1').data('kendoNumericTextBox').value(_permitInfo.operationMeasures.instrument.numOfIsolationCertificate);
-			$('#txtOpMeasureInst1').data('kendoTextArea').value(_permitInfo.operationMeasures.instrument.otherMeasures);
-			$('#swOpMeasureInst1').data('kendoSwitch').value(_permitInfo.operationMeasures.instrument.lockedOff.status);
-			$('#swOpMeasureInst2').data('kendoSwitch').value(_permitInfo.operationMeasures.instrument.isolated.status);
-			$('#swOpMeasureInst3').data('kendoSwitch').value(_permitInfo.operationMeasures.instrument.disconnected.status);
-			$('#swOpMeasureInst4').data('kendoSwitch').value(_permitInfo.operationMeasures.instrument.bypass.status);
-			$('#swOpMeasureInst5').data('kendoSwitch').value(_permitInfo.operationMeasures.instrument.shutdownSystemOperational.status);
-			$('#swOpMeasureInst6').data('kendoSwitch').value(_permitInfo.operationMeasures.instrument.fireProtectionSysOperational.status);
-			$('#swOpMeasureInst7').data('kendoSwitch').value(_permitInfo.operationMeasures.instrument.autoFireProtectionSysOperational.status);
+			$('#tbOpMeasureInst1').data('control').value(_permitInfo.operationMeasures.instrument.equipmentName);
+			$('#tbOpMeasureInst2').data('control').value(_permitInfo.operationMeasures.instrument.tagNumber);
+			$('#numOpMeasureInst1').data('control').value(_permitInfo.operationMeasures.instrument.numOfIsolationCertificate);
+			$('#txtOpMeasureInst1').data('control').value(_permitInfo.operationMeasures.instrument.otherMeasures);
+			$('#swOpMeasureInst1').data('control').value(_permitInfo.operationMeasures.instrument.lockedOff.status);
+			$('#swOpMeasureInst2').data('control').value(_permitInfo.operationMeasures.instrument.isolated.status);
+			$('#swOpMeasureInst3').data('control').value(_permitInfo.operationMeasures.instrument.disconnected.status);
+			$('#swOpMeasureInst4').data('control').value(_permitInfo.operationMeasures.instrument.bypass.status);
+			$('#swOpMeasureInst5').data('control').value(_permitInfo.operationMeasures.instrument.shutdownSystemOperational.status);
+			$('#swOpMeasureInst6').data('control').value(_permitInfo.operationMeasures.instrument.fireProtectionSysOperational.status);
+			$('#swOpMeasureInst7').data('control').value(_permitInfo.operationMeasures.instrument.autoFireProtectionSysOperational.status);
 
-			$('#swPpeWorkAreaInst8').data('kendoSwitch').value(_permitInfo.operationMeasures.pwtHandOver.terminalSafetyAwareness);
-			$('#swPpeWorkAreaInst9').data('kendoSwitch').value(_permitInfo.operationMeasures.pwtHandOver.ptwAwareness);
+			$('#swPpeWorkAreaInst8').data('control').value(_permitInfo.operationMeasures.pwtHandOver.terminalSafetyAwareness);
+			$('#swPpeWorkAreaInst9').data('control').value(_permitInfo.operationMeasures.pwtHandOver.ptwAwareness);
 
-			$('#precautionsForWork').data('kendoTextArea').value(_permitInfo.precautions.precautionsForWork);
-			$('#additionalPrecautions').data('kendoTextArea').value(_permitInfo.precautions.additionalPrecautions);
-			$('#methodOfStatementAttached').data('kendoSwitch').value(_permitInfo.precautions.methodOfStatementAttached);
-			$('#engineeringAdviceRequired').data('kendoSwitch').value(_permitInfo.precautions.engineeringAdviceRequired);
-			$('#declaration').data('kendoCheckBox').value(_permitInfo.precautions.declaration);
-			$('#authorizedForExecution1').data('kendoCheckBox').value(_permitInfo.precautions.permitIssuerDeclaration.authorizedForExecution);
-			$('#authorizedForExecution2').data('kendoCheckBox').value(_permitInfo.precautions.leadPermitIssuerDeclaration.authorizedForExecution);
-			$('#permitValidity').data('kendoCheckBox').value(_permitInfo.precautions.permitValidity);
+			$('#precautionsForWork').data('control').value(_permitInfo.precautions.precautionsForWork);
+			$('#additionalPrecautions').data('control').value(_permitInfo.precautions.additionalPrecautions);
+			$('#methodOfStatementAttached').data('control').value(_permitInfo.precautions.methodOfStatementAttached);
+			$('#engineeringAdviceRequired').data('control').value(_permitInfo.precautions.engineeringAdviceRequired);
+			$('#declaration').data('control').value(_permitInfo.precautions.declaration);
+			$('#authorizedForExecution1').data('control').value(_permitInfo.precautions.permitIssuerDeclaration.authorizedForExecution);
+			$('#authorizedForExecution2').data('control').value(_permitInfo.precautions.leadPermitIssuerDeclaration.authorizedForExecution);
+			$('#permitValidity').data('control').value(_permitInfo.precautions.permitValidity);
 
 
 			$('.btn-approval').click(() => {
@@ -2935,9 +2936,8 @@
 
 			}
 
-			if (selectedCerts.length == 0) {
-				$('ul.selected-certs').empty();
-			}
+			// Drop the "No associated certificate" placeholder; keep the certificates already listed.
+			$('ul.selected-certs li:not([id^="item-"])').remove();
 
 			if (switchState) {
 				constructItem(data);
@@ -2965,7 +2965,7 @@
 
 					if ($(elem).data('hasvalue')) {
 						if (elemId == 'chkOpInfo19') {
-							elemValue = $('#tbOpInfo19').data('kendoTextBox').value();
+							elemValue = $('#tbOpInfo19').data('control').value();
 						}
 					}
 
@@ -3049,7 +3049,7 @@
 
 					if ($(elem).data('hasvalue')) {
 						//elemValue = $('.' + elemId).val();
-						elemValue = $($(elem).data('textbox')).data('kendoTextBox').value();
+						elemValue = $($(elem).data('textbox')).data('control').value();
 					}
 
 					_permitInfo.operation.activityProducts.push({
@@ -3196,15 +3196,14 @@
 			html += '			</div>';
 			html += '</li>';
 
-			let tmpCertData = {
-				name: data[0]
-			};
+			// Add to the permit's certificates; the ones it already has (and their form data) stay.
+			if (!_permitInfo.general.certificates.some(c => c.name == data[0])) {
+				_permitInfo.general.certificates.push({ name: data[0] });
+			}
 
-			selectedCerts.push(tmpCertData);
-
-			$('.selected-certs').append(html);
-
-			_permitInfo.general.certificates = selectedCerts;
+			if ($('ul.selected-certs li#item-' + data[0]).length == 0) {
+				$('.selected-certs').append(html);
+			}
 		};
 
 
@@ -3214,13 +3213,7 @@
 			if (elem.length > 0) {
 				elem.remove();
 
-				const n = selectedCerts.indexOf(item);
-
-				if (n > -1) {
-					selectedCerts.splice(n, 1);
-				}
-
-				if (selectedCerts.length == 0) {
+				if ($('ul.selected-certs li[id^="item-"]').length == 0) {
 					$('ul.selected-certs').append('<li class="list-group-item fade show"><span>No associated certificate attached</span></li>');
 				}
 			}
@@ -3268,37 +3261,10 @@
 				n++;
 			}
 
-			$('#endDateTime').data('kendoDatePicker').min(e.sender.value());
-			$('#endDateTime').data('kendoDatePicker').max(endDate);
+			$('#endDateTime').data('control').min(e.sender.value());
+			$('#endDateTime').data('control').max(endDate);
 
-			//$('#endDateTime').data('kendoDatePicker').min(e.sender.value());
-		};
-
-
-		const dsOnRequestEnd = (e) => {
-			var loc = $('#ddtLocation').data('kendoDropDownTree');
-			loc.value('@Model.Location.Id');
-		};
-
-
-		const onChangeSites = () => {
-			var checkedNodes = [];
-			var dropDownTree = $('#ddtLocation').data('kendoDropDownTree');
-
-			checkedNodeIds(dropDownTree.dataSource.view(), checkedNodes);
-		};
-
-
-		const checkedNodeIds = (nodes, checkedNodes) => {
-			for (var i = 0; i < nodes.length; i++) {
-				if (nodes[i].checked) {
-					checkedNodes.push(nodes[i].id);
-				}
-
-				if (nodes[i].hasChildren) {
-					checkedNodeIds(nodes[i].children.view(), checkedNodes);
-				}
-			}
+			//$('#endDateTime').data('control').min(e.sender.value());
 		};
 
 
@@ -3545,6 +3511,10 @@
 		const hotWorkOnChange = (e) => {
 			hotWorkDataIsDirty = true;
 		};
+
+
+		// Change handlers named in the form markup (data-change="...").
+		FormControls.handlers({ onChangeCertificate, onStartDateChange });
 
 	</script>
 }

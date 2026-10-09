@@ -1,0 +1,99 @@
+/* Native controls on the old-system permit form (see js/form-controls.js). */
+
+/* Checkbox lists: compact rows and a slightly larger box, like the Kendo checkboxes they replace. */
+.fc-check {
+	min-height: 0;
+	margin-bottom: 0;
+	padding-left: 1.6em;
+	line-height: 1.45;
+}
+
+	.fc-check .form-check-input {
+		width: 1.15em;
+		height: 1.15em;
+		margin-top: .15em;
+		margin-left: -1.6em;
+		cursor: pointer;
+	}
+
+	.fc-check .form-check-label {
+		cursor: pointer;
+	}
+
+.fc-check .form-check-input:not(:checked),
+input.form-check-input.fc-check-input:not(:checked) {
+	border-color: #a0aec0;
+}
+
+/* Checkbox without its own label (the text sits next to it in the markup). */
+input.form-check-input.fc-check-input {
+	float: none;
+	width: 1.15em;
+	height: 1.15em;
+	margin: .15em 0 0;
+	cursor: pointer;
+}
+
+/* Switch, sized like Kendo's. */
+.fc-switch {
+	display: inline-flex;
+	align-items: center;
+	min-height: 0;
+	margin-bottom: 0;
+	padding-left: 0;
+}
+
+	.fc-switch .form-check-input {
+		width: 48px;
+		height: 24px;
+		margin: 0;
+		float: none;
+		cursor: pointer;
+	}
+
+		.fc-switch .form-check-input:not(:checked) {
+			border-color: #a0aec0;
+		}
+
+/* Numeric fields in the measures lists, as wide as the Kendo ones were. */
+.list-group-item input[data-control="numeric"] {
+	width: 216px;
+}
+
+/* Floating labels: permits.css forces 6px padding on every .form-control, which leaves no room
+   for the label; restore Bootstrap's floating-label padding. */
+.form-floating > .form-control {
+	padding: 1rem .75rem !important;
+}
+
+	.form-floating > .form-control:focus,
+	.form-floating > .form-control:not(:placeholder-shown) {
+		padding-top: 1.625rem !important;
+		padding-bottom: .625rem !important;
+	}
+
+/* Floating-label text areas grow with their rows instead of Bootstrap's fixed height. */
+.form-floating > textarea.form-control {
+	height: auto;
+}
+
+/* Date/time fields: Flatpickr marks the input readonly-looking; keep the normal field background. */
+.form-control.flatpickr-input[readonly]:not(:disabled) {
+	background-color: var(--bs-body-bg);
+}
+
+/* Calendar/clock button next to a date or time field. */
+.fc-date .input-group-text {
+	height: auto;
+	padding-top: 0;
+	padding-bottom: 0;
+	font-size: 14px;
+	line-height: 1;
+	cursor: pointer;
+	background-color: var(--bs-body-bg);
+	color: var(--bs-secondary-color);
+}
+
+	.fc-date .input-group-text:hover {
+		color: var(--bs-body-color);
+	}

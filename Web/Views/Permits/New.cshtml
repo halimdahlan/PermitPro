@@ -112,6 +112,7 @@
 
 @section CustomCss {
 	<link rel="stylesheet" href="~/css/permits.css" />
+	<partial name="_FormControlsStyles" />
 	
 	<!-- DataTables -->
 	<link rel="stylesheet" href="~/lib/DataTables/datatables.min.css" />
@@ -124,6 +125,7 @@
 }
 
 @section Scripts {
+	<partial name="_FormControlsScripts" />
 	<script src="~/js/permit.module.js"></script>
 	<script nonce="3xecut3">
 		const UPLOAD_MAX_FILE_SIZE = parseInt('@Model.EditPermitViewModel.UploadFileSizeLimit');
@@ -1645,7 +1647,7 @@
 
 					if ($(elem).data('hasvalue')) {
 						if (elemId == 'chkOpInfo19') {
-							elemValue = $('#tbOpInfo19').data('kendoTextBox').value();
+							elemValue = $('#tbOpInfo19').data('control').value();
 						}
 					}
 
@@ -1730,7 +1732,7 @@
 
 					if ($(elem).data('hasvalue')) {
 						//elemValue = $('.' + elemId).val();
-						elemValue = $($(elem).data('textbox')).data('kendoTextBox').value();
+						elemValue = $($(elem).data('textbox')).data('control').value();
 					}
 
 					_permitInfo.operation.activityProducts.push({
@@ -1945,40 +1947,17 @@
 				n++;
 			}
 
-			$('#endDateTime').data('kendoDatePicker').min(e.sender.value());
-			$('#endDateTime').data('kendoDatePicker').max(endDate);
+			$('#endDateTime').data('control').min(e.sender.value());
+			$('#endDateTime').data('control').max(endDate);
 		};
-
-
-		const dsOnRequestEnd = (e) => {
-		};
-
-
-		const onChangeSites = () => {
-			var checkedNodes = [];
-			var dropDownTree = $('#ddtLocation').data('kendoDropDownTree');
-
-			checkedNodeIds(dropDownTree.dataSource.view(), checkedNodes);
-		};
-
-
-		const checkedNodeIds = (nodes, checkedNodes) => {
-			for (var i = 0; i < nodes.length; i++) {
-				if (nodes[i].checked) {
-					checkedNodes.push(nodes[i].id);
-				}
-
-				if (nodes[i].hasChildren) {
-					checkedNodeIds(nodes[i].children.view(), checkedNodes);
-				}
-			}
-		};
-
-
 
 
 		const hotWorkOnChange = (e) => {
 		};
+
+
+		// Change handlers named in the form markup (data-change="...").
+		FormControls.handlers({ onChangeCertificate, onStartDateChange });
 
 	</script>
 }

@@ -1,6 +1,4 @@
-﻿@using Kendo.Mvc.UI
-
-@model EditPermitViewModel
+﻿@model EditPermitViewModel
 
 <h2 class="accordion-header">
 	<button class="accordion-button fw-semibold text-uppercase collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse5" aria-expanded="false" aria-controls="collapse5">
@@ -18,19 +16,11 @@
 			<div class="d-flex flex-md-row flex-column justify-content-evenly">
 				<div class="form-group flex-grow-1 me-md-3">
 					<label class="form-label">Equipment</label>
-					@(Html.Kendo().TextBox()
-							.Size(ComponentSize.Medium)
-							.Rounded(Rounded.Large)
-							.FillMode(FillMode.Outline)
-							.Name("tbOpMeasureMech1"))
+					<input type="text" class="form-control" id="tbOpMeasureMech1" name="tbOpMeasureMech1" autocomplete="off" data-control="textbox" />
 				</div>
 				<div class="form-group flex-grow-1 ms-md-3">
 					<label class="form-label">ID/Tag number</label>
-					@(Html.Kendo().TextBox()
-							.Size(ComponentSize.Medium)
-							.Rounded(Rounded.Large)
-							.FillMode(FillMode.Outline)
-							.Name("tbOpMeasureMech2"))
+					<input type="text" class="form-control" id="tbOpMeasureMech2" name="tbOpMeasureMech2" autocomplete="off" data-control="textbox" />
 				</div>
 			</div>
 			<ul class="list-group list-group-flush">
@@ -39,11 +29,9 @@
 						<div><label for="swOpMeasure3">Pressure free</label></div>
 					</div>
 					<div class="">
-						@(Html.Kendo().Switch()
-								.Name("swOpMeasureMech1")
-								.Size(ComponentSize.Small)
-								.HtmlAttributes(new { data_elem = "pressureFree" })
-								.Messages(x => x.Checked("YES").Unchecked("NO")))
+						<div class="form-check form-switch fc-switch">
+							<input type="checkbox" role="switch" class="form-check-input" id="swOpMeasureMech1" name="swOpMeasureMech1" data-control="switch" data-elem="pressureFree" />
+						</div>
 					</div>
 				</li>
 				<li class="list-group-item d-flex justify-content-between align-items-center">
@@ -51,11 +39,9 @@
 						<div><label for="swOpMeasure4">Empty</label></div>
 					</div>
 					<div class="">
-						@(Html.Kendo().Switch()
-								.Name("swOpMeasureMech2")
-								.Size(ComponentSize.Small)
-								.HtmlAttributes(new { data_elem = "empty" })
-								.Messages(x => x.Checked("YES").Unchecked("NO")))
+						<div class="form-check form-switch fc-switch">
+							<input type="checkbox" role="switch" class="form-check-input" id="swOpMeasureMech2" name="swOpMeasureMech2" data-control="switch" data-elem="empty" />
+						</div>
 					</div>
 				</li>
 				<li class="list-group-item d-flex justify-content-between align-items-center">
@@ -63,11 +49,9 @@
 						<div><label for="swOpMeasure5">Disconnected</label></div>
 					</div>
 					<div class="">
-						@(Html.Kendo().Switch()
-								.Name("swOpMeasureMech3")
-								.Size(ComponentSize.Small)
-								.HtmlAttributes(new { data_elem = "disconnected" })
-								.Messages(x => x.Checked("YES").Unchecked("NO")))
+						<div class="form-check form-switch fc-switch">
+							<input type="checkbox" role="switch" class="form-check-input" id="swOpMeasureMech3" name="swOpMeasureMech3" data-control="switch" data-elem="disconnected" />
+						</div>
 					</div>
 				</li>
 				<li class="list-group-item d-flex justify-content-between align-items-center">
@@ -75,11 +59,9 @@
 						<div><label for="swOpMeasure6">Blank off</label></div>
 					</div>
 					<div class="">
-						@(Html.Kendo().Switch()
-								.Name("swOpMeasureMech4")
-								.Size(ComponentSize.Small)
-								.HtmlAttributes(new { data_elem = "blankOff" })
-								.Messages(x => x.Checked("YES").Unchecked("NO")))
+						<div class="form-check form-switch fc-switch">
+							<input type="checkbox" role="switch" class="form-check-input" id="swOpMeasureMech4" name="swOpMeasureMech4" data-control="switch" data-elem="blankOff" />
+						</div>
 					</div>
 				</li>
 				<li class="list-group-item d-flex justify-content-between align-items-center">
@@ -87,11 +69,9 @@
 						<div><label for="swOpMeasure7">Locked off</label></div>
 					</div>
 					<div class="">
-						@(Html.Kendo().Switch()
-								.Name("swOpMeasureMech5")
-								.Size(ComponentSize.Small)
-								.HtmlAttributes(new { data_elem = "lockedOff" })
-								.Messages(x => x.Checked("YES").Unchecked("NO")))
+						<div class="form-check form-switch fc-switch">
+							<input type="checkbox" role="switch" class="form-check-input" id="swOpMeasureMech5" name="swOpMeasureMech5" data-control="switch" data-elem="lockedOff" />
+						</div>
 					</div>
 				</li>
 				<li class="list-group-item d-flex justify-content-between align-items-center">
@@ -99,11 +79,9 @@
 						<div><label for="swOpMeasure8">Flushed</label></div>
 					</div>
 					<div class="">
-						@(Html.Kendo().Switch()
-								.Name("swOpMeasureMech6")
-								.Size(ComponentSize.Small)
-								.HtmlAttributes(new { data_elem = "flushed" })
-								.Messages(x => x.Checked("YES").Unchecked("NO")))
+						<div class="form-check form-switch fc-switch">
+							<input type="checkbox" role="switch" class="form-check-input" id="swOpMeasureMech6" name="swOpMeasureMech6" data-control="switch" data-elem="flushed" />
+						</div>
 					</div>
 				</li>
 				<li class="list-group-item d-flex justify-content-between align-items-center">
@@ -111,29 +89,20 @@
 						<div><label for="swOpMeasure9">Ventilated</label></div>
 					</div>
 					<div class="">
-						@(Html.Kendo().Switch()
-								.Name("swOpMeasureMech7")
-								.Size(ComponentSize.Small)
-								.HtmlAttributes(new { data_elem = "ventilated" })
-								.Messages(x => x.Checked("YES").Unchecked("NO")))
+						<div class="form-check form-switch fc-switch">
+							<input type="checkbox" role="switch" class="form-check-input" id="swOpMeasureMech7" name="swOpMeasureMech7" data-control="switch" data-elem="ventilated" />
+						</div>
 					</div>
 				</li>
 				<li class="list-group-item d-flex justify-content-between align-items-center">
 					<div class="me-auto">
 						<div><label for="swOpMeasure11">Other (please specify)</label></div>
-						@(Html.Kendo().TextBox()
-								.Size(ComponentSize.Medium)
-								.Rounded(Rounded.Large)
-								.FillMode(FillMode.Outline)
-								.HtmlAttributes(new { @class = "swOpMeasureMech8" })
-								.Name("tbOpMeasureMech8"))
+						<input type="text" class="form-control swOpMeasureMech8" id="tbOpMeasureMech8" name="tbOpMeasureMech8" autocomplete="off" data-control="textbox" />
 					</div>
 					<div class="">
-						@(Html.Kendo().Switch()
-								.Name("swOpMeasureMech8")
-								.Size(ComponentSize.Small)
-								.HtmlAttributes(new { data_elem = "other" })
-								.Messages(x => x.Checked("YES").Unchecked("NO")))
+						<div class="form-check form-switch fc-switch">
+							<input type="checkbox" role="switch" class="form-check-input" id="swOpMeasureMech8" name="swOpMeasureMech8" data-control="switch" data-elem="other" />
+						</div>
 					</div>
 				</li>
 			</ul>
@@ -144,19 +113,11 @@
 			<div class="d-flex flex-md-row flex-column justify-content-evenly">
 				<div class="form-group flex-grow-1 me-md-3">
 					<label class="form-label" for="tbOpMeasure12">Equipment/Electrical motor</label>
-					@(Html.Kendo().TextBox()
-							.Size(ComponentSize.Medium)
-							.Rounded(Rounded.Large)
-							.FillMode(FillMode.Outline)
-							.Name("tbOpMeasureElec1"))
+					<input type="text" class="form-control" id="tbOpMeasureElec1" name="tbOpMeasureElec1" autocomplete="off" data-control="textbox" />
 				</div>
 				<div class="form-group flex-grow-1 ms-md-3">
 					<label class="form-label" for="tbOpMeasure13">ID/Tag number</label>
-					@(Html.Kendo().TextBox()
-							.Size(ComponentSize.Medium)
-							.Rounded(Rounded.Large)
-							.FillMode(FillMode.Outline)
-							.Name("tbOpMeasureElec2"))
+					<input type="text" class="form-control" id="tbOpMeasureElec2" name="tbOpMeasureElec2" autocomplete="off" data-control="textbox" />
 				</div>
 			</div>
 			<hr />
@@ -166,11 +127,9 @@
 						<div><label for="swOpMeasure14">Locked off</label></div>
 					</div>
 					<div class="">
-						@(Html.Kendo().Switch()
-								.Name("swOpMeasureElec1")
-								.Size(ComponentSize.Small)
-								.HtmlAttributes(new { data_elem = "lockedOff" })
-								.Messages(x => x.Checked("YES").Unchecked("NO")))
+						<div class="form-check form-switch fc-switch">
+							<input type="checkbox" role="switch" class="form-check-input" id="swOpMeasureElec1" name="swOpMeasureElec1" data-control="switch" data-elem="lockedOff" />
+						</div>
 					</div>
 				</li>
 				<li class="list-group-item d-flex justify-content-between">
@@ -178,11 +137,9 @@
 						<div><label for="swOpMeasure15">Isolated</label></div>
 					</div>
 					<div class="">
-						@(Html.Kendo().Switch()
-								.Name("swOpMeasureElec2")
-								.Size(ComponentSize.Small)
-								.HtmlAttributes(new { data_elem = "isolated" })
-								.Messages(x => x.Checked("YES").Unchecked("NO")))
+						<div class="form-check form-switch fc-switch">
+							<input type="checkbox" role="switch" class="form-check-input" id="swOpMeasureElec2" name="swOpMeasureElec2" data-control="switch" data-elem="isolated" />
+						</div>
 					</div>
 				</li>
 				<li class="list-group-item d-flex justify-content-between align-items-center border-bottom-0">
@@ -190,11 +147,9 @@
 						<div><label for="swOpMeasure16">See Isolation Certificate</label></div>
 					</div>
 					<div class="">
-						@(Html.Kendo().Switch()
-								.Name("swOpMeasureElec3")
-								.Size(ComponentSize.Small)
-								.HtmlAttributes(new { data_elem = "isolationCertificate" })
-								.Messages(x => x.Checked("YES").Unchecked("NO")))
+						<div class="form-check form-switch fc-switch">
+							<input type="checkbox" role="switch" class="form-check-input" id="swOpMeasureElec3" name="swOpMeasureElec3" data-control="switch" data-elem="isolationCertificate" />
+						</div>
 					</div>
 				</li>
 				<li class="list-group-item d-flex justify-content-between align-items-center border-bottom-0">
@@ -202,12 +157,7 @@
 						<div><label for="numOpMeasure17">No. of Isolation Certificate(s)</label></div>
 					</div>
 					<div class="">
-						@(Html.Kendo().NumericTextBox()
-								.Name("numOpMeasureElec1")
-								.Format("0")
-								.Value(0)
-								.Min(0)
-								.Max(500))
+						<input type="number" class="form-control" id="numOpMeasureElec1" name="numOpMeasureElec1" step="1" data-control="numeric" value="0" min="0" max="500" />
 					</div>
 				</li>
 			</ul>
@@ -218,19 +168,11 @@
 			<div class="d-flex flex-md-row flex-column justify-content-evenly">
 				<div class="form-group flex-grow-1 me-md-3">
 					<label class="form-label" for="txOpMeasureInst1">Instrument</label>
-					@(Html.Kendo().TextBox()
-							.Size(ComponentSize.Medium)
-							.Rounded(Rounded.Large)
-							.FillMode(FillMode.Outline)
-							.Name("tbOpMeasureInst1"))
+					<input type="text" class="form-control" id="tbOpMeasureInst1" name="tbOpMeasureInst1" autocomplete="off" data-control="textbox" />
 				</div>
 				<div class="form-group flex-grow-1 ms-md-3">
 					<label class="form-label" for="txOpMeasureInst2">ID/Tag number</label>
-					@(Html.Kendo().TextBox()
-							.Size(ComponentSize.Medium)
-							.Rounded(Rounded.Large)
-							.FillMode(FillMode.Outline)
-							.Name("tbOpMeasureInst2"))
+					<input type="text" class="form-control" id="tbOpMeasureInst2" name="tbOpMeasureInst2" autocomplete="off" data-control="textbox" />
 				</div>
 			</div>
 			<ul class="list-group list-group-flush">
@@ -239,11 +181,9 @@
 						<div><label for="swPpeWorkArea20">Locked off</label></div>
 					</div>
 					<div class="">
-						@(Html.Kendo().Switch()
-								.Name("swOpMeasureInst1")
-								.Size(ComponentSize.Small)
-								.HtmlAttributes(new { data_elem = "lockedOff" })
-								.Messages(x => x.Checked("YES").Unchecked("NO")))
+						<div class="form-check form-switch fc-switch">
+							<input type="checkbox" role="switch" class="form-check-input" id="swOpMeasureInst1" name="swOpMeasureInst1" data-control="switch" data-elem="lockedOff" />
+						</div>
 					</div>
 				</li>
 				<li class="list-group-item d-flex justify-content-between align-items-center">
@@ -251,11 +191,9 @@
 						<div><label for="swPpeWorkArea21">Isolated</label></div>
 					</div>
 					<div class="">
-						@(Html.Kendo().Switch()
-								.Name("swOpMeasureInst2")
-								.Size(ComponentSize.Small)
-								.HtmlAttributes(new { data_elem = "isolated" })
-								.Messages(x => x.Checked("YES").Unchecked("NO")))
+						<div class="form-check form-switch fc-switch">
+							<input type="checkbox" role="switch" class="form-check-input" id="swOpMeasureInst2" name="swOpMeasureInst2" data-control="switch" data-elem="isolated" />
+						</div>
 					</div>
 				</li>
 				<li class="list-group-item d-flex justify-content-between align-items-center border-bottom-0">
@@ -263,11 +201,9 @@
 						<div><label for="swPpeWorkArea22">Disconnected</label></div>
 					</div>
 					<div class="">
-						@(Html.Kendo().Switch()
-								.Name("swOpMeasureInst3")
-								.Size(ComponentSize.Small)
-								.HtmlAttributes(new { data_elem = "disconnected" })
-								.Messages(x => x.Checked("YES").Unchecked("NO")))
+						<div class="form-check form-switch fc-switch">
+							<input type="checkbox" role="switch" class="form-check-input" id="swOpMeasureInst3" name="swOpMeasureInst3" data-control="switch" data-elem="disconnected" />
+						</div>
 					</div>
 				</li>
 				<li class="list-group-item d-flex justify-content-between align-items-center border-bottom-0">
@@ -275,11 +211,9 @@
 						<div><label for="swPpeWorkArea23">Bypass</label></div>
 					</div>
 					<div class="">
-						@(Html.Kendo().Switch()
-								.Name("swOpMeasureInst4")
-								.Size(ComponentSize.Small)
-								.HtmlAttributes(new { data_elem = "bypass" })
-								.Messages(x => x.Checked("YES").Unchecked("NO")))
+						<div class="form-check form-switch fc-switch">
+							<input type="checkbox" role="switch" class="form-check-input" id="swOpMeasureInst4" name="swOpMeasureInst4" data-control="switch" data-elem="bypass" />
+						</div>
 					</div>
 				</li>
 				<li class="list-group-item d-flex justify-content-between align-items-center border-bottom-0">
@@ -287,12 +221,7 @@
 						<div><label for="numOpMeasure24">No. of Isolation Certificate(s)</label></div>
 					</div>
 					<div class="">
-						@(Html.Kendo().NumericTextBox()
-								.Name("numOpMeasureInst1")
-								.Format("0")
-								.Value(0)
-								.Min(0)
-								.Max(500))
+						<input type="number" class="form-control" id="numOpMeasureInst1" name="numOpMeasureInst1" step="1" data-control="numeric" value="0" min="0" max="500" />
 					</div>
 				</li>
 			</ul>
@@ -305,11 +234,9 @@
 						<div><label for="swPpeWorkArea24">Shutdown system operational?</label></div>
 					</div>
 					<div class="">
-						@(Html.Kendo().Switch()
-								.Name("swOpMeasureInst5")
-								.Size(ComponentSize.Small)
-								.HtmlAttributes(new { data_elem = "shutdownSystemOperational" })
-								.Messages(x => x.Checked("YES").Unchecked("NO")))
+						<div class="form-check form-switch fc-switch">
+							<input type="checkbox" role="switch" class="form-check-input" id="swOpMeasureInst5" name="swOpMeasureInst5" data-control="switch" data-elem="shutdownSystemOperational" />
+						</div>
 					</div>
 				</li>
 				<li class="list-group-item d-flex justify-content-between align-items-center">
@@ -317,11 +244,9 @@
 						<div><label for="swPpeWorkArea25">Fire protection system operational?</label></div>
 					</div>
 					<div class="">
-						@(Html.Kendo().Switch()
-								.Name("swOpMeasureInst6")
-								.Size(ComponentSize.Small)
-								.HtmlAttributes(new { data_elem = "fireProtectionSysOperational" })
-								.Messages(x => x.Checked("YES").Unchecked("NO")))
+						<div class="form-check form-switch fc-switch">
+							<input type="checkbox" role="switch" class="form-check-input" id="swOpMeasureInst6" name="swOpMeasureInst6" data-control="switch" data-elem="fireProtectionSysOperational" />
+						</div>
 					</div>
 				</li>
 				<li class="list-group-item d-flex justify-content-between align-items-center border-bottom-0">
@@ -329,11 +254,9 @@
 						<div><label for="swPpeWorkArea26">Automatic fire protection system operational?</label></div>
 					</div>
 					<div class="">
-						@(Html.Kendo().Switch()
-								.Name("swOpMeasureInst7")
-								.Size(ComponentSize.Small)
-								.HtmlAttributes(new { data_elem = "autoFireProtectionSysOperational" })
-								.Messages(x => x.Checked("YES").Unchecked("NO")))
+						<div class="form-check form-switch fc-switch">
+							<input type="checkbox" role="switch" class="form-check-input" id="swOpMeasureInst7" name="swOpMeasureInst7" data-control="switch" data-elem="autoFireProtectionSysOperational" />
+						</div>
 					</div>
 				</li>
 			</ul>
@@ -342,11 +265,7 @@
 		<div>
 			<div class="mb-2">
 				<label class="form-label" for="tbOpMeasure27">Any other measures?</label>
-				@(Html.Kendo().TextArea()
-						.Name("txtOpMeasureInst1")
-						.Rounded(Rounded.Large)
-						.FillMode(FillMode.Outline)
-						.Rows(2))
+				<textarea class="form-control" id="txtOpMeasureInst1" name="txtOpMeasureInst1" data-control="textarea" rows="2"></textarea>
 			</div>
 		</div>
 		<hr />
@@ -358,10 +277,9 @@
 						<div><label for="swPpeWorkArea28">Is aware of the safety instructions as in the Terminal Safety Manual?</label></div>
 					</div>
 					<div class="">
-						@(Html.Kendo().Switch()
-								.Name("swPpeWorkAreaInst8")
-								.Size(ComponentSize.Small)
-								.Messages(x => x.Checked("YES").Unchecked("NO")))
+						<div class="form-check form-switch fc-switch">
+							<input type="checkbox" role="switch" class="form-check-input" id="swPpeWorkAreaInst8" name="swPpeWorkAreaInst8" data-control="switch" />
+						</div>
 					</div>
 				</li>
 				<li class="list-group-item d-flex justify-content-between align-items-center">
@@ -369,10 +287,9 @@
 						<div><label for="swPpeWorkArea29">Is aware of the safety instructions as in the Permit to Work and associated certificates?</label></div>
 					</div>
 					<div class="">
-						@(Html.Kendo().Switch()
-								.Name("swPpeWorkAreaInst9")
-								.Size(ComponentSize.Small)
-								.Messages(x => x.Checked("YES").Unchecked("NO")))
+						<div class="form-check form-switch fc-switch">
+							<input type="checkbox" role="switch" class="form-check-input" id="swPpeWorkAreaInst9" name="swPpeWorkAreaInst9" data-control="switch" />
+						</div>
 					</div>
 				</li>
 			</ul>
