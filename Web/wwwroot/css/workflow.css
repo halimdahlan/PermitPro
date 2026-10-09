@@ -82,3 +82,31 @@ a:hover {
 .k-calendar, .k-title, .k-button {
 	font-family: 'Poppins', sans-serif !important;
 }
+/* New workflow step dialog: duration number + duration type side by side. */
+#dlg #stepDuration {
+	width: 120px;
+}
+
+#dlg #stepDurationType {
+	min-width: 170px;
+}
+
+/* Select user dialog: fixed column widths, names on one line. */
+#tblUsers {
+	table-layout: fixed;
+}
+
+	#tblUsers th.col-user-name {
+		width: 200px;
+	}
+
+	#tblUsers th.col-user-select {
+		width: 90px;
+	}
+
+	#tblUsers td.col-user-name,
+	#tblUsers td.col-user-email {
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}

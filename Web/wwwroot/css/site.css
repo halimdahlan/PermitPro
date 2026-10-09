@@ -576,6 +576,13 @@ body, input, select, textarea, button {
 .pagination .page-item.active .page-link { background: var(--accent); border-color: var(--accent); color: #fff; }
 
 /* ── Forms ───────────────────────────────────────────────── */
+/* webawesome.css (loaded in _Layout) draws its own tick (::after) on every checked checkbox,
+   which shows on top of Bootstrap switches. Bootstrap already draws its checkbox tick and
+   switch knob, so remove the extra one from Bootstrap's controls. */
+.form-check-input::after {
+    content: none !important;
+}
+
 .form-label { font-weight: 500; font-size: .78rem; color: #4a5568; margin-bottom: 5px; }
 .form-control, .form-select {
     font-family: var(--font); font-size: .85rem; border-radius: 8px;

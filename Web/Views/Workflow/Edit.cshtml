@@ -1,5 +1,4 @@
-﻿@using PermitPro.Core.Entities
-@using Kendo.Mvc.UI
+@using PermitPro.Core.Entities
 
 @{
 	ViewData["Title"] = "Settings / Workflow";
@@ -37,31 +36,15 @@
 										<textarea id="workflowDescription" class="form-control">@Model.WorkflowDescription</textarea>
 									</div>
 									<div>
-										<div class="form-group mb-3 d-flex flex-row align-items-center">
-											<label class="form-label me-3 mb-0" for="workflowActive">Is active?</label>
-											@(Html.Kendo()
-												.Switch()
-												.Name("workflowActive")
-												.Size(ComponentSize.Small)
-												.Messages(x => x
-													.Checked("YES")
-													.Unchecked("NO")
-												)
-											)
+										<div class="form-check form-switch mb-3">
+											<input class="form-check-input" type="checkbox" role="switch" id="workflowActive" @(Model?.WorkflowIsActive == true ? "checked" : "") />
+											<label class="form-check-label" for="workflowActive">Is active?</label>
 										</div>
 									</div>
 									<div>
-										<div class="form-group mb-3 d-flex flex-row align-items-center">
-											<label class="form-label me-3 mb-0" for="workflowCertificate">For PTW with certificate?</label>
-											@(Html.Kendo()
-												.Switch()
-												.Name("workflowCertificate")
-												.Size(ComponentSize.Small)
-												.Messages(x => x
-													.Checked("YES")
-													.Unchecked("NO")
-												)
-											)
+										<div class="form-check form-switch mb-3">
+											<input class="form-check-input" type="checkbox" role="switch" id="workflowCertificate" @(Model?.WorkflowHasCertificate == true ? "checked" : "") />
+											<label class="form-check-label" for="workflowCertificate">For PTW with certificate?</label>
 										</div>
 									</div>
 
@@ -77,16 +60,18 @@
 						<div class="tab-pane fade" id="steps-tab-pane" role="tabpanel" aria-labelledby="steps-tab" tabindex="0">
 							<div class="form-edit-workflow d-flex flex-column">
 								<div class="flex-grow-1">
-									<table id="tbl" class="table table-striped display pt-3 mb-3" style="width: 100% !important;">
-										<thead>
-											<tr>
-												<th data-orderable="false" style="width: 200px !important;">STEP NAME</th>
-												<th data-orderable="false" data-class-name="desc-column">DESCRIPTION</th>
-												<th data-orderable="false" data-class-name="text-center" style="width: 89px !important;">DURATION</th>
-												<th data-orderable="false" data-class-name="action-column text-right" style="text-align: right;">ACTIONS</th>
-											</tr>
-										</thead>
-									</table>
+									<div class="data-grid">
+										<table id="tbl" class="table table-sm table-hover align-middle w-100">
+											<thead>
+												<tr>
+													<th>STEP NAME</th>
+													<th>DESCRIPTION</th>
+													<th>DURATION</th>
+													<th>ACTIONS</th>
+												</tr>
+											</thead>
+										</table>
+									</div>
 								</div>
 								<div class="d-flex flex-row justify-content-end">
 									<button class="btn btn-sm btn-primary mt-5" data-bs-toggle="modal" data-bs-target="#dlg"><span class="px-3">New workflow step</span></button>
@@ -130,14 +115,7 @@
 									<div class="d-flex flex-column flex-md-row justify-content-between">
 										<div class="w-100 me-3">
 											<label class="form-label" for="editStepDuration">Duration</label>
-											@(Html.Kendo()
-												.NumericTextBox()
-												.Name("editStepDuration")
-												.Format("0")
-												.Value(0)
-												.Min(0)
-												.Max(500)
-											)
+											<input type="number" id="editStepDuration" class="form-control duration-input" min="0" max="500" step="1" value="0" inputmode="numeric" />
 										</div>
 										<div class="w-100 ms-3">
 											<label class="form-label" for="editStepDurationType">Duration Type</label>
@@ -156,15 +134,17 @@
 								</div>
 							</div>
 							<div class="tab-pane fade pt-3" id="users-editStep-tab-pane" role="tabpanel" aria-labelledby="users-editStep-tab" tabindex="0">
-								<table id="tblApprovers" class="table table-striped display" style="width: 100% !important;">
-									<thead>
-										<tr>
-											<th scope="col">NAME</th>
-											<th scope="col">EMAIL</th>
-											<th scope="col" data-class-name="text-center" style="width: 81px !important;">ACTIONS</th>
-										</tr>
-									</thead>
-								</table>
+								<div class="data-grid">
+									<table id="tblApprovers" class="table table-sm table-hover align-middle w-100">
+										<thead>
+											<tr>
+												<th scope="col">NAME</th>
+												<th scope="col">EMAIL</th>
+												<th scope="col">ACTIONS</th>
+											</tr>
+										</thead>
+									</table>
+								</div>
 								<div class="d-flex flex-row justify-content-end mt-4">
 									<button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#dlgUsers"><span class="mx-3">Add user</span></button>
 								</div>
@@ -207,14 +187,7 @@
 						<label class="form-label" for="stepDuration">Duration</label>
 						<div class="d-flex flex-row align-items-center">
 							<div class="me-3">
-								@(Html.Kendo()
-									.NumericTextBox()
-									.Name("stepDuration")
-									.Format("0")
-									.Value(0)
-									.Min(0)
-									.Max(500)
-								)
+								<input type="number" id="stepDuration" class="form-control duration-input" min="0" max="500" step="1" value="0" inputmode="numeric" />
 							</div>
 							<div>
 								<select id="stepDurationType" class="form-select" required>
@@ -248,15 +221,17 @@
 				<a href="#" class="no-loading text-white" data-bs-dismiss="modal" aria-label="Close"><i class="fa-sharp fa-solid fa-xmark fa-xl"></i></a>
 			</div>
 			<div class="modal-body">
-				<table id="tblUsers" class="table table-striped display" style="width: 100% !important;">
-					<thead>
-						<tr>
-							<th scope="col" data-class-name="name-column" style="width: 200px !important;">NAME</th>
-							<th scope="col">EMAIL</th>
-							<th scope="col" data-class-name="text-center" style="width: 81px !important;">ACTIONS</th>
-						</tr>
-					</thead>
-				</table>
+				<div class="data-grid">
+					<table id="tblUsers" class="table table-sm table-hover align-middle w-100">
+						<thead>
+							<tr>
+								<th scope="col">NAME</th>
+								<th scope="col">EMAIL</th>
+								<th scope="col">ACTIONS</th>
+							</tr>
+						</thead>
+					</table>
+				</div>
 			</div>
 			<div class="modal-footer d-flex flex-row justify-content-between align-items-center">
 				<button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal"><span>Cancel</span></button>
@@ -269,14 +244,13 @@
 @Html.AntiForgeryToken()
 
 @section CustomCss {
-	<!-- DataTables -->
-	<link rel="stylesheet" href="~/lib/DataTables/datatables.min.css" />
-	<script src="~/lib/DataTables/datatables.min.js"></script>
-
+	<partial name="_DataGridStyles" />
 	<link rel="stylesheet" href="~/css/workflow.css" />
 }
 
 @section Scripts {
+	<partial name="_DataGridScripts" />
+
 	<script>
 		var tbl = null;
 		var tblApprovers = null;
@@ -285,23 +259,22 @@
 
 		$(document).ready(() => {
 
-			var isActive = ('@Model?.WorkflowIsActive' == 'True');
-			var hasCertificate = ('@Model?.WorkflowHasCertificate' == 'True');
-
-			$('#workflowActive').data('kendoSwitch').value(isActive);
-			$('#workflowCertificate').data('kendoSwitch').value(hasCertificate);
+			// Like the old numeric box: keep durations to whole numbers from 0 to 500.
+			$('.duration-input').on('change', (e) => {
+				$(e.currentTarget).val(readDuration(e.currentTarget));
+			});
 
 			/**
 			 * Button event handlers
 			 */
 			$('.btn-save').click(() => {
-				$('#frmNew').removeClass('needs-validation').addClass('was-validated');
+				$('#frm').removeClass('needs-validation').addClass('was-validated');
 
 				if ($('#frm')[0].checkValidity()) {
 					const workflowName = $('#workflowName').val();
 					const workflowDescription = $('#workflowDescription').val();
-					const workflowActive = $('#workflowActive').data('kendoSwitch').value();
-					const workflowCertificate = $('#workflowCertificate').data('kendoSwitch').value();
+					const workflowActive = $('#workflowActive').prop('checked');
+					const workflowCertificate = $('#workflowCertificate').prop('checked');
 					const workflowId = $('#workflowId').val();
 
 					const postData = {
@@ -374,7 +347,7 @@
 					const stepName = $('#stepName').val();
 					const stepDescription = $('#stepDescription').val();
 					const stepDurationType = $('#stepDurationType option:selected').val();
-					const stepDuration = $('#stepDuration').data('kendoNumericTextBox').value();
+					const stepDuration = readDuration('#stepDuration');
 
 					const postData = {
 						workflowId,
@@ -435,14 +408,14 @@
 					if (stepId != null && stepId != '') {
 						const stepName = $('#editStepName').val();
 						const stepDesc = $('#editStepDescription').val();
-						const stepDuration = $('#editStepDuration').data('kendoNumericTextBox');
+						const stepDuration = readDuration('#editStepDuration');
 						const stepDurationType = $('#editStepDurationType option:selected').val();
 
 						const postData = {
 							id: stepId,
 							name: stepName,
 							description: stepDesc,
-							duration: stepDuration.value(),
+							duration: stepDuration,
 							durationType: stepDurationType,
 						};
 
@@ -450,7 +423,7 @@
 						formData.append('Id', stepId);
 						formData.append('Name', stepName);
 						formData.append('Description', stepDesc);
-						formData.append('Duration', stepDuration.value());
+						formData.append('Duration', stepDuration);
 						formData.append('DurationType', stepDurationType);
 
 						$('.loading').show();
@@ -532,7 +505,7 @@
 
 					$('#editStepName').val(null);
 					$('#editStepDescription').val(null);
-					$('#editStepDuration').data('kendoNumericTextBox').value(0);
+					$('#editStepDuration').val(0);
 					$('#editStepDurationType option[value=""]').prop('selected', 'selected');
 
 					$('.form-workflow-step').hide();
@@ -541,45 +514,52 @@
 				if (e.currentTarget.id == 'steps-tab') {
 					if (tbl == null) {
 						tbl = $('#tbl').DataTable({
-							responsive: true,
 							pageLength: 10,
 							searching: false,
 							paging: false,
 							ordering: false,
-							ajax: '/@companyId/workflow/workflows/@Model?.WorkflowId/steps',
+							ajax: {
+								url: '/@companyId/workflow/workflows/@Model?.WorkflowId/steps',
+								// Position of each custom step (not Draft/Completed), used for the up/down arrows.
+								dataSrc: (json) => {
+									const custom = json.data.filter(s => !s.isFirst && !s.isLast);
+									custom.forEach((s, i) => { s.position = i; s.customCount = custom.length; });
+									return json.data;
+								},
+							},
 							columns: [
-								{ data: 'name' },
-								{ data: 'description' },
+								{ data: 'name', render: DataGrid.renderText },
+								{ data: 'description', render: DataGrid.renderText },
 								{
 									data: 'duration',
+									className: 'text-center',
 									render: (data, type, row) => {
 										if (!row.isFirst && !row.isLast) {
-											return data + ' ' + row.durationType;
+											return DataGrid.escapeHtml(data + ' ' + row.durationType);
 										}
 
 										return '';
 									}
 								},
 								{
-									data: 'id', render: (data, type, row) => {
-										var icons = '<div class="d-flex flex-row justify-content-end action-icons">';
+									data: 'id', className: 'text-end', render: (data, type, row) => {
+									var icons = '<div class="d-flex flex-row justify-content-end action-icons">';
 
-										if (row.stepOrder > 0 && !row.isFirst && !row.isLast) {
-											if (row.stepOrder > 1) {
-												icons += '<a href="javascript:;" class="no-loading text-primary" data-up="true" data-workflow="@Model?.WorkflowId" data-id="' + data + '" data-current="' + row.stepOrder + '" data-prev="' + (row.stepOrder - 1) + '" data-next="' + (row.stepOrder + 1) + '" onclick="moveUpDown(this)">';
-												icons += '<i class="fa-sharp fa-solid fa-chevron-up fa-lg"></i></a>';
-											}
+									// Draft and Completed can't be moved, edited or deleted. Arrows follow the step's
+									// position among the custom steps: first = down only, last = up only.
+									if (!row.isFirst && !row.isLast) {
+										const move = (up) =>
+											'<a href="javascript:;" class="no-loading text-primary" title="Move ' + (up ? 'up' : 'down') + '" data-up="' + up + '" data-workflow="@Model?.WorkflowId" data-id="' + data + '" onclick="moveUpDown(this)">' +
+											'<i class="fa-sharp fa-solid fa-chevron-' + (up ? 'up' : 'down') + ' fa-lg"></i></a>';
 
-											if ((row.numOfSteps - 2) != row.stepOrder) {
-												icons += '<a href="javascript:;" class="no-loading text-primary" data-up="false" data-workflow="@Model?.WorkflowId" data-id="' + data + '" data-current="' + row.stepOrder + '" data-prev="' + (row.stepOrder - 1) + '" data-next="' + (row.stepOrder + 1) + '" onclick="moveUpDown(this)">';
-												icons += '<i class="fa-sharp fa-solid fa-chevron-down fa-lg"></i></a>';
-											}
+										if (row.position > 0) icons += move(true);
+										if (row.position < row.customCount - 1) icons += move(false);
 
-											icons += '<a href="javascript:;" class="no-loading text-secondary" onclick="editWorkflowStep(\'' + data + '\')"><i class="fa-solid fa-money-check-pen fa-lg"></i></a>';
-											icons += '<a href="javascript:;" class="no-loading text-danger" onclick="deleteWorkflowStep(\'' + data + '\')"><i class="fa-solid fa-trash-xmark fa-lg"></i></a>';
-										}
+										icons += '<a href="javascript:;" class="no-loading text-secondary" title="Edit" onclick="editWorkflowStep(\'' + data + '\')"><i class="fa-solid fa-money-check-pen fa-lg"></i></a>';
+										icons += '<a href="javascript:;" class="no-loading text-danger" title="Delete" onclick="deleteWorkflowStep(\'' + data + '\')"><i class="fa-solid fa-trash-xmark fa-lg"></i></a>';
+									}
 
-										icons += '</div>';
+									icons += '</div>';
 
 										return icons;
 									}
@@ -596,7 +576,6 @@
 					if (tblApprovers == null) {
 						tblApprovers = $('#tblApprovers').DataTable({
 							data: approvers,
-							responsive: true,
 							pageLength: 10,
 							searching: false,
 							paging: false,
@@ -605,12 +584,13 @@
 								{
 									data: 'id',
 									render: (data, type, row) => {
-										return row.firstName + ' ' + row.lastName;
+										return DataGrid.escapeHtml(row.firstName + ' ' + row.lastName);
 									}
 								},
-								{ data: 'email' },
+								{ data: 'email', render: DataGrid.renderText },
 								{
 									data: 'id',
+									className: 'text-center',
 									render: (data, type, row) => {
 										return '<a href="javascript:;" class="no-loading text-danger" onclick="deleteUser(\'' + data + '\')"><i class="fa-solid fa-trash-xmark fa-lg"></i></a>';
 									}
@@ -634,7 +614,7 @@
 				$('#stepName').val(null);
 				$('#stepDescription').val(null);
 				$('#stepDurationType option[value=""]').prop('selected', 'selected');
-				$('#stepDuration').data('kendoNumericTextBox').value(0);
+				$('#stepDuration').val(0);
 			});
 
 
@@ -645,23 +625,47 @@
 				if (tblUsers == null) {
 					tblUsers = $('#tblUsers').DataTable({
 						ajax: '/@companyId/users/workflowusers/all',
-						responsive: true,
-						pageLength: 10,
+						pageLength: 5,
+						lengthMenu: [5, 10, 25, 50],
 						searching: false,
-						paging: false,
 						ordering: false,
+						// Paging bottom left; row count and page size bottom right (as in the other grids).
+						// No first/last buttons, so it fits on one line in the dialog.
+						layout: {
+							topStart: null,
+							topEnd: null,
+							bottomStart: { paging: { firstLast: false } },
+							bottomEnd: ['info', 'pageLength'],
+						},
+						language: {
+							info: '_START_–_END_ of _TOTAL_',
+							infoEmpty: 'No users',
+							lengthMenu: '_MENU_ per page',
+						},
 						columns: [
 							{
+								// Fixed width, one line; long names end in "…" with the full name on hover.
 								data: 'id',
+								className: 'col-user-name',
 								render: (data, type, row) => {
-									return row.firstName + ' ' + row.lastName;
+									const name = DataGrid.escapeHtml(row.firstName + ' ' + row.lastName);
+									return `<span title="${name}">${name}</span>`;
 								}
 							},
-							{ data: 'email' },
+							{
+								data: 'email',
+								className: 'col-user-email',
+								render: (data, type) => {
+									const email = DataGrid.escapeHtml(data);
+									return type === 'display' ? `<span title="${email}">${email}</span>` : (data ?? '');
+								}
+							},
 							{
 								data: 'id',
+								className: 'text-center col-user-select',
 								render: (data, type, row) => {
-									return '<input type="checkbox" class="form-check-input select-user-check" data-user-id="' + data + '" data-email="' + row.email + '" data-first-name="' + row.firstName + '" data-last-name="' + row.lastName + '" onchange="selectUser($(this))">';
+									const esc = DataGrid.escapeHtml;
+									return '<input type="checkbox" class="form-check-input select-user-check" aria-label="Select ' + esc(row.firstName + ' ' + row.lastName) + '" data-user-id="' + esc(data) + '" data-email="' + esc(row.email) + '" data-first-name="' + esc(row.firstName) + '" data-last-name="' + esc(row.lastName) + '" onchange="selectUser($(this))">';
 								}
 							},
 						],
@@ -679,13 +683,18 @@
 		});
 
 
+		// Whole number 0-500 from a duration input (the server converts it with Convert.ToInt16).
+		const readDuration = (selector) => {
+			const value = parseInt($(selector).val(), 10);
+			return isNaN(value) ? 0 : Math.min(500, Math.max(0, value));
+		};
+
+
 		const moveUpDown = (e) => {
 			const elem = $(e);
+			// The server works out the neighbouring step itself; only the direction is needed.
 			const postData = {
-				current: elem.data('current'),
-				previous: elem.data('prev'),
-				next: elem.data('next'),
-				moveUp: elem.data('up'),
+				moveUp: elem.data('up') === true,
 			};
 
 			const xhr = $.ajax({
@@ -701,7 +710,13 @@
 			xhr.done((response, status) => {
 				if (!response.hasError) {
 					tbl.ajax.reload();
+				} else {
+					alert(response.errorMessage ?? 'The step could not be moved.');
 				}
+			});
+
+			xhr.fail(() => {
+				alert('The step could not be moved. Please reload the page and try again.');
 			});
 
 			xhr.always(() => {
@@ -716,7 +731,7 @@
 			$('#editStepId').val(null);
 			$('#editStepName').val(null);
 			$('#editStepDescription').val(null);
-			$('#editStepDuration').data('kendoNumericTextBox').value(0);
+			$('#editStepDuration').val(0);
 			$('#editStepDurationType option[value=""]').prop('selected', 'selected');
 
 			const xhr = $.ajax({
@@ -731,7 +746,7 @@
 					$('#editStepId').val(data.id);
 					$('#editStepName').val(data.name);
 					$('#editStepDescription').val(data.description);
-					$('#editStepDuration').data('kendoNumericTextBox').value(data.duration);
+					$('#editStepDuration').val(data.duration ?? 0);
 					$('#editStepDurationType option[value="' + data.durationType + '"]').prop('selected', 'selected');
 
 					approvers = data.approvers;
