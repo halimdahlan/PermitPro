@@ -67,7 +67,7 @@ app.Use(async (context, next) =>
 		"style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.datatables.net https://unpkg.com https://kendo.cdn.telerik.com https://fonts.googleapis.com https://ka-f.webawesome.com https://maps.googleapis.com; " +
 		"img-src 'self' data: blob: https://unpkg.com https://kendo.cdn.telerik.com https://*.googleapis.com https://*.gstatic.com https://*.google.com https://*.tile.openstreetmap.org; " +
 		"font-src 'self' data: https://fonts.gstatic.com https://kendo.cdn.telerik.com https://ka-f.webawesome.com; " +
-		"connect-src 'self' data: ws: wss: https://ka-f.webawesome.com https://maps.googleapis.com https://maps.gstatic.com https://cloudflareinsights.com; " +
+		"connect-src 'self' data: ws: wss: https://ka-f.webawesome.com https://maps.googleapis.com https://maps.gstatic.com https://cloudflareinsights.com https://kendo.cdn.telerik.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://cdn.datatables.net; " +
 		"worker-src 'self' blob:; " +
 		"frame-src 'none'; " +
 		"object-src 'none'; " +
