@@ -308,11 +308,11 @@
 </div>
 
 @section CustomCss {
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+<partial name="_FlatpickrStyles" />
 }
 
 @section Scripts {
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<partial name="_FlatpickrScripts" />
 <script>
 	const LAYOUT   = @Html.Raw(layoutJson);
 	const FIELDS   = @Html.Raw(savedFields);

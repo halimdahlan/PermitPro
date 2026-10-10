@@ -1,0 +1,7 @@
+@* Flatpickr date/time picker, with the app-wide defaults. Render inside @section Scripts, before any flatpickr() call. *@
+<script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+<script>
+	// Weeks start on Monday in every picker. Set on the default locale, so it also applies to
+	// instances passing their own locale object (e.g. Reports' rangeSeparator), which Flatpickr merges over it.
+	flatpickr.l10ns.default.firstDayOfWeek = 1;
+</script>

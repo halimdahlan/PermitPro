@@ -98,7 +98,7 @@ else
 }
 
 @section CustomCss {
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+	<partial name="_FlatpickrStyles" />
 	<style>
 		.pf-row {
 			display: grid;
@@ -136,7 +136,7 @@ else
 }
 
 @section Scripts {
-	<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+	<partial name="_FlatpickrScripts" />
 	<script>
 		const CERT_LAYOUT = @Html.Raw(Model.LayoutJson);
 		const CERT_FIELDS = @Html.Raw(savedFields);

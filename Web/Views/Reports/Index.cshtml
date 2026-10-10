@@ -234,7 +234,7 @@
 	<partial name="_LocationPickerStyles" />
 	<link rel="stylesheet" href="https://cdn.datatables.net/buttons/3.2.6/css/buttons.bootstrap5.min.css" />
 	<link rel="stylesheet" href="https://cdn.datatables.net/rowgroup/1.6.0/css/rowGroup.bootstrap5.min.css" />
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css" />
+	<partial name="_FlatpickrStyles" />
 	<link rel="stylesheet" href="~/css/reports.css" asp-append-version="true" />
 }
 
@@ -247,7 +247,7 @@
 	<script src="https://cdn.datatables.net/buttons/3.2.6/js/buttons.html5.min.js"></script>
 	<script src="https://cdn.datatables.net/rowgroup/1.6.0/js/dataTables.rowGroup.min.js"></script>
 	<script src="https://cdn.datatables.net/rowgroup/1.6.0/js/rowGroup.bootstrap5.min.js"></script>
-	<script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+	<partial name="_FlatpickrScripts" />
 	<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 	<script>
 		var companyId = '@companyId';
@@ -493,7 +493,7 @@
 		var selectedLocationId = '';
 		var filterSelects = {};     // Tom Select instances, by select id
 		var reportFilter = null;    // Filter applied by "View report"; null shows every permit.
-		var currentGroup = 'date';
+		var currentGroups = ['date']; // "Group by" levels, outermost first (GROUPS keys)
 
 		// Column indexes in #tblReport.
 		const COL = { holder: 0, location: 1, permitNo: 2, status: 3, start: 4, end: 5, duration: 6, certificates: 7, submitted: 8 };
@@ -513,9 +513,20 @@
 			return data ?? '';
 		};
 
-		// Permits in a group across all filtered rows, not just the current page.
-		const groupCount = (field, value) =>
-			tbl.rows({ search: 'applied' }).data().toArray().filter(r => r[field] === value).length;
+		// Permits in a group across all filtered rows, not just the current page: rows matching the
+		// group's value at this level and at every level above it (taken from any row of the group).
+		const groupCount = (rows, level) => {
+			const sample = rows.data()[0];
+			const fields = currentGroups.slice(0, level + 1).map(k => GROUPS[k].field);
+			return tbl.rows({ search: 'applied' }).data().toArray()
+				.filter(r => fields.every(f => (r[f] ?? '') === (sample[f] ?? ''))).length;
+		};
+
+		// Group header text, e.g. "Location: Fuel Terminal" (escaped).
+		const groupTitle = (group, level) => {
+			const g = GROUPS[currentGroups[level]];
+			return `${g.label}: ${DataGrid.escapeHtml(g.text(group))}`;
+		};
 
 		// "Group by" control shown in the grid toolbar, next to the Excel button.
 		const groupByControl = () => {
@@ -523,26 +534,25 @@
 			div.className = 'd-flex align-items-center me-3 report-group-by';
 			div.innerHTML =
 				'<label for="ddlGroupBy" class="me-2 mb-0 text-nowrap">Group by</label>' +
-				'<div class="grid-filter"><select id="ddlGroupBy" autocomplete="off">' +
+				'<div class="grid-filter"><select id="ddlGroupBy" multiple autocomplete="off" placeholder="(none)">' +
 				'<option value="date" selected>Submitted date</option>' +
 				'<option value="holder">Permit holder</option>' +
 				'<option value="location">Location</option>' +
 				'<option value="status">Status</option>' +
-				'<option value="">(none)</option>' +
 				'</select></div>';
 			return div;
 		};
 
-		const setGroup = (key) => {
-			currentGroup = key;
-			const group = GROUPS[key];
+		// Groups nest in the order they were picked; rows are kept in group order at every level.
+		const setGroups = (keys) => {
+			currentGroups = (keys || []).filter(k => GROUPS[k]);
 
-			if (!group) {
+			if (currentGroups.length === 0) {
 				tbl.rowGroup().disable();
 				tbl.order.fixed({});
 			} else {
-				tbl.rowGroup().dataSrc(group.field).enable();
-				tbl.order.fixed({ pre: [group.col, group.dir] });
+				tbl.rowGroup().dataSrc(currentGroups.map(k => GROUPS[k].field)).enable();
+				tbl.order.fixed({ pre: currentGroups.map(k => [GROUPS[k].col, GROUPS[k].dir]) });
 			}
 
 			tbl.draw();
@@ -607,8 +617,8 @@
 				mode: 'range',
 				dateFormat: 'd/m/Y',
 				locale: { rangeSeparator: ' – ' },
-				// Weekends can't be picked (as before).
-				disable: [(date) => date.getDay() === 0 || date.getDay() === 6],
+				// No disabled days: in range mode Flatpickr won't let a range cross one, so the old
+				// weekend rule capped every range at a single Mon–Fri week.
 			});
 
 			fetch(`/${companyId}/sites/tree`, { headers: { 'Accept': 'application/json' } })
@@ -660,11 +670,11 @@
 				rowGroup: {
 					dataSrc: GROUPS.date.field,
 					emptyDataGroup: '(none)',
-					startRender: (rows, group) => {
-						const g = GROUPS[currentGroup];
-						return `${g.label}: ${DataGrid.escapeHtml(g.text(group))}`;
-					},
-					endRender: (rows, group) => `Num. of permits: ${groupCount(GROUPS[currentGroup].field, group)}`,
+					startRender: (rows, group, level) => groupTitle(group, level),
+					// With several levels the totals stack up, so each one names its group.
+					endRender: (rows, group, level) => currentGroups.length > 1
+						? `Num. of permits (${groupTitle(group, level)}): ${groupCount(rows, level)}`
+						: `Num. of permits: ${groupCount(rows, level)}`,
 				},
 				columns: [
 					{ data: 'PermitHolderName', render: DataGrid.renderText },
@@ -694,9 +704,11 @@
 			});
 
 			new TomSelect('#ddlGroupBy', {
-				allowEmptyOption: true,
+				plugins: ['remove_button'],
+				maxItems: null,
+				hideSelected: true,
 				controlInput: null,
-				onChange: setGroup,
+				onChange: function () { setGroups(this.getValue()); },
 			});
 
 

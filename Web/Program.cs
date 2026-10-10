@@ -58,6 +58,8 @@ app.Use(async (context, next) =>
 	//   - 'unsafe-eval' is only sent for actions marked [AllowUnsafeEval] (the Google Maps site map).
 	//     No other script needs it: the eval-like code in jQuery, DataTables/pdfmake, JSZip and SignalR
 	//     is old-browser fallbacks. Set when the response starts, once routing has picked the endpoint.
+	//   - default-src also allows cdn.datatables.net: Firefox reported its RowGroup script as blocked under
+	//     default-src (not reproducible in Chrome or headless Firefox; likely DevTools re-fetching the file).
 	//   - connect-src includes wss: for SignalR in production and ws: for development.
 	//   - static.cloudflareinsights.com is Cloudflare's edge-injected beacon (present when the
 	//     host is proxied through Cloudflare); allowed in both script-src and connect-src since
@@ -66,7 +68,7 @@ app.Use(async (context, next) =>
 	{
 		var allowEval = context.GetEndpoint()?.Metadata.GetMetadata<PermitPro.App.Services.AllowUnsafeEvalAttribute>() != null;
 		headers.ContentSecurityPolicy =
-			"default-src 'self'; " +
+			"default-src 'self' https://cdn.datatables.net; " +
 			$"script-src 'self' 'unsafe-inline'{(allowEval ? " 'unsafe-eval'" : "")} https://cdn.jsdelivr.net https://cdn.datatables.net https://cdnjs.cloudflare.com https://unpkg.com https://ka-f.webawesome.com https://maps.googleapis.com https://maps.gstatic.com https://static.cloudflareinsights.com; " +
 			"style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.datatables.net https://unpkg.com https://fonts.googleapis.com https://ka-f.webawesome.com https://maps.googleapis.com; " +
 			"img-src 'self' data: blob: https://unpkg.com https://*.googleapis.com https://*.gstatic.com https://*.google.com https://*.tile.openstreetmap.org; " +
