@@ -172,3 +172,94 @@ a:hover {
 	background-color: transparent;
 	text-align: right;
 }
+
+/* ── Phones (< 576px) ─────────────────────────────────────────── */
+@media (max-width: 575.98px) {
+	/* Tabs stay on one line and scroll sideways instead of wrapping. */
+	#reportTabs,
+	.report-tabs {
+		flex-wrap: nowrap;
+		overflow-x: auto;
+		overflow-y: hidden;
+		scrollbar-width: none;
+	}
+
+		/* Tighter tabs so all four usually fit a phone's width without scrolling. */
+		#reportTabs .nav-link,
+		.report-tabs .nav-link {
+			white-space: nowrap;
+			padding: .5rem .55rem;
+			font-size: 13px;
+		}
+
+	/* All Permits grid (cards): group headings as plain section titles, totals as small text,
+	   instead of boxed cards of their own. */
+	.data-grid table.dt-cards > tbody > tr.dtrg-group {
+		border: 0;
+		padding: 0;
+		margin: 0;
+		background: transparent;
+	}
+
+		.data-grid table.dt-cards > tbody > tr.dtrg-group > th,
+		.data-grid table.dt-cards > tbody > tr.dtrg-group > td {
+			display: block;
+			padding: 0 !important;
+			border: 0;
+			background: transparent !important;
+			box-shadow: none !important;
+		}
+
+			.data-grid table.dt-cards > tbody > tr.dtrg-group > th::before,
+			.data-grid table.dt-cards > tbody > tr.dtrg-group > td::before {
+				content: none;
+			}
+
+	.data-grid table.dt-cards > tbody > tr.dtrg-group.dtrg-start > th,
+	.data-grid table.dt-cards > tbody > tr.dtrg-group.dtrg-start > td {
+		margin: 14px 0 8px;
+		font-size: 14px;
+		font-weight: 600;
+		color: var(--bs-emphasis-color);
+	}
+
+	.data-grid table.dt-cards > tbody > tr.dtrg-group.dtrg-start.dtrg-level-1 > th,
+	.data-grid table.dt-cards > tbody > tr.dtrg-group.dtrg-start.dtrg-level-1 > td,
+	.data-grid table.dt-cards > tbody > tr.dtrg-group.dtrg-start.dtrg-level-2 > th,
+	.data-grid table.dt-cards > tbody > tr.dtrg-group.dtrg-start.dtrg-level-2 > td,
+	.data-grid table.dt-cards > tbody > tr.dtrg-group.dtrg-start.dtrg-level-3 > th,
+	.data-grid table.dt-cards > tbody > tr.dtrg-group.dtrg-start.dtrg-level-3 > td {
+		margin-top: 6px;
+		font-size: 13px;
+		color: #4a5568;
+	}
+
+	.data-grid table.dt-cards > tbody > tr.dtrg-group.dtrg-end > th,
+	.data-grid table.dt-cards > tbody > tr.dtrg-group.dtrg-end > td {
+		margin: -4px 0 6px;
+		font-size: 12px;
+		text-align: right !important;
+	}
+
+	/* By Holder / By Location: compact table; the "Other" column and the progress bar are dropped
+	   (the approval % stays). */
+	.report-summary {
+		font-size: 13px;
+	}
+
+		.report-summary > thead > tr > th,
+		.report-summary > tbody > tr > td {
+			padding: 6px 4px;
+		}
+
+		.report-summary > thead > tr > th {
+			font-size: 11px;
+			white-space: normal;
+		}
+
+		.report-summary > thead > tr > th:nth-child(5),
+		.report-summary > tbody > tr > td:nth-child(5),
+		.report-summary .progress {
+			display: none;
+		}
+}

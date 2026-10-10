@@ -38,9 +38,9 @@
 	<div class="map-container">
 		<div id="map"></div>
 
-		@* Legend *@
-		<div class="map-legend">
-			<div class="map-legend-title">Permit Types</div>
+		@* Legend: open on larger screens; collapsed to its title on phones (tap to open). *@
+		<details class="map-legend" id="mapLegend" open>
+			<summary class="map-legend-title">Permit Types</summary>
 			<div class="map-legend-item">
 				<span class="map-legend-dot" style="background:#f38001;">HW</span>
 				<span class="map-legend-label">Hot Work</span>
@@ -73,7 +73,10 @@
 				<span class="map-legend-dot" style="background:#95a5a6;">OV</span>
 				<span class="map-legend-label">Override</span>
 			</div>
-		</div>
+		</details>
+		<script>
+			if (window.matchMedia('(max-width: 575.98px)').matches) document.getElementById('mapLegend').removeAttribute('open');
+		</script>
 	</div>
 
 </div>

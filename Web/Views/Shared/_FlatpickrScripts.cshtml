@@ -4,4 +4,8 @@
 	// Weeks start on Monday in every picker. Set on the default locale, so it also applies to
 	// instances passing their own locale object (e.g. Reports' rangeSeparator), which Flatpickr merges over it.
 	flatpickr.l10ns.default.firstDayOfWeek = 1;
+	// Phones get Flatpickr's own calendar too, not the browser's native date input: same look and
+	// Monday-first weeks everywhere, and the same values the page code expects (the native input
+	// dropped the time on date/time fields and added a second calendar icon).
+	flatpickr.setDefaults({ disableMobile: true });
 </script>

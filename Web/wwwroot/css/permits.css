@@ -246,3 +246,35 @@ a:hover {
 	font-size: 14px !important;
 	font-weight: 600 !important;
 }
+
+/* ── Permit New/Edit on phones and tablets (< 768px): action buttons ── */
+.permit-mobile-actions-buttons {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 8px;
+}
+
+	.permit-mobile-actions-buttons .btn {
+		font-size: .85rem;
+		padding: .55rem .5rem;
+		white-space: nowrap;
+	}
+
+	.permit-mobile-actions-buttons .permit-mobile-actions-wide {
+		grid-column: 1 / -1;
+	}
+
+.permit-mobile-back {
+	display: block;
+	text-align: center;
+	margin-top: 16px;
+}
+
+@media (max-width: 767.98px) {
+	/* Export to PDF matches the full-width action buttons below it. */
+	.attached-certs .btn-export {
+		width: 100%;
+		padding-top: .5rem;
+		padding-bottom: .5rem;
+	}
+}

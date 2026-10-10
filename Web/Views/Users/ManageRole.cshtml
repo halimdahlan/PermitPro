@@ -17,8 +17,9 @@
 					@if (Model.IsEdit && Model.IsSystemRole)
 					{
 						<div class="alert alert-warning d-flex align-items-center mb-3" role="alert">
-							<i class="fa-solid fa-lock me-2"></i>This is a <strong>system role</strong>. 
-							It can be edited but cannot be deleted.
+							<i class="fa-solid fa-lock me-2"></i>
+							@* One span: as separate flex items the text and <strong> split into columns on a phone. *@
+							<span>This is a <strong>system role</strong>. It can be edited but cannot be deleted.</span>
 						</div>
 					}
 

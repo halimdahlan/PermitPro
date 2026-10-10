@@ -339,6 +339,45 @@
     width: 100%; border: 1px solid #d1d5db; border-radius: .35rem;
     padding: .35rem .6rem; font-size: .82rem; background: #f9fafb;
 }
+
+/* ── Phones and tablets (< 992px): the three panels stack ──────────────────
+   Toolbar, then the controls library (short, scrolls), the canvas, then properties. */
+@@media (max-width: 991.98px) {
+    .builder-shell {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto auto;
+        height: auto;
+        min-height: 0;
+    }
+    .builder-toolbar input.tb-name {
+        width: 100%;
+    }
+    .builder-toolbar .tb-group:has(input.tb-name) {
+        flex: 1 1 100%;
+    }
+    .builder-toolbar .tb-sep {
+        display: none;
+    }
+    .panel-library {
+        grid-column: 1;
+        grid-row: 2;
+        max-height: 260px;
+        border-right: 0;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .panel-canvas {
+        grid-column: 1;
+        grid-row: 3;
+        min-height: 360px;
+        overflow-y: visible;
+    }
+    .panel-props {
+        grid-column: 1;
+        grid-row: 4;
+        border-left: 0;
+        border-top: 1px solid #e2e8f0;
+    }
+}
 </style>
 }
 

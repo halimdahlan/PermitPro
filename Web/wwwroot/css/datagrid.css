@@ -19,6 +19,27 @@
 		font-size: 14px;
 	}
 
+/* Square icon buttons next to a grid filter (e.g. clear filter, reload), as tall as the Tom Select control. */
+.grid-icon-btn {
+	width: 36px;
+	height: 36px;
+	padding: 0;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	border-color: rgb(210, 221, 236);
+	color: #6b7c93;
+	background: #fff;
+}
+
+	.grid-icon-btn:hover,
+	.grid-icon-btn:focus-visible {
+		color: var(--bs-primary);
+		border-color: var(--bs-primary);
+		background: #fff;
+	}
+
 .data-grid {
 	font-family: 'Poppins', sans-serif;
 	font-size: 14px;
@@ -149,3 +170,134 @@
 	.data-grid .dt-layout-table {
 		overflow-x: auto;
 	}
+
+@media (max-width: 575.98px) {
+	/* Tom Select's control is a little shorter on phones. */
+	.grid-icon-btn {
+		width: 34px;
+		height: 34px;
+	}
+}
+
+/* ── Phones (< 576px): each row as a card ──────────────────────────────────
+   datagrid.js adds .dt-cards to the table and a data-label (the column title) to
+   every cell. Server-rendered tables can opt in too: wrap them in .table-cards-wrap
+   and write class="dt-cards" / data-label / .dt-card-actions in the markup. The first cell is the card's title; the other cells show their label
+   on the left; action icons sit bottom right. */
+@media (max-width: 575.98px) {
+	:is(.data-grid, .table-cards-wrap) table.dt-cards > thead {
+		display: none;
+	}
+
+	:is(.data-grid, .table-cards-wrap) table.dt-cards,
+	:is(.data-grid, .table-cards-wrap) table.dt-cards > tbody {
+		display: block;
+		width: 100% !important;
+	}
+
+	:is(.data-grid, .table-cards-wrap) table.dt-cards > tbody > tr {
+		display: block;
+		border: 1px solid var(--bs-border-color);
+		border-radius: 10px;
+		padding: 10px 12px;
+		margin-bottom: 10px;
+		background: var(--bs-body-bg);
+	}
+
+	:is(.data-grid, .table-cards-wrap) table.dt-cards > tbody > tr > td {
+		display: block;
+		position: relative;
+		padding: 3px 0 3px 38% !important;
+		border: 0;
+		box-shadow: none !important;
+		text-align: left !important;
+		white-space: normal;
+		min-height: 1.6em;
+		overflow-wrap: anywhere;
+	}
+
+	/* The column title, floated into the cell's left padding so a two-line title makes the row taller.
+	   Percentages here are of the cell's content box (62% of the card): 58.06% ≈ 36% and
+	   61.29% ≈ 38% of the card's width. */
+	:is(.data-grid, .table-cards-wrap) table.dt-cards > tbody > tr > td::before {
+		content: attr(data-label);
+		float: left;
+		width: 58.06%;
+		margin-left: -61.29%;
+		margin-top: 2px;
+		font-size: 11px;
+		font-weight: 600;
+		color: #6b7c93;
+		text-transform: uppercase;
+		letter-spacing: .03em;
+		line-height: 1.4;
+	}
+
+	:is(.data-grid, .table-cards-wrap) table.dt-cards > tbody > tr > td::after {
+		content: "";
+		display: block;
+		clear: both;
+	}
+
+	/* First cell: the card title (e.g. the permit number), full width, no label. */
+	:is(.data-grid, .table-cards-wrap) table.dt-cards > tbody > tr > td:first-child {
+		padding: 0 0 8px !important;
+		margin-bottom: 4px;
+		border-bottom: 1px solid var(--bs-border-color);
+		font-size: 15px;
+		font-weight: 600;
+	}
+
+	:is(.data-grid, .table-cards-wrap) table.dt-cards > tbody > tr > td:first-child::before {
+		content: none;
+	}
+
+	/* Action icons: no label, right-aligned at the bottom of the card. */
+	:is(.data-grid, .table-cards-wrap) table.dt-cards > tbody > tr > td.dt-card-actions {
+		padding: 8px 0 0 !important;
+		margin-top: 4px;
+		border-top: 1px solid var(--bs-border-color);
+		text-align: right !important;
+	}
+
+	:is(.data-grid, .table-cards-wrap) table.dt-cards > tbody > tr > td.dt-card-actions::before {
+		content: none;
+	}
+
+	/* !important: some server-built icon groups carry Bootstrap's justify-content-center utility. */
+	:is(.data-grid, .table-cards-wrap) table.dt-cards > tbody > tr > td.dt-card-actions .action-icons {
+		justify-content: flex-end !important;
+	}
+
+	:is(.data-grid, .table-cards-wrap) table.dt-cards > tbody > tr > td.dt-card-empty {
+		display: none;
+	}
+
+	/* Content the desktop table centres (icons, badges) lines up with the other values. */
+	:is(.data-grid, .table-cards-wrap) table.dt-cards > tbody > tr > td:not(.dt-card-actions) .justify-content-center {
+		justify-content: flex-start !important;
+	}
+
+	/* "No records" row. */
+	:is(.data-grid, .table-cards-wrap) table.dt-cards > tbody > tr > td.dt-empty {
+		padding: 12px 0 !important;
+		text-align: center !important;
+		border: 0;
+		font-size: 14px;
+		font-weight: 400;
+	}
+
+	/* No sideways scrolling needed for cards. */
+	.data-grid .dt-layout-table {
+		overflow-x: visible;
+	}
+
+	/* Search box and paging fit the phone width. */
+	.data-grid div.dt-container div.dt-search input {
+		width: 100%;
+	}
+
+	.data-grid div.dt-container .dt-layout-row:not(.dt-layout-table) .dt-layout-cell {
+		justify-content: center;
+	}
+}

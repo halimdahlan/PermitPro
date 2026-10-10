@@ -63,18 +63,17 @@
 		</ul>
 	</div>
 
-	<div class="d-flex flex-row align-items-center justify-content-between mt-5 d-md-none">
-		<div>
-			<a asp-controller="permits" asp-action="index"><i class="fa-sharp fa-solid fa-chevrons-left me-2"></i> Back</a>
-		</div>
-		<div>
-			<button type="button" class="btn btn-sm btn-secondary btn-draft me-3">
-				<span class="mx-3"><i class="fa-sharp fa-light fa-floppy-disk me-2"></i>Save as draft</span>
+	@* Phones and tablets: full-width buttons, Back underneath (permits.css). *@
+	<div class="permit-mobile-actions d-md-none mt-4 mb-4">
+		<div class="permit-mobile-actions-buttons">
+			<button type="button" class="btn btn-secondary btn-draft">
+				<i class="fa-sharp fa-light fa-floppy-disk me-2"></i>Save as draft
 			</button>
-			<button type="button" class="btn btn-sm btn-primary btn-approval">
-				<span class="mx-3"><i class="fa-light fa-check-to-slot me-2"></i>Submit for approval</span>
+			<button type="button" class="btn btn-primary btn-approval">
+				<i class="fa-light fa-check-to-slot me-2"></i>Submit for approval
 			</button>
 		</div>
+		<a asp-controller="permits" asp-action="index" class="permit-mobile-back"><i class="fa-sharp fa-solid fa-chevrons-left me-2"></i> Back</a>
 	</div>
 </div>
 

@@ -58,8 +58,47 @@ window.DataGrid = (() => {
 		},
 	};
 
+	// Phones show each row as a card (datagrid.css, .dt-cards): every cell is labelled with its
+	// column title. Action cells (an "Action(s)" or empty header) get no label.
+	const labelCells = (tbl) => {
+		tbl.cells({ page: 'current' }).every(function () {
+			const node = this.node();
+			if (!node) return;
+			const title = $(tbl.column(this.index().column).header()).text().trim();
+			const isAction = title === '' || /^actions?$/i.test(title);
+			node.setAttribute('data-label', isAction ? '' : title);
+			node.classList.toggle('dt-card-actions', isAction);
+			// Nothing to show (e.g. no certificates): hide the line on a card.
+			node.classList.toggle('dt-card-empty', node.textContent.trim() === '' && !node.querySelector('img, i, svg, input, select, button'));
+		});
+	};
+
+	// Card rows on phones for a plain HTML table (not a DataTable), e.g. one built from a template
+	// string: labels every body cell from its column header. Call after (re)rendering the rows.
+	// The table must sit inside a .data-grid element.
+	const labelTable = (table) => {
+		const titles = $(table).find('thead th').map((i, th) => $(th).text().trim()).get();
+		$(table).addClass('dt-cards').find('tbody tr').each((i, tr) => {
+			$(tr).children('td').each((col, td) => {
+				const title = titles[col] ?? '';
+				const isAction = title === '' || /^actions?$/i.test(title);
+				td.setAttribute('data-label', isAction ? '' : title);
+				td.classList.toggle('dt-card-actions', isAction);
+			});
+		});
+	};
+
+	// Card rows on phones for any DataTable (create() does this itself): for tables set up with
+	// `new DataTable(...)` directly. The table must sit inside a .data-grid element.
+	const enableCards = (tbl) => {
+		$(tbl.table().node()).addClass('dt-cards');
+		tbl.on('draw', () => labelCells(tbl));
+		labelCells(tbl);
+	};
+
 	// Creates a grid that loads a JSON array from `url`. `options` are DataTables options
 	// (columns, pageLength, language overrides, ...) merged over the defaults.
+	// Pass `mobileCards: false` to keep the plain (horizontally scrolling) table on phones.
 	const create = (selector, url, options) => {
 		// Show load errors in the page's .grid-error box instead of DataTables' alert().
 		DataTable.ext.errMode = 'none';
@@ -74,6 +113,10 @@ window.DataGrid = (() => {
 
 		const tbl = new DataTable(selector, settings);
 		const errorBox = $(selector).closest('.data-grid').find('.grid-error');
+
+		if (settings.mobileCards !== false) {
+			enableCards(tbl);
+		}
 
 		tbl.on('error.dt', () => {
 			errorBox.text('Could not load the list. Please reload the page or try again later.').removeClass('d-none');
@@ -106,6 +149,8 @@ window.DataGrid = (() => {
 		renderActive,
 		htmlColumn,
 		create,
+		enableCards,
+		labelTable,
 		filterExact,
 		filterListItem,
 	};

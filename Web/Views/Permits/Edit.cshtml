@@ -210,24 +210,23 @@
 		}
 	</div>
 
-	<div class="d-flex flex-row align-items-center justify-content-between mt-5 d-md-none mb-5">
-		<div>
-			<a asp-controller="permits" asp-action="index"><i class="fa-sharp fa-solid fa-chevrons-left me-2"></i> Back</a>
-		</div>
-		<div>
-			@if (Model.PermitStatus == PermitPro.Core.Enums.PermitStatusEnum.Draft)
-			{
-				<button type="button" class="btn btn-secondary btn-draft me-2">
-					<span class="mx-2"><i class="fa-sharp fa-light fa-floppy-disk me-2"></i>Save as draft</span>
+	@* Phones and tablets: full-width buttons, Back underneath (permits.css). *@
+	<div class="permit-mobile-actions d-md-none mt-4 mb-4">
+		@if (Model.PermitStatus == PermitPro.Core.Enums.PermitStatusEnum.Draft)
+		{
+			<div class="permit-mobile-actions-buttons">
+				<button type="button" class="btn btn-secondary btn-draft">
+					<i class="fa-sharp fa-light fa-floppy-disk me-2"></i>Save as draft
 				</button>
-				<button type="button" class="btn btn-primary btn-approval me-4">
-					<span class="mx-3"><i class="fa-light fa-check-to-slot me-2"></i>Submit for approval</span>
+				<button type="button" class="btn btn-primary btn-approval">
+					<i class="fa-light fa-check-to-slot me-2"></i>Submit for approval
 				</button>
-				<button type="button" class="btn btn-outline-danger btn-delete" data-id="@Model.PermitId">
-					<span class="mx-3"><i class="fa-sharp fa-light fa-trash-can me-2"></i>Delete</span>
+				<button type="button" class="btn btn-outline-danger btn-delete permit-mobile-actions-wide" data-id="@Model.PermitId">
+					<i class="fa-sharp fa-light fa-trash-can me-2"></i>Delete
 				</button>
-			}
-		</div>
+			</div>
+		}
+		<a asp-controller="permits" asp-action="index" class="permit-mobile-back"><i class="fa-sharp fa-solid fa-chevrons-left me-2"></i> Back</a>
 	</div>
 </div>
 

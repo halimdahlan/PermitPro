@@ -301,12 +301,14 @@
 					<nav><ul class="pagination pagination-sm mb-0">${items}</ul></nav>
 				</div>`;
 			}
-			$('#overdueContainer').html(`<div class="table-responsive"><table class="table table-sm table-hover align-middle report-table">
+			// .data-grid + labelTable: each overdue permit as a card on phones (datagrid.css).
+			$('#overdueContainer').html(`<div class="data-grid table-responsive"><table class="table table-sm table-hover align-middle report-table">
 				<thead class="table-light"><tr>
 					<th>Permit No.</th><th>Permit Holder</th><th>Location</th>
 					<th>End Date</th><th class="text-center">Days Overdue</th><th>Status</th>
 				</tr></thead><tbody>${rows}</tbody>
 			</table></div>${pagination}`);
+			DataGrid.labelTable($('#overdueContainer table')[0]);
 		};
 
 		const renderHolderTable = (holders) => {
@@ -330,7 +332,7 @@
 					</td>
 				</tr>`;
 			}).join('');
-			return `<div class="table-responsive"><table class="table table-sm table-hover align-middle report-table">
+			return `<div class="table-responsive"><table class="table table-sm table-hover align-middle report-table report-summary">
 				<thead class="table-light"><tr>
 					<th>Permit Holder</th>
 					<th class="text-center">Total</th>
@@ -363,7 +365,7 @@
 					</td>
 				</tr>`;
 			}).join('');
-			return `<div class="table-responsive"><table class="table table-sm table-hover align-middle report-table">
+			return `<div class="table-responsive"><table class="table table-sm table-hover align-middle report-table report-summary">
 				<thead class="table-light"><tr>
 					<th>Location</th>
 					<th class="text-center">Total</th>

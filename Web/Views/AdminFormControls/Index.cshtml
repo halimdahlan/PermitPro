@@ -60,7 +60,9 @@
 		}
 		else
 		{
-			<table class="table table-hover mb-0 align-middle">
+			@* Phones: each control as a card (datagrid.css, .table-cards-wrap). *@
+			<div class="table-cards-wrap p-2 p-sm-0">
+			<table class="table table-hover mb-0 align-middle dt-cards">
 				<thead class="table-light">
 					<tr>
 						<th style="padding-left:1.25rem;">Name</th>
@@ -79,11 +81,11 @@
 							<td style="padding-left:1.25rem;">
 								<span class="fw-500">@c.Name</span>
 							</td>
-							<td>@c.Label</td>
-							<td>
+							<td data-label="Label">@c.Label</td>
+							<td data-label="Type">
 								<span class="badge @GetTypeBadgeClass(c.ControlType)">@c.ControlType</span>
 							</td>
-							<td class="text-center">
+							<td class="text-center" data-label="Required">
 								@if (c.IsRequired)
 								{
 									<i class="fa-solid fa-check text-success"></i>
@@ -93,13 +95,13 @@
 									<span class="text-muted">—</span>
 								}
 							</td>
-							<td class="text-center">
+							<td class="text-center" data-label="Sort">
 								<span class="badge bg-light text-dark border">@c.SortOrder</span>
 							</td>
-							<td>
+							<td data-label="Created">
 								<small class="text-muted">@c.CreatedWhen.ToString("dd MMM yyyy")</small>
 							</td>
-							<td class="text-end" style="padding-right:1.25rem;">
+							<td class="text-end dt-card-actions" data-label="" style="padding-right:1.25rem;">
 								<button type="button" class="btn btn-sm btn-outline-secondary me-1" title="Edit"
 										  onclick="openEditDialog('@c.Id')">
 									<i class="fa-solid fa-pen-to-square"></i>
@@ -113,6 +115,7 @@
 					}
 				</tbody>
 			</table>
+			</div>
 		}
 	</div>
 </div>
@@ -303,6 +306,7 @@
 </div>
 
 @section CustomCss {
+	<link rel="stylesheet" href="~/css/datagrid.css" asp-append-version="true" />
 	<style>
 		.option-row {
 			display: flex;
