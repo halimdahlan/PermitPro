@@ -246,6 +246,15 @@ public class RecycleBinController : AppControllerBase
 		if (entity == null)
 			return NotFound();
 
+		// Records still referenced by permits, approval history or child locations can't be removed:
+		// those FKs have no delete rule, and clearing them would lose audit data or orphan locations.
+		var blockedReason = await GetHardDeleteBlockerAsync(entity, id);
+		if (blockedReason != null)
+		{
+			TempData["RecycleBinError"] = blockedReason;
+			return RedirectToAction(nameof(Index), new { company });
+		}
+
 		// Enable hard delete mode (bypass soft delete interceptor)
 		_dbContext.UseSoftDelete = false;
 
@@ -272,6 +281,16 @@ public class RecycleBinController : AppControllerBase
 					p.Site = null;
 				}
 				_dbContext.Permits.UpdateRange(permits);
+
+				// Divisions have no screens, but their FK to Sites has no delete rule either.
+				var divisions = await _dbContext.Divisions.IgnoreQueryFilters()
+					 .Where(d => d.DivisionSite!.Id == id).ToListAsync();
+
+				foreach (var d in divisions)
+				{
+					d.DivisionSite = null;
+				}
+				_dbContext.Divisions.UpdateRange(divisions);
 			}
 			else if (entity is Workflow workflow)
 			{
@@ -284,16 +303,6 @@ public class RecycleBinController : AppControllerBase
 					s.WorkflowStepWorkflow = null;
 				}
 				_dbContext.WorkflowSteps.UpdateRange(workflowSteps);
-
-				// Set HistoryWorkflowId to NULL for all workflow histories tied to this workflow
-				var workflowHistories = await _dbContext.WorkflowHistories.IgnoreQueryFilters()
-					 .Where(h => h.HistoryWorkflow!.Id == id).ToListAsync();
-
-				foreach (var h in workflowHistories)
-				{
-					h.HistoryWorkflow = null;
-				}
-				_dbContext.WorkflowHistories.UpdateRange(workflowHistories);
 			}
 			else if (entity is Company)
 			{
@@ -317,6 +326,50 @@ public class RecycleBinController : AppControllerBase
 		{
 			// Reset flag to default (soft delete)
 			_dbContext.UseSoftDelete = true;
+		}
+	}
+
+	/// <summary>
+	/// Why <paramref name="entity"/> can't be permanently deleted, or null when it can. Permits and approval
+	/// history keep their workflow/step (audit trail), and a location with child locations would orphan them.
+	/// Soft-deleted referencing rows count too: the FK applies to them as well.
+	/// </summary>
+	private async Task<string> GetHardDeleteBlockerAsync(object entity, Guid id)
+	{
+		var usages = new List<string>();
+		string name;
+
+		switch (entity)
+		{
+			case WorkflowStep step:
+				name = $"Workflow step \"{step.Name}\"";
+				AddUsage(usages, await _dbContext.Permits.IgnoreQueryFilters().CountAsync(p => p.PermitWorkflowStep!.Id == id), "permit", "permits");
+				AddUsage(usages, await _dbContext.WorkflowHistories.IgnoreQueryFilters().CountAsync(h => h.HistoryWorkflowStep!.Id == id), "approval history entry", "approval history entries");
+				break;
+
+			case Workflow workflow:
+				name = $"Workflow \"{workflow.Name}\"";
+				AddUsage(usages, await _dbContext.Permits.IgnoreQueryFilters().CountAsync(p => p.PermitWorkflow!.Id == id), "permit", "permits");
+				AddUsage(usages, await _dbContext.WorkflowHistories.IgnoreQueryFilters().CountAsync(h => h.HistoryWorkflow!.Id == id), "approval history entry", "approval history entries");
+				break;
+
+			case Site site:
+				name = $"Location \"{site.Name}\"";
+				AddUsage(usages, await _dbContext.Sites.IgnoreQueryFilters().CountAsync(s => s.ParentId == id), "child location", "child locations");
+				break;
+
+			default:
+				return null;
+		}
+
+		return usages.Count == 0
+			? null
+			: $"{name} can't be permanently deleted: it is used by {string.Join(" and ", usages)}. It stays in the Recycle Bin.";
+
+		static void AddUsage(List<string> usages, int count, string singular, string plural)
+		{
+			if (count > 0)
+				usages.Add($"{count} {(count == 1 ? singular : plural)}");
 		}
 	}
 

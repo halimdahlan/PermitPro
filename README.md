@@ -16,12 +16,12 @@ A multi-tenant, enterprise web application for managing **Permit-to-Work (PTW)**
 | **Real-time** | ASP.NET Core SignalR |
 | **Background Jobs** | Hangfire 1.8.14 (currently disabled) |
 | **Rate Limiting** | ASP.NET Core built-in rate limiter (fixed-window, per-IP) |
-| **PDF Generation** | PuppeteerSharp 18.0.3 (old-system) + QuestPDF 2025.4.3 (new-system) |
+| **PDF Generation** | QuestPDF 2026.9.1 (old- and new-system permits) |
 | **Date Picker** | Flatpickr (CDN, new-system forms) |
-| **Excel Export** | ClosedXML 0.105.0 |
-| **Email** | MailKit 4.17.0 + MimeKit 4.17.0 |
-| **Templating** | Scriban.Signed 5.10.0 |
-| **JSON** | System.Text.Json (primary); Newtonsoft.Json 13.0.3 (PDF template mapping only) |
+| **Excel Export** | ClosedXML 0.105.1 |
+| **Email** | MailKit 4.18.1 + MimeKit 4.18.1 |
+| **Templating** | Scriban.Signed 7.5.0 (email templates) |
+| **JSON** | System.Text.Json (primary); Newtonsoft.Json 13.0.4 (old-system PDF reader only) |
 | **API Docs** | Swashbuckle / Swagger (referenced, not configured) |
 
 ---
@@ -91,7 +91,7 @@ PermitPro-1.2/
   - Method Statement, Lifting & Hoisting, Override
 - Permit lifecycle: Draft → Pending → Approved → Suspended → KIV → Closed / ClosedNoAction / Overdue / Rejected
 - File attachments (PDF, DOCX, JPG, PNG — up to 5 files, 3 MB each)
-- PDF export of permit documents via headless Chrome (isolated in `PermitPdfService`)
+- PDF export of permit documents with QuestPDF (no browser; see Phase 5)
 
 ### Workflow Engine
 - Configurable multi-step approval workflows per company
@@ -253,7 +253,7 @@ Roles support soft-delete via `ISoftDeletable` and carry audit fields (`CreatedW
 
 ---
 
-## Enhancements (Phases 1–6 complete)
+## Enhancements (Phases 1–7 complete)
 
 All seven phases of the enhancement have been implemented, including Phase 7 (Telerik removal).
 
@@ -345,19 +345,27 @@ private bool IsNewSystemPermit(Permit permit) =>
 
 ### Phase 5 — PDF Export (Dual-engine) ✅
 
-| Permit age | PDF engine | Template source |
+Both engines use **QuestPDF** (`QuestPDF 2026.9.1`, Community licence) — no headless browser. PuppeteerSharp and the HTML/Scriban PDF templates were removed in 2026-10.
+
+| Permit age | Service | Source data |
 |---|---|---|
-| Old (before cutover date) | PuppeteerSharp + Scriban | Existing `PermitPdfService` — unchanged apart from null-safe certificate parsing (see below) |
-| New (on/after cutover date) | **QuestPDF** (`QuestPDF 2025.4.3`) | `FormTemplate.LayoutJson` + `Permit.PermitDataJson` |
+| Old (before cutover date) | `LegacyPermitPdfService` (`Core/Services/LegacyPermitPdf/`) | `Permit.PermitForm` |
+| New (on/after cutover date) | `QuestPdfService` | `FormTemplate.LayoutJson` + `Permit.PermitDataJson` |
 
-`PermitsController.ExportPdf` delegates based on `IsNewSystemPermit`. QuestPDF document:
-- **Header** — company logo (`FitWidth`), custom text, company name, permit number, site name, date (all individually togglable via `HeaderConfigJson`).
-- **Body** — rows/columns from layout; each control type rendered appropriately (checkbox as filled square, multi-choice checklist, select shows matched label, datetime formatted, file upload lists filenames, `Label` renders bold text + horizontal rule).
+`PermitsController.ExportPdf` delegates based on `IsNewSystemPermit`.
+
+**Shared by both**
+- **Font** — Roboto (Regular/Bold, Apache 2.0) embedded in Core and registered by `PdfFonts`; characters Roboto lacks fall back to QuestPDF's built-in Lato.
+- **Header** — the permit's company name and logo (`PdfLogo`): the company's uploaded logo (`wwwroot/img/logos`), or `wwwroot/img/app-logo.jpg` when there is none.
+- **Time zone** — stored UTC timestamps are printed in Malaysia time (Asia/Kuala_Lumpur).
+
+**Old-system permits** — reproduces the former HTML export's layout: three main-form pages, then one section per attached certificate A–H (in `PTWSettings.Certificates` order). `PermitFormReader` reads the saved JSON null-safely: a certificate ticked but never filled in is stored as just `{"name":"hotwork"}`, and prints as a blank form instead of breaking the export. Several data bugs of the old export were fixed in the rewrite (Engineering Advice field, operational activities matched by id, time vs date fields, Withdrawn YES/NO on certificates B/C/D/G, Confined Space initial toxics, Isolation line breaks, Radiation units, label typos, and user text printed literally rather than as HTML). Troubleshooting and a console harness: `docs/pdf-export-troubleshooting.md`.
+
+**New-system permits**
+- **Header** — logo, custom text, company name, permit number, site name, date (all individually togglable via `HeaderConfigJson`).
+- **Body** — rows/columns from layout; each control type rendered appropriately (checkbox as filled square, multi-choice checklist, select shows matched label, datetime printed as entered, file upload lists filenames, `Label` renders bold text + horizontal rule).
 - **Footer** — page numbers, print date, custom text (via `FooterConfigJson`).
-- Community licence set on startup.
-- Attached certificates are appended as additional pages. `ExportPdf` includes `Certificates` (non-deleted) with `ThenInclude(c => c.FormTemplate)`; `QuestPdfService` iterates new-system certificates and appends one page each (certificate name + permit number in header; same row/cell rendering; no footer config).
-
-**Old-system certificate parsing is null-safe.** Ticking a certificate (A–H) on the old-system form stores only `{"name":"hotwork"}` in `PermitForm.general.certificates`; field data is merged in only when the certificate dialog is opened and saved. `PermitPdfService` previously assumed every field existed, so `(bool)cert["workChecklist"][0]["value"]` threw a `NullReferenceException` and the whole export returned 500. All certificate field access now uses null-conditional indexers (`cert["x"]?["y"]`) and checkbox values go through `IsChecked(JToken)` (missing/null → `false`). An unfilled certificate now prints as a blank form (empty checkboxes, "—" values) instead of breaking the export.
+- Attached certificates are appended as additional pages. `ExportPdf` includes `Certificates` (non-deleted) with `ThenInclude(c => c.FormTemplate)`; `QuestPdfService` appends one page per new-system certificate (certificate name + permit number in header; same row/cell rendering; no footer config).
 
 ### Phase 6 — Certificate Form Customization ✅
 
@@ -556,7 +564,7 @@ dotnet ef database update --project Core --startup-project Web
 - **DNS:** managed in Cloudflare and proxied. `permitpro.app` and `*.permitpro.app` resolve to the origin through Cloudflare.
 - **Redirect rule** (Cloudflare): any hostname other than `permitpro.app` gets a 301 redirect to `https://permitpro.app` plus the request path. See issue #4: it currently drops the query string.
 - **Client IP:** every request arrives from a Cloudflare edge IP. The app restores the real client IP from `CF-Connecting-IP` (`Web/Services/CloudflareClientIp.cs`), which the per-IP login rate limiter depends on.
-- **Outbound access the server needs:** HTTPS to `api.cloudflare.com` (refreshes Cloudflare's IP ranges at startup and every 24 hours), plus SMTP for email. The old-system PDF export also needs internet access: PuppeteerSharp downloads headless Chrome on first use, and the rendered page loads its CSS and images from the app's own domain.
+- **Outbound access the server needs:** HTTPS to `api.cloudflare.com` (refreshes Cloudflare's IP ranges at startup and every 24 hours), plus SMTP for email. PDF export needs no outbound access (QuestPDF, embedded fonts, local images).
 - **Deploys are manual.** There's no CI/CD (see below), so merging to `master` doesn't change the live site. Publish, then copy the `publish` folder to the server:
 
   ```bash

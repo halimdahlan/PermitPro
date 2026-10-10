@@ -11,7 +11,6 @@
 
 	<ItemGroup>
 		<Compile Remove="Entities\UserSite.cs" />
-		<Compile Remove="Helpers\LicenseHelper.cs" />
 	</ItemGroup>
 
 	<ItemGroup>

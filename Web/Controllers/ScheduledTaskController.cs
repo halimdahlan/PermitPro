@@ -25,7 +25,6 @@ public class ScheduledTaskController : Controller
 	private readonly ApplicationDbContext _dbContext;
 	private readonly IWebHostEnvironment _webHostEnvironment;
 	private readonly PTWSettings _ptwSettings;
-	private readonly ITemplateService _templateService;
 	private readonly JsonSerializerOptions _jsonOptions;
 	private readonly ICurrentUserService _currentUserService;
 	private readonly ILogService _logService;
@@ -41,7 +40,6 @@ public class ScheduledTaskController : Controller
 		, ApplicationDbContext dbContext
 		, IWebHostEnvironment webHostEnvironment
 		, PTWSettings ptwSettings
-		, ITemplateService templateService
 		, ICurrentUserService currentUserService
 		, ILogService logService
 		, IAppSettingsService appSettingsService)
@@ -55,7 +53,6 @@ public class ScheduledTaskController : Controller
 		_dbContext = dbContext;
 		_webHostEnvironment = webHostEnvironment;
 		_ptwSettings = ptwSettings;
-		_templateService = templateService;
 		_currentUserService = currentUserService;
 		_logService = logService;
 		_appSettings = appSettingsService;

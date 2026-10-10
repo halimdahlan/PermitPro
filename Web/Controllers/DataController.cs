@@ -34,7 +34,6 @@ public class DataController : ControllerBase
 	private readonly ApplicationDbContext _dbContext;
 	private readonly IWebHostEnvironment _webHostEnvironment;
 	private readonly PTWSettings _ptwSettings;
-	private readonly ITemplateService _templateService;
 	private readonly JsonSerializerOptions _jsonOptions;
 	private readonly ICurrentUserService _currentUserService;
 
@@ -48,7 +47,6 @@ public class DataController : ControllerBase
 		, ApplicationDbContext dbContext
 		, IWebHostEnvironment webHostEnvironment
 		, PTWSettings ptwSettings
-		, ITemplateService templateService
 		, ICurrentUserService currentUserService)
 	{
 		_userManager = userManager;
@@ -60,7 +58,6 @@ public class DataController : ControllerBase
 		_dbContext = dbContext;
 		_webHostEnvironment = webHostEnvironment;
 		_ptwSettings = ptwSettings;
-		_templateService = templateService;
 		_currentUserService = currentUserService;
 
 		_jsonOptions = new JsonSerializerOptions
