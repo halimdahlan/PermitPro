@@ -240,29 +240,6 @@
 @await Html.PartialAsync("~/Views/Permits/Forms/_FormG.cshtml")
 @await Html.PartialAsync("~/Views/Permits/Forms/_FormH.cshtml")
 
-<!-- Modal: EXPORT PDF //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
-<div class="modal fade" id="dlgExportPdf" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="dlgExportPdfLabel" aria-hidden="true">
-	<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-		<div class="modal-content">
-			<div class="modal-header bg-info-soft">
-				<div class="modal-title" id="dlgExportPdfLabel">
-					Export to PDF
-				</div>
-				<a href="#" class="no-loading text-dark" data-bs-dismiss="modal" aria-label="Close"><i class="fa-sharp fa-solid fa-xmark fa-xl"></i></a>
-			</div>
-			<div class="modal-body">
-				[FORM]
-			</div>
-			<div class="modal-footer">
-				<button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal"><span class="mx-3">Close</span></button>
-				<button type="button" class="btn btn-sm btn-primary"><span class="mx-3">Export</span></button>
-			</div>
-		</div>
-	</div>
-</div>
-<!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
-
-
 <!-- Modal: DELETE ATTACHMENT -->
 <div class="modal fade" id="dlgDeleteAttachment" tabindex="-1" aria-hidden="true">
 	<div class="modal-dialog modal-dialog-centered modal-sm">
@@ -1073,48 +1050,9 @@
 			});
 
 
-			$('#dlgExportPdf').on('show.bs.modal', (e) => {
-				const regex1 = /accordion-item/gm;
-				const regex2 = /data-bs-toggle="collapse"/gm;
-				const regex3 = / collapsed/gm;
-				const regex4 = /class="accordion-collapse collapse"/gm;
-
-				const str = $('#accordionPermit').html();
-				const subst1 = 'accordion-item-print';
-				const subst2 = 'data-bs="x"';
-				const subst3 = '';
-				const subst4 = 'class="accordion-collapse"';
-
-				// The substituted value will be contained in the result variable
-				let result = str.replace(regex1, subst1);
-				result = result.replace(regex2, subst2);
-				result = result.replace(regex3, subst3);
-				result = result.replace(regex4, subst4);
-
-				$('.loading').show();
-
-				const xhr = $.ajax({
-					url: '/@Model.CompanyId/permits/templates/permit',
-					method: 'GET',
-				});
-
-				xhr.done((response, status) => {
-					$('#dlgExportPdf .modal-body').html(response.data);
-				});
-
-				xhr.fail((response, status) => {
-				});
-
-				xhr.always((response, status) => {
-					$('.loading').hide();
-				});
-			});
-
-
 			$('.btn-export').click(() => {
 				$('.loading').show();
 
-				var html = $('#dlgFormA .modal-body').html();
 				
 				var frm = new FormData();
 				frm.append('Id', '@Model.PermitId');

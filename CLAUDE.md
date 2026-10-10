@@ -80,10 +80,12 @@ Links in emails (password reset, workflow approvals) are built from the incoming
 
 ### PDF Generation
 
-Two engines coexist:
-- **Old-system permits** (created before `new_permit_form_cutover_date`) — `PermitPdfService` using PuppeteerSharp (headless Chrome) + Scriban templates. `ITemplateService` → `RazorViewsTemplateService`. PDF-specific layout: `Views/Shared/_LayoutPdf.cshtml`. Do not modify or remove this path without explicit approval. Certificates are read from `PermitForm.general.certificates` (matched by name against `PTWSettings.Certificates` in `appsettings.json`) and rendered from `wwwroot/templates/html/certificates/{name}.html` into the `__FORM_A__`…`__FORM_H__` placeholders of `permit-main.html`. A certificate ticked but never filled in is stored as just `{"name":"..."}`, so all certificate field access must stay null-safe (`cert["x"]?["y"]`, `IsChecked(token)` instead of `(bool)` casts).
-- **New-system permits** (on/after cutover date) — `QuestPdfService` using QuestPDF, driven by `FormTemplate.LayoutJson` and `Permit.PermitDataJson`. Both implement `IPermitPdfService`; `PermitsController.ExportPdf` selects the correct implementation via `IsNewSystemPermit(permit)`.
-- **Open issue / troubleshooting** — a report that old-system PDFs download *without* certificate pages was never reproduced; if it recurs, ask for the permit number and environment first. Details, what's been ruled out, and a console harness that runs `PermitPdfService` without the web app: `docs/pdf-export-troubleshooting.md`.
+Both engines use QuestPDF (no browser; Puppeteer was removed). `PermitsController.ExportPdf` picks one by the permit's `CreatedWhen` against the cutover date:
+- **Old-system permits** (created before `new_permit_form_cutover_date`) — `IPermitPdfService` → `Core/Services/LegacyPermitPdf/LegacyPermitPdfService` (`GenerateAsync(permitId)`, or `Render(permit)`), drawn by `LegacyPermitPdfDocument` (main form: 3 pages; then one section per attached certificate A–H, in `PTWSettings.Certificates` order from `appsettings.json`). Do not change the layout or field mapping without explicit approval: it reproduces the former Puppeteer/HTML export (sizes from that HTML, 1 CSS px = 0.683 pt). It reads `Permit.PermitForm` through `PermitFormReader`, which must stay null-safe: a certificate ticked but never filled in is stored as just `{"name":"..."}`, and any field may be missing. Dates are saved as UTC strings and printed in Asia/Kuala_Lumpur. The operational-information checkboxes are looked up by id, last copy wins (older permits store each id several times).
+- **Font** — QuestPDF (2026.9+) does not use system fonts. Both PDFs use Roboto 2.137 Regular/Bold (Apache 2.0), embedded in Core from `Core/Resources/Fonts/` and registered by `Core/Helpers/PdfFonts.EnsureRegistered()` (`PdfFonts.Family`); characters Roboto lacks (e.g. `₂`) fall back to QuestPDF's built-in Lato. Any other font family must be shipped and registered, or generation throws.
+- **Header** — both PDFs print the permit's company: name (`Description`, else `Name`) and logo via `Core/Helpers/PdfLogo.Load` — the company's uploaded logo (`wwwroot/img/logos/{Company.LogoFileName}`, PNG/JPG/WebP/SVG), falling back to `wwwroot/img/app-logo.jpg` when there is none or the file is missing/unreadable.
+- **New-system permits** (on/after cutover date) — `IQuestPdfService` → `QuestPdfService`, driven by `FormTemplate.LayoutJson` and `Permit.PermitDataJson`.
+- **Troubleshooting** — a console harness that renders an old-system permit without the web app (read-only), and the history of the "missing certificate pages" report: `docs/pdf-export-troubleshooting.md`.
 
 ### UI Framework
 
@@ -147,7 +149,7 @@ Hangfire packages are installed and registered but the seed/execution is current
 
 - All EF Core read queries use `AsNoTracking()`.
 - All async controller actions accept and propagate `CancellationToken`.
-- JSON serialization uses `System.Text.Json` everywhere except PDF template mapping (Newtonsoft).
+- JSON serialization uses `System.Text.Json` everywhere except the old-system PDF reader (`PermitFormReader`, Newtonsoft).
 - The `Html/` folder contains static HTML prototypes — not part of the compiled app.
 - The `SqlScripts/` folder holds ad-hoc SQL scripts for manual DB operations.
 - Hosting: a dedicated Windows Server (IIS, in-process) behind Cloudflare: proxied DNS, a Cloudflare Origin Certificate, and a redirect rule sending non-apex hostnames to `permitpro.app`. SmarterASP.NET and AWS EC2 are no longer used; README keeps their old deployment sections for reference.
