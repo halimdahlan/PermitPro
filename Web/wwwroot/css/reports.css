@@ -136,8 +136,26 @@ a:hover {
 }
 
 /* ── All Permits grid: "Group by" control and group rows ── */
+/* Wide enough for all four choices on one line, with empty space left to click to open the list. */
 .report-group-by .grid-filter {
-	width: 190px;
+	width: 440px;
+	max-width: 100%;
+}
+
+/* Nested groups: each inner level's header indented one step further. */
+.data-grid table.dataTable tr.dtrg-group.dtrg-start.dtrg-level-1 th,
+.data-grid table.dataTable tr.dtrg-group.dtrg-start.dtrg-level-1 td {
+	padding-left: 2rem;
+}
+
+.data-grid table.dataTable tr.dtrg-group.dtrg-start.dtrg-level-2 th,
+.data-grid table.dataTable tr.dtrg-group.dtrg-start.dtrg-level-2 td {
+	padding-left: 3.5rem;
+}
+
+.data-grid table.dataTable tr.dtrg-group.dtrg-start.dtrg-level-3 th,
+.data-grid table.dataTable tr.dtrg-group.dtrg-start.dtrg-level-3 td {
+	padding-left: 5rem;
 }
 
 .data-grid table.dataTable tr.dtrg-group.dtrg-start th,

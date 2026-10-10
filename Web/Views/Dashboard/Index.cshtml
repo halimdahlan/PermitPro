@@ -88,7 +88,7 @@
 				<span class="input-group-text" style="font-size:.75rem;border-radius:6px 0 0 6px;background:#f1f5f9;border-color:#e2e8f0;">
 					<i class="fa-regular fa-calendar" style="color:#94a3b8;"></i>
 				</span>
-				<input type="date" id="dateFrom" class="form-control form-control-sm" required
+				<input type="text" id="dateFrom" class="form-control form-control-sm" placeholder="From" required
 					style="font-size:.8rem;border-color:#e2e8f0;border-radius:0 6px 6px 0;padding:.35rem .6rem;" />
 			</div>
 			<span style="color:#cbd5e1;font-size:.85rem;">—</span>
@@ -96,7 +96,7 @@
 				<span class="input-group-text" style="font-size:.75rem;border-radius:6px 0 0 6px;background:#f1f5f9;border-color:#e2e8f0;">
 					<i class="fa-regular fa-calendar" style="color:#94a3b8;"></i>
 				</span>
-				<input type="date" id="dateTo" class="form-control form-control-sm" required
+				<input type="text" id="dateTo" class="form-control form-control-sm" placeholder="To" required
 					style="font-size:.8rem;border-color:#e2e8f0;border-radius:0 6px 6px 0;padding:.35rem .6rem;" />
 			</div>
 			<button id="btnApply" class="btn btn-sm btn-primary">
@@ -258,10 +258,12 @@
 
 @section CustomCss {
 	<link rel="stylesheet" href="~/css/dashboard.css" />
+	<partial name="_FlatpickrStyles" />
 }
 
 @section Scripts {
 	<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+	<partial name="_FlatpickrScripts" />
 	<script>
 		(function () {
 			var companyId = '@Model.CompanyId';
@@ -442,13 +444,24 @@
 			var dateTo   = document.getElementById('dateTo');
 			var errEl    = document.getElementById('dateError');
 
+			// Flatpickr (weeks start on Monday). The inputs keep yyyy-mm-dd values, as the native date
+			// inputs did; the visible field shows dd/mm/yyyy and keeps the inputs' inline style.
+			var pickerOpts = {
+				dateFormat: 'Y-m-d',
+				altInput: true,
+				altFormat: 'd/m/Y',
+				onReady: function (_, __, fp) { fp.altInput.setAttribute('style', fp.input.getAttribute('style')); }
+			};
+			var fpFrom = flatpickr(dateFrom, pickerOpts);
+			var fpTo   = flatpickr(dateTo, pickerOpts);
+
 			// When "from" date changes, set "to" date min to the same value
 			dateFrom.addEventListener('change', function () {
 				var val = dateFrom.value;
-				dateTo.min = val;
+				fpTo.set('minDate', val || null);
 				// If "to" is already set and now invalid, clear it
 				if (dateTo.value && val && dateTo.value < val) {
-					dateTo.value = '';
+					fpTo.clear();
 				}
 				hideError();
 			});
@@ -471,9 +484,9 @@
 			});
 
 			document.getElementById('btnClear').addEventListener('click', function () {
-				dateFrom.value = '';
-				dateTo.value = '';
-				dateTo.min = '';
+				fpFrom.clear();
+				fpTo.clear();
+				fpTo.set('minDate', null);
 				hideError();
 				fetchCharts();
 			});
