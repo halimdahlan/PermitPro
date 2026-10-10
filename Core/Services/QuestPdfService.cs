@@ -13,6 +13,7 @@ using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 
+using System.Globalization;
 using System.Text.Json;
 
 namespace PermitPro.Core.Services;
@@ -34,6 +35,7 @@ public class QuestPdfService : IQuestPdfService
 
 		// Community licence is sufficient for internal business documents
 		QuestPDF.Settings.License = LicenseType.Community;
+		PdfFonts.EnsureRegistered();
 	}
 
 
@@ -79,7 +81,7 @@ public class QuestPdfService : IQuestPdfService
 				  .ToDictionaryAsync(c => c.Id, ct)
 			 : new Dictionary<Guid, FormControl>();
 
-		var logoPath = Path.Combine(_env.WebRootPath, "img", "app-logo.jpg");
+		var logo = PdfLogo.Load(_env.WebRootPath, company?.LogoFileName);
 
 		// Load certificate controls for all new-system certificates attached to this permit
 		var certControlMap = new Dictionary<Guid, Dictionary<Guid, FormControl>>();
@@ -127,6 +129,7 @@ public class QuestPdfService : IQuestPdfService
 			container.Page(page =>
 			  {
 				 page.Size(PageSizes.A4);
+				 page.DefaultTextStyle(x => x.FontFamily(PdfFonts.Family));
 				 page.MarginTop(2f, Unit.Centimetre);
 				 page.MarginBottom(1.5f, Unit.Centimetre);
 				 page.MarginLeft(1.5f, Unit.Centimetre);
@@ -134,7 +137,7 @@ public class QuestPdfService : IQuestPdfService
 
 				  // ── Header ─────────────────────────────────────────────────
 				 page.Header().Element(header => RenderHeader(
-						 header, headerCfg, company, permit, logoPath));
+						 header, headerCfg, company, permit, logo));
 
 				  // ── Content ────────────────────────────────────────────────
 				 page.Content().Element(content =>
@@ -182,6 +185,7 @@ public class QuestPdfService : IQuestPdfService
 				container.Page(page =>
 				{
 					page.Size(PageSizes.A4);
+					page.DefaultTextStyle(x => x.FontFamily(PdfFonts.Family));
 					page.MarginTop(2f, Unit.Centimetre);
 					page.MarginBottom(1.5f, Unit.Centimetre);
 					page.MarginLeft(1.5f, Unit.Centimetre);
@@ -238,15 +242,15 @@ public class QuestPdfService : IQuestPdfService
 		 HeaderConfig cfg,
 		 Company company,
 		 Permit permit,
-		 string logoPath)
+		 PdfLogo logo)
 	{
 		header.BorderBottom(1).BorderColor(Colors.Grey.Lighten2)
 				.PaddingBottom(6).Row(row =>
 		{
 			// Logo
-			if ((cfg?.ShowCompanyLogo ?? true) && File.Exists(logoPath))
+			if ((cfg?.ShowCompanyLogo ?? true) && logo != null)
 			{
-				row.ConstantItem(60).Image(logoPath).FitWidth();
+				row.ConstantItem(60).Height(40).Element(logo.Compose);
 				row.ConstantItem(8).Text("");   // spacer — must have content
 			}
 
@@ -386,8 +390,14 @@ public class QuestPdfService : IQuestPdfService
 			case FormControlTypeEnum.DateTimeInput:
 				{
 					var val = raw.ValueKind == JsonValueKind.String ? raw.GetString() : "";
-					if (!string.IsNullOrEmpty(val) && DateTime.TryParse(val, out var dt))
-						container.Text(dt.ToLocalTime().ToString("dd MMM yyyy HH:mm")).FontSize(9);
+					// The form saves the picked wall-clock time ("yyyy-MM-dd HH:mm", no zone), so print it as is;
+					// only a value carrying a zone/offset is converted to Malaysia time.
+					if (!string.IsNullOrEmpty(val) && DateTime.TryParse(val, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var dt))
+					{
+						if (dt.Kind != DateTimeKind.Unspecified)
+							dt = GeneralHelper.GetDateInTimeZone(dt.ToUniversalTime());
+						container.Text(dt.ToString("dd MMM yyyy HH:mm", CultureInfo.InvariantCulture)).FontSize(9);
+					}
 					else
 						container.Text(val ?? "—").FontSize(9);
 					break;
@@ -436,7 +446,7 @@ public class QuestPdfService : IQuestPdfService
 			row.ConstantItem(80).AlignRight().Text(text =>
 			  {
 				 if (cfg?.ShowPrintDate == true)
-					 text.Span($"Printed: {DateTime.Now:dd MMM yyyy}  ")
+					 text.Span($"Printed: {GeneralHelper.GetDateInTimeZone(DateTime.UtcNow):dd MMM yyyy}  ")
 							 .FontSize(7).FontColor(Colors.Grey.Medium);
 				 if (cfg?.ShowPageNumbers != false)
 				 {

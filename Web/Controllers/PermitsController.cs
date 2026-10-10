@@ -822,18 +822,6 @@ public class PermitsController : AppControllerBase
 
 	#region "PDF"
 
-	[HttpGet("{company}/permits/templates/permit")]
-	public IActionResult GetPermitHtmlTemplate()
-	{
-		var htmlTemplate = System.IO.File.ReadAllText(_webHostEnvironment.WebRootPath + "/templates/html/permit-main-div-only.html");
-
-		return Ok(new
-		{
-			Data = htmlTemplate
-		});
-	}
-
-
 	[HttpPost("{company}/permits/permit/export/pdf")]
 	public async Task<IActionResult> ExportPdf(Guid company, CancellationToken ct)
 	{
@@ -860,7 +848,9 @@ public class PermitsController : AppControllerBase
 		}
 		else
 		{
-			pdf = await _permitPdfService.GetPdfBytesAsync(Request.Form);
+			var legacyPdf = await _permitPdfService.GenerateAsync(permitId, ct);
+			if (legacyPdf == null) return NotFound();
+			pdf = legacyPdf;
 		}
 
 		return File(pdf, "application/pdf", $"PTW{permitCheck.RunningNumber:000000}.pdf");

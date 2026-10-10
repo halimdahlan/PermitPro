@@ -6,13 +6,15 @@
 
 **Fixed (commit `e8a970d`, deployed):** a certificate that is ticked but never filled in is stored in `PermitForm.general.certificates` as just `{"name":"hotwork"}`. `PermitPdfService` assumed every field existed and threw a `NullReferenceException`, so the export returned 500 and nothing downloaded (the Edit page ignores the failure). All certificate field access is now null-safe; an unfilled certificate prints as a blank form. Verified for all 8 certificate types.
 
+**Exporter replaced (2026-10):** the old-system PDF is now drawn with QuestPDF (`LegacyPermitPdfService`) instead of Puppeteer, with no network requests, so a failed CSS/image download or browser problem can no longer drop pages.
+
 **Still unexplained:** the reported symptom — a PDF that *downloads* but has no certificate pages — was never reproduced. Against the local database, every permit with certificate data exported its certificate pages correctly.
 
 Ruled out:
 - Newtonsoft.Json 13.0.3 → 13.0.4: `SelectToken("$.[?(@.name=='x')]")` behaves identically.
 - Certificate names in data vs `PTWSettings.Certificates` in `appsettings.json`: they match.
 - Code drift: the PDF code was moved unchanged from `PermitService` to `PermitPdfService` in commit `2983646` (July 2026).
-- The new-system (QuestPDF) path: not involved for old-system permits.
+- The new-system path (`QuestPdfService`): not involved for old-system permits.
 
 **Next step if it recurs:** get the permit number (`PTWxxxxxx`) and environment (local / UAT / production), then inspect that permit's `PermitForm` JSON:
 
@@ -24,7 +26,7 @@ WHERE RunningNumber = 1163;   -- the permit number without the PTW prefix
 
 ## Reproducing an old-system PDF export without the web app
 
-The export can be run outside the app — no login needed — with a small console harness that constructs `PermitPdfService` directly against a database. Create it **outside the repo** (or don't commit it):
+The export can be run outside the app — no login needed — with a small console harness that constructs `LegacyPermitPdfService` directly against a database. It only reads: `SaveChanges` is never called. Create it **outside the repo** (or don't commit it). Build it against a copy of `Core` if Visual Studio has the solution open, so the two builds don't share `Core\obj`.
 
 `pdfharness.csproj`
 ```xml
@@ -48,21 +50,20 @@ The export can be run outside the app — no login needed — with a small conso
 `Program.cs`
 ```csharp
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Primitives;
 
 using PermitPro.Core.Data;
-using PermitPro.Core.Entities;
 using PermitPro.Core.Helpers;
-using PermitPro.Core.Interfaces;
-using PermitPro.Core.Services;
+using PermitPro.Core.Services.LegacyPermitPdf;
 
-// Usage: dotnet run -- <permit-guid> <out.pdf> [--all-name-only]
+// Usage: dotnet run -- <permit-guid> <out.pdf> [--form <permitform.json>] [--all-name-only]
+//   --form           render with this PermitForm JSON instead (in memory only)
+//   --all-name-only  attach all 8 certificates with no data (in memory only)
 const string RepoRoot = @"D:\Development\ThinkVisor\PermitPro-1.2";   // adjust
+QuestPDF.Settings.EnableDebugging = true;   // layout problems fail with a report instead of looping
 
 var config = new ConfigurationBuilder()
 	.AddJsonFile(Path.Combine(RepoRoot, "Web", "appsettings.json"))
@@ -75,22 +76,22 @@ var opts = new DbContextOptionsBuilder<ApplicationDbContext>()
 using var db = new ApplicationDbContext(opts);
 
 var ptw = config.GetSection("PTWSettings").Get<PTWSettings>();
-var permitId = args[0];
+var permit = db.Permits.Include(p => p.Company).First(p => p.Id == Guid.Parse(args[0]));
+
+var formIdx = Array.IndexOf(args, "--form");
+if (formIdx >= 0)
+	permit.PermitForm = File.ReadAllText(args[formIdx + 1]);
 
 if (args.Contains("--all-name-only"))
 {
-	// In memory only — SaveChanges is never called. The service's own tracking query
-	// returns this same modified instance, so it renders all 8 certificates with no data.
-	var tracked = db.Permits.First(p => p.Id == Guid.Parse(permitId));
-	var jo = Newtonsoft.Json.Linq.JObject.Parse(tracked.PermitForm);
+	var jo = Newtonsoft.Json.Linq.JObject.Parse(permit.PermitForm);
 	jo["general"]["certificates"] = new Newtonsoft.Json.Linq.JArray(
 		ptw.Certificates.Select(c => new Newtonsoft.Json.Linq.JObject { ["name"] = c.Name }));
-	tracked.PermitForm = jo.ToString(Newtonsoft.Json.Formatting.None);
+	permit.PermitForm = jo.ToString(Newtonsoft.Json.Formatting.None);
 }
 
-var svc = new PermitPdfService(db, ptw, new Env(RepoRoot), new User(), new Settings(), NullLogger<PermitPdfService>.Instance);
-var form = new FormCollection(new Dictionary<string, StringValues> { ["Id"] = permitId });
-var pdf = await svc.GetPdfBytesAsync(form);
+var svc = new LegacyPermitPdfService(db, ptw, new Env(RepoRoot), NullLogger<LegacyPermitPdfService>.Instance);
+var pdf = svc.Render(permit);
 await File.WriteAllBytesAsync(args[1], pdf);
 Console.WriteLine($"Wrote {pdf.Length} bytes to {args[1]}");
 
@@ -103,38 +104,13 @@ class Env(string repoRoot) : IWebHostEnvironment
 	public string ContentRootPath { get; set; } = Path.Combine(repoRoot, "Web");
 	public string EnvironmentName { get; set; } = "Development";
 }
-
-class User : ICurrentUserService
-{
-	public Task<bool> IsContractor() => Task.FromResult(false);
-	public Task<bool> IsPermitIssuer() => Task.FromResult(false);
-	public Task<bool> IsLeadPermitIssuer() => Task.FromResult(false);
-	public Task<UserInfo> GetCurrentUserAsync() => Task.FromResult<UserInfo>(null);
-	public Task<IList<string>> GetCurrentUserRoles() => Task.FromResult<IList<string>>(new List<string>());
-	public UserInfo GetCurrentUser() => null;
-	public Guid GetCurrentCompanyId() => Guid.Empty;
-}
-
-// Only GetValueAsync is used by PermitPdfService (for "application_domain").
-class Settings : IAppSettingsService
-{
-	public Task<string> GetValueAsync(Guid companyId, string categoryName, string key) => Task.FromResult("uat.permitpro.app");
-	public Task<IEnumerable<AppSettingCategory>> GetCategoriesAsync(Guid companyId) => throw new NotImplementedException();
-	public Task<IEnumerable<AppSettingCategory>> GetGlobalCategoriesAsync() => throw new NotImplementedException();
-	public Task UpsertCategoryAsync(AppSettingCategory category) => throw new NotImplementedException();
-	public Task DeleteCategoryAsync(Guid id) => throw new NotImplementedException();
-	public Task<int> GetIntAsync(Guid companyId, string categoryName, string key) => throw new NotImplementedException();
-	public Task<IEnumerable<AppSetting>> GetSettingsAsync(Guid companyId, Guid categoryId) => throw new NotImplementedException();
-	public Task<IEnumerable<AppSetting>> GetGlobalSettingsAsync(Guid categoryId) => throw new NotImplementedException();
-	public Task UpsertSettingAsync(AppSetting setting) => throw new NotImplementedException();
-	public Task DeleteSettingAsync(Guid id) => throw new NotImplementedException();
-}
 ```
 
 Notes:
-- Puppeteer loads Bootstrap CSS and checkbox images from `https://{application_domain}`, so the harness needs internet access. Its first run downloads headless Chrome.
-- `--all-name-only` exercises every certificate type with no data, without writing to the database.
-- Useful local test permits (as of 2026-10-07): **PTW001163** (Hot Work with data, exports 4 pages) and **PTW001158** (Hot Work ticked but never filled in).
+- No internet or browser is needed: the logo and checkbox images come from `Web/wwwroot/img`, and the Roboto font is embedded in Core.
+- `--all-name-only` exercises every certificate type with no data.
+- Useful local test permits (as of 2026-10-07): **PTW001163** (Hot Work with data) and **PTW001158** (Hot Work ticked but never filled in).
+- A layout that doesn't fit (e.g. a long value in a row of fixed-size items) throws `DocumentLayoutException` with the element path when `EnableDebugging` is on; without it the render can loop.
 
 ## Local database facts (as of 2026-10-07)
 
