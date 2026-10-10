@@ -95,7 +95,7 @@ Telerik / Kendo UI has been removed (no NuGet package, CDN, local library or CSP
 - **Dates** — Flatpickr. **Switches/checkboxes** — Bootstrap `form-check`/`form-switch`. Modals: Bootstrap; notifications: `wwwroot/js/toast.js`; charts: Chart.js; uploads: native file input / custom dropzone.
 - **Old-system permit form** (`Permits/New`, `Permits/Edit`, `Panels/*`, `Forms/*` certificates A–H) — native controls marked `data-control="..."`, set up by `wwwroot/js/form-controls.js` (`_FormControls*` partials). Page code reads them with `$('#id').data('control').value()`; the adapter reproduces Kendo's `value()` semantics (null for untouched text fields, Date objects, booleans), so the saved `PermitForm` JSON — and the old-system PDF built from it — is unchanged. Change handlers are named in markup (`data-change="fn"`) and registered with `FormControls.handlers({ fn })`. Keep that JSON shape when changing these pages.
 
-CSP still has `'unsafe-inline'` (Razor views use inline scripts/styles) and `'unsafe-eval'` (was for Kendo; kept until no other script is confirmed to need it).
+CSP still has `'unsafe-inline'` (Razor views use inline scripts/styles). `'unsafe-eval'` is sent only for actions marked `[AllowUnsafeEval]` (`Web/Services/AllowUnsafeEvalAttribute.cs`) — currently just `Sitemap/Index`, because the Google Maps JavaScript API's published CSP includes it. The CSP header is written in `Response.OnStarting` (in `Program.cs`), once routing has chosen the endpoint. Don't add eval-based libraries elsewhere; mark the action instead if one is unavoidable.
 
 ### Form Builder
 

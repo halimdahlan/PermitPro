@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 using PermitPro.App.Controllers.Base;
+using PermitPro.App.Services;
 using PermitPro.App.ViewModels;
 using PermitPro.Core.Data;
 using PermitPro.Core.Entities;
@@ -44,6 +45,8 @@ public class SitemapController : AppControllerBase
 
 	#region "Views"
 
+	// Google Maps JavaScript API: its published CSP includes 'unsafe-eval'.
+	[AllowUnsafeEval]
 	public IActionResult Index(Guid company)
 	{
 		var site = _dbContext.Sites
