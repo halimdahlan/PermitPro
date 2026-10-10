@@ -312,3 +312,37 @@
 .map-info-footer strong {
     color: var(--accent);
 }
+
+/* Legend is a <details>: the title toggles it (collapsed on phones). */
+.map-legend > summary.map-legend-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    cursor: pointer;
+    list-style: none;
+}
+
+    .map-legend > summary.map-legend-title::-webkit-details-marker {
+        display: none;
+    }
+
+    .map-legend > summary.map-legend-title::after {
+        content: "BE"; /* ▾ */
+        font-size: .8rem;
+    }
+
+.map-legend:not([open]) {
+    min-width: 0;
+    padding: 8px 12px;
+}
+
+    .map-legend:not([open]) > summary.map-legend-title {
+        margin: 0;
+        padding: 0;
+        border: 0;
+    }
+
+        .map-legend:not([open]) > summary.map-legend-title::after {
+            content: "B8"; /* ▸ */
+        }

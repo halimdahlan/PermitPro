@@ -10,5 +10,23 @@
 }
 
 #tblPermits td.col-description {
-	min-width: 240px;
+	min-width: 150px;
+}
+
+/* Fit nine columns in the card on desktop without sideways scrolling: tighter side padding than
+   the app-wide 14px, and slightly smaller text. Headers stay on one line. */
+#tblPermits > thead > tr > th,
+#tblPermits > tbody > tr > td {
+	padding-left: 8px;
+	padding-right: 8px;
+}
+
+#tblPermits thead th {
+	font-size: 12px;
+	letter-spacing: .02em;
+}
+
+/* Matches the specificity of datagrid.css's ".data-grid table.dataTable td" (14px). */
+.data-grid table.dataTable#tblPermits td {
+	font-size: 13px;
 }

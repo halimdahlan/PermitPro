@@ -76,7 +76,9 @@ $"/admin/certificatetemplates/new?companyId={Model.CompanyId}";
 		}
 		else
 		{
-			<table class="table table-hover mb-0 align-middle">
+			@* Phones: each template as a card (datagrid.css, .table-cards-wrap). *@
+			<div class="table-cards-wrap p-2 p-sm-0">
+			<table class="table table-hover mb-0 align-middle dt-cards">
 				<thead class="table-light">
 					<tr>
 						<th style="padding-left:1.25rem;">Name</th>
@@ -99,18 +101,18 @@ $"/admin/certificatetemplates/new?companyId={Model.CompanyId}";
 									<small class="text-muted">@t.Description</small>
 								}
 							</td>
-							<td>
+							<td data-label="Type">
 								<span
 									class="badge @(isCertRow ? "bg-warning-subtle text-warning-emphasis border border-warning-subtle" : "bg-info-subtle text-info-emphasis border border-info-subtle")">
 									@t.TemplateType
 								</span>
 							</td>
-							<td>
+							<td data-label="Last Updated">
 								<small class="text-muted">
 									@((t.UpdatedWhen ?? t.CreatedWhen).ToString("dd MMM yyyy, hh:mm tt"))
 								</small>
 							</td>
-							<td class="text-end" style="padding-right:1.25rem;">
+							<td class="text-end dt-card-actions" data-label="" style="padding-right:1.25rem;">
 								<a href="@rowEditBase/@t.Id/edit" class="btn btn-sm btn-outline-secondary me-1"
 									title="Edit in Builder">
 									<i class="fa-solid fa-pen-ruler"></i>
@@ -124,6 +126,7 @@ $"/admin/certificatetemplates/new?companyId={Model.CompanyId}";
 					}
 				</tbody>
 			</table>
+			</div>
 		}
 	</div>
 </div>
@@ -160,6 +163,10 @@ $"/admin/certificatetemplates/new?companyId={Model.CompanyId}";
 			</div>
 		</div>
 	</div>
+
+	@section CustomCss {
+		<link rel="stylesheet" href="~/css/datagrid.css" asp-append-version="true" />
+	}
 
 	@section Scripts {
 		<script>

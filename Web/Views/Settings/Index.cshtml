@@ -39,8 +39,8 @@ else
 		var escapedIcon = (cat.Icon ?? "").Replace("'", "\\'");
 
 		<div class="mb-4">
-			<div class="d-flex align-items-center justify-content-between border-bottom mb-2 bg-dark p-2">
-				<div class="d-flex align-items-center gap-2 ms-2">
+			<div class="d-flex align-items-center justify-content-between gap-2 border-bottom mb-2 bg-dark p-2">
+				<div class="d-flex flex-wrap align-items-center column-gap-2 ms-2">
 					@if (!string.IsNullOrEmpty(cat.Icon))
 					{
 						<i class="fa-regular @cat.Icon text-white"></i>
@@ -241,6 +241,7 @@ else
 </div>
 
 @section CustomCss {
+	<link rel="stylesheet" href="~/css/datagrid.css" asp-append-version="true" />
 	<link rel="stylesheet" href="~/css/settings.css" />
 }
 
@@ -312,10 +313,10 @@ else
 					</button>`;
 			return `<tr>
 				<td>${escapeHtml(s.DisplayName)}${badge}</td>
-				<td><code>${escapeHtml(s.Key)}</code></td>
-				<td>${valueDisplay}</td>
-				<td><span class="badge bg-light text-dark border">${escapeHtml(s.DataType)}</span></td>
-				<td class="text-end text-nowrap">
+				<td data-label="Key"><code>${escapeHtml(s.Key)}</code></td>
+				<td data-label="Value">${valueDisplay}</td>
+				<td data-label="Type"><span class="badge bg-light text-dark border">${escapeHtml(s.DataType)}</span></td>
+				<td class="text-end text-nowrap dt-card-actions" data-label="">
 					<button class="btn btn-sm btn-outline-secondary me-1" onclick='editSetting("${encoded}")'>
 						<i class="fa-regular fa-pen-to-square"></i>
 					</button>
@@ -324,8 +325,10 @@ else
 			</tr>`;
 		}).join('');
 
+		// Phones: each setting as a card (datagrid.css, .table-cards-wrap).
 		panel.html(`
-			<table class="table table-sm table-hover mb-0">
+			<div class="table-cards-wrap">
+			<table class="table table-sm table-hover mb-0 dt-cards">
 				<thead class="table-light">
 					<tr>
 						<th style="width:350px;">Setting</th>
@@ -337,6 +340,7 @@ else
 				</thead>
 				<tbody>${rows}</tbody>
 			</table>
+			</div>
 		`);
 	};
 

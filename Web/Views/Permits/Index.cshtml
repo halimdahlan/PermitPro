@@ -7,22 +7,24 @@
 
 @model PermitViewModel
 
-<div class="d-flex flex-row">
-	<div class="flex-grow-1 d-flex flex-row align-items-center">
-		<label for="ddlFilter" class="me-3">Filter by</label>
+@* Wraps on phones: the New permit button first, then the filter and its links. *@
+<div class="d-flex flex-wrap align-items-center gap-3">
+	<div class="flex-grow-1 d-flex align-items-center gap-2 gap-sm-3 order-2 order-sm-1">
+		<label for="ddlFilter" class="text-nowrap">Filter by</label>
 		<div class="grid-filter">
 			<select id="ddlFilter" asp-items="Model.StatusOptions" autocomplete="off"></select>
 		</div>
-		<div class="ms-3">
-			<a href="javascript:;" class="no-loading lnk-clear-filter">Clear</a> <span class="px-2">|</span> <a href="javascript:;" class="no-loading lnk-reload-grid">Reload grid</a>
+		<div class="d-flex gap-1">
+			<button type="button" class="btn btn-sm btn-outline-secondary grid-icon-btn lnk-clear-filter" title="Clear filter" aria-label="Clear filter"><i class="fa-solid fa-filter-circle-xmark"></i></button>
+			<button type="button" class="btn btn-sm btn-outline-secondary grid-icon-btn lnk-reload-grid" title="Reload grid" aria-label="Reload grid"><i class="fa-solid fa-arrows-rotate"></i></button>
 		</div>
 	</div>
-	<div>
+	<div class="order-1 order-sm-2 ms-auto">
 		<a asp-controller="permits" asp-action="new" class="btn btn-sm btn-primary"><span class="px-2"><i class="fa-sharp fa-solid fa-plus me-2"></i> New permit</span></a>
 	</div>
 </div>
 
-<div class="mt-5 card data-grid">
+<div class="mt-4 mt-sm-5 card data-grid">
 	<div class="card-body">
 		<div class="grid-error alert alert-danger d-none" role="alert"></div>
 		<table id="tblPermits" class="table table-sm table-hover align-middle w-100">
@@ -115,7 +117,6 @@
 					},
 					{
 						data: 'SubmittedBy',
-						className: 'text-nowrap',
 						render: (data, type, row) => type === 'display'
 							? `<div>${DataGrid.escapeHtml(data)}</div><div class="text-secondary submitted-on">on ${moment(row.DateSubmitted).format('DD MMM, YYYY')}</div>`
 							: data,

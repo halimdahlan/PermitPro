@@ -105,3 +105,59 @@ input.form-check-input.fc-check-input {
 		opacity: .65;
 		cursor: default;
 	}
+
+/* ── Phones (< 576px) ── */
+@media (max-width: 575.98px) {
+	/* Checkbox lists: more room between rows for fingers. */
+	.fc-check {
+		padding-top: 4px;
+		padding-bottom: 4px;
+	}
+
+		.fc-check .form-check-input {
+			width: 1.3em;
+			height: 1.3em;
+			margin-top: .1em;
+		}
+
+	/* A list row with a number box ("No. of Isolation Certificate(s)"): label above, box full width. */
+	#accordionPermit .list-group-item:has(input[type="number"]) {
+		flex-wrap: wrap;
+		gap: 6px;
+	}
+
+		#accordionPermit .list-group-item:has(input[type="number"]) > div {
+			flex: 0 0 100%;
+		}
+
+	/* Confined Space, allowable atmospheres: headers may wrap so the four columns fit the dialog. */
+	.table-gas-info th,
+	.table-gas-info td {
+		white-space: normal !important;
+		font-size: 11px;
+		padding: 4px !important;
+		/* Normal case and spacing: the upper-case headings were too wide to wrap at word boundaries. */
+		text-transform: none !important;
+		letter-spacing: 0 !important;
+	}
+
+	/* Notes, area classification: the description under the zone name instead of a narrow fourth column. */
+	.area-zones tr {
+		display: grid;
+		grid-template-columns: 22px 1fr;
+		margin-bottom: 12px;
+	}
+
+	.area-zones td {
+		width: auto !important;
+		padding: 0 !important;
+	}
+
+		.area-zones td:nth-child(3) {
+			display: none;
+		}
+
+		.area-zones td:nth-child(4) {
+			grid-column: 2;
+		}
+}

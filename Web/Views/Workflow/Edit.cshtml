@@ -566,6 +566,8 @@
 								}
 							]
 						});
+						// Phones: each step as a card (datagrid.css).
+						DataGrid.enableCards(tbl);
 					}
 				}
 
@@ -597,6 +599,8 @@
 								},
 							],
 						});
+						// Phones: each approver as a card (datagrid.css).
+						DataGrid.enableCards(tblApprovers);
 					} else {
 						reloadApprovers();
 					}
@@ -625,6 +629,8 @@
 				if (tblUsers == null) {
 					tblUsers = $('#tblUsers').DataTable({
 						ajax: '/@companyId/users/workflowusers/all',
+						// Column widths come from workflow.css (narrower on phones), not DataTables' measured pixel widths.
+						autoWidth: false,
 						pageLength: 5,
 						lengthMenu: [5, 10, 25, 50],
 						searching: false,

@@ -13,19 +13,19 @@
 }
 
 <div class="data-table">
-	<div class="d-flex flex-row justify-content-between align-items-center mb-5">
+	<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4 mb-sm-5">
 		@if (Model.SiteParent != null)
 		{
 			<nav aria-label="breadcrumb">
-				<ol class="breadcrumb">
+				<ol class="breadcrumb mb-0">
 					<li class="breadcrumb-item active" aria-current="page">
 						You are now in <strong class="text-dark">@Model.SiteParent.Name</strong>
 					</li>
 				</ol>
 			</nav>
-			<a href="/@Model.CompanyId/sites/@Model.ParentId/new" class="btn btn-sm btn-primary"><span class="mx-3"><i class="fa-sharp fa-solid fa-plus me-2"></i> New location</span></a>
+			<a href="/@Model.CompanyId/sites/@Model.ParentId/new" class="btn btn-sm btn-primary ms-auto"><span class="mx-3"><i class="fa-sharp fa-solid fa-plus me-2"></i> New location</span></a>
 		} else {
-			<a href="/@Model.CompanyId/sites/@Guid.Empty/new" class="btn btn-sm btn-primary"><span class="mx-3"><i class="fa-sharp fa-solid fa-plus me-2"></i> New location</span></a>
+			<a href="/@Model.CompanyId/sites/@Guid.Empty/new" class="btn btn-sm btn-primary ms-auto"><span class="mx-3"><i class="fa-sharp fa-solid fa-plus me-2"></i> New location</span></a>
 		}
 	</div>
 

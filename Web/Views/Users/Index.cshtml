@@ -5,9 +5,10 @@
 
 @model UsersViewModel
 
-<div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-3">
-	<div class="d-flex flex-row align-items-center gap-3">
-		<label for="ddlFilter" class="form-label mb-0">View by:</label>
+@* Wraps on phones: the buttons first, then the filter. *@
+<div class="d-flex flex-wrap align-items-center gap-3 mb-3">
+	<div class="flex-grow-1 d-flex align-items-center gap-2 gap-sm-3 order-2 order-sm-1">
+		<label for="ddlFilter" class="form-label mb-0 text-nowrap">View by:</label>
 		<div class="grid-filter grid-filter-lg">
 			<select id="ddlFilter" autocomplete="off">
 				<option value="" selected>All users</option>
@@ -24,7 +25,7 @@
 			</select>
 		</div>
 	</div>
-	<div>
+	<div class="order-1 order-sm-2 ms-auto">
 		<a href="/@Model.CompanyId/users/new" class="btn btn-sm btn-primary me-2"><span class="px-2"><i class="fa-sharp fa-solid fa-plus me-2"></i> New user</span></a>
 		<a href="/@Model.CompanyId/users/roles" class="btn btn-sm btn-primary"><span class="px-2">User roles</span></a>
 	</div>

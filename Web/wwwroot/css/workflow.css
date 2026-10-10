@@ -86,3 +86,25 @@ a:hover {
 		overflow: hidden;
 		text-overflow: ellipsis;
 	}
+
+/* Phones: narrower fixed columns so the select checkbox stays inside the dialog. */
+@media (max-width: 575.98px) {
+	#tblUsers th.col-user-name {
+		width: 110px;
+	}
+
+	#tblUsers th.col-user-select {
+		width: 44px;
+	}
+
+		/* "ACTIONS" doesn't fit; the column is just the checkbox. */
+		#tblUsers th.col-user-select .dt-column-title {
+			display: none;
+		}
+
+	#tblUsers > thead > tr > th,
+	#tblUsers > tbody > tr > td {
+		padding-left: 6px;
+		padding-right: 6px;
+	}
+}

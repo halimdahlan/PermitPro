@@ -781,3 +781,68 @@ h1, h2, h3, h4, h5, h6 {
 li.list-group-item, li.nav-item, .dropdown-menu li {
 	margin-inline-start: unset !important;
 }
+
+/* ══ Mobile (phones, < 576px) ═══════════════════════════════════════════════
+   Shared by every page: tighter page gutters and card padding, a visible menu
+   button on the dark sidebar bar, and compact stat cards. Page-specific mobile
+   rules live in each page's own stylesheet. */
+
+/* The sidebar is navbar-light (dark toggler icon) on a dark background: use a light icon. */
+#sidebar .navbar-toggler {
+	border-color: rgba(255, 255, 255, .25);
+	padding: .35rem .5rem;
+}
+
+#sidebar .navbar-toggler-icon {
+	background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.85%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+@media (max-width: 575.98px) {
+	.app-topbar {
+		padding: 0 16px;
+	}
+
+	.app-page-body {
+		padding: 16px 12px;
+	}
+
+	.card-header {
+		padding: 14px 16px 12px;
+	}
+
+	.card-body {
+		padding: 16px;
+	}
+
+	/* Stat cards (two per row on phones). .app-page-body raises specificity over page stylesheets loaded later. */
+	.app-page-body .stat-card {
+		padding: 14px;
+		border-radius: 12px;
+	}
+
+	.app-page-body .stat-card:hover {
+		transform: none;
+	}
+
+	.app-page-body .stat-card .icon-wrap {
+		width: 34px;
+		height: 34px;
+		font-size: .95rem;
+		border-radius: 8px;
+		margin-bottom: 10px;
+	}
+
+	.app-page-body .stat-card .stat-value {
+		font-size: 1.5rem;
+	}
+
+	.app-page-body .stat-card .stat-label,
+	.app-page-body .stat-card .stat-change {
+		font-size: .66rem;
+		letter-spacing: .3px;
+	}
+
+	.app-page-body .stat-card .stat-bg-icon {
+		font-size: 3.5rem;
+	}
+}

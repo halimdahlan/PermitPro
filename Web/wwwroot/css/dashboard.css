@@ -94,3 +94,88 @@
     font-size: .72rem; color: var(--muted); margin-top: 2px;
 }
 .card-body { padding: 20px; }
+
+/* ── Phones (< 576px) ────────────────────────────────────── */
+@media (max-width: 575.98px) {
+    /* Date range: label on its own line, From/To side by side, Apply/Clear side by side. */
+    .dash-date-filter {
+        gap: 10px !important;
+    }
+
+    .dash-date-filter .dash-date-label,
+    .dash-date-filter .dash-date-error {
+        flex: 0 0 100%;
+        margin-left: 0 !important;
+    }
+
+    .dash-date-filter .dash-date-sep {
+        display: none;
+    }
+
+    /* Two per row: the dates share one row, the buttons the next. */
+    .dash-date-filter .dash-date-input,
+    .dash-date-filter .dash-date-btn {
+        flex: 1 1 calc(50% - 5px);
+        max-width: none !important;
+        min-width: 0;
+    }
+
+    /* The field shows its own calendar icon on phones; drop the prefix icon to make room for the date. */
+    .dash-date-filter .dash-date-input .input-group-text {
+        display: none;
+    }
+
+    .dash-date-filter .dash-date-input .form-control {
+        border-radius: 6px !important;
+    }
+
+    /* Status donut: smaller on a phone. */
+    .dash-donut {
+        max-width: 180px !important;
+        max-height: 180px !important;
+    }
+
+    /* Recent permits: each permit as a stacked row instead of a five-column table.
+         PTW001183                 [Rejected]
+         Filling Up Hall           12 Oct 2026
+         Halim Dahlan                          */
+    .recent-permits thead {
+        display: none;
+    }
+
+    .recent-permits tbody tr {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+            "no  status"
+            "loc date"
+            "req req";
+        column-gap: 12px;
+        row-gap: 2px;
+        padding: 12px 0;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .recent-permits tbody tr:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .recent-permits tbody tr:first-child {
+        padding-top: 0;
+    }
+
+    .recent-permits tbody td {
+        display: block;
+        padding: 0;
+        border: 0;
+        box-shadow: none;
+        background: transparent;
+    }
+
+    .recent-permits tbody td:nth-child(1) { grid-area: no; font-weight: 600; }
+    .recent-permits tbody td:nth-child(2) { grid-area: loc; font-size: .8rem; }
+    .recent-permits tbody td:nth-child(3) { grid-area: req; font-size: .78rem; color: #6b7c93; }
+    .recent-permits tbody td:nth-child(4) { grid-area: status; justify-self: end; align-self: center; }
+    .recent-permits tbody td:nth-child(5) { grid-area: date; justify-self: end; }
+}
