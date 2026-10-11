@@ -398,6 +398,10 @@ Telerik/Kendo is gone: no NuGet package, CDN scripts/theme, local `wwwroot/lib/k
 
 The old-system permit form (New/Edit, panels, certificates A–H) uses `wwwroot/js/form-controls.js`, which keeps Kendo's value semantics so saved permits and their PDFs are unchanged.
 
+### Mobile-responsive layout (2026-10) ✅
+
+Every section was reworked for phones (< 576px): list grids show each row as a card, filter bars wrap, forms and dialogs fit the screen, and Flatpickr shows its own calendar on phones. Conventions are in `CLAUDE.md` → "Mobile". Not yet done: a pass for tablets and small laptops (576–1279px).
+
 ---
 
 ## Getting Started
