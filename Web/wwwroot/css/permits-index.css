@@ -26,7 +26,43 @@
 	letter-spacing: .02em;
 }
 
+#tblPermits thead th.hdr-permit-no {
+	width: 120px;
+}
+
+#tblPermits thead th.hdr-description {
+	min-width: 480px;
+}
+
+#tblPermits thead th.hdr-location {
+	width: 220px;
+}
+
+#tblPermits thead th.hdr-start-date {
+	/* width: 120px; */
+}
+
+#tblPermits thead th.hdr-end-date {
+	/* width: 120px; */
+}
+
+#tblPermits thead th.hdr-certificates {
+	/* width: 100px; */
+}
+
+#tblPermits thead th.hdr-status {
+	/* width: 100px; */
+}
+
+#tblPermits thead th.hdr-submitted-by {
+	/* width: 150px; */
+}
+
+#tblPermits thead th.hdr-action {
+	/* width: 100px; */
+}
+
 /* Matches the specificity of datagrid.css's ".data-grid table.dataTable td" (14px). */
 .data-grid table.dataTable#tblPermits td {
-	font-size: 13px;
+	font-size: 14px;
 }
