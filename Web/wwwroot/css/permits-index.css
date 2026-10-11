@@ -31,7 +31,7 @@
 }
 
 #tblPermits thead th.hdr-description {
-	min-width: 480px;
+	width: 480px;
 }
 
 #tblPermits thead th.hdr-location {
