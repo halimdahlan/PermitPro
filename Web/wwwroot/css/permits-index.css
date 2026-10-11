@@ -38,12 +38,8 @@
 	width: 220px;
 }
 
-#tblPermits thead th.hdr-start-date {
-	/* width: 120px; */
-}
-
-#tblPermits thead th.hdr-end-date {
-	/* width: 120px; */
+#tblPermits thead th.hdr-start-date, #tblPermits thead th.hdr-end-date {
+	width: 120px;
 }
 
 #tblPermits thead th.hdr-certificates {
@@ -51,7 +47,7 @@
 }
 
 #tblPermits thead th.hdr-status {
-	/* width: 100px; */
+	width: 100px;
 }
 
 #tblPermits thead th.hdr-submitted-by {
