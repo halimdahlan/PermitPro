@@ -11,6 +11,8 @@ The Reports section (`/reports/index`) was significantly enhanced with a stats d
 
 **Why:** The original page was a filter form + Kendo Grid with no visual summary. Added KPI cards, 3 charts, 4 tabs (All / Overdue / By Holder / By Location), and additional grid columns.
 
+**Update 2026-10:** Kendo is gone. The All Permits grid is now DataTables via `DataGrid.create` (client-side filtering over `GetReportGrid`, Buttons for Excel, RowGroup with multi-level "Group by"); dropdowns are Tom Select; the date range is Flatpickr. Mentions of "Kendo Grid/DropDownList" below are historical.
+
 **How to apply:** All chart/stats data comes from a single `GetChartData` AJAX call. The Kendo grid uses a separate `GetReportGrid` endpoint. The two calls run independently when "View Report" is clicked.
 
 ## Files Modified
