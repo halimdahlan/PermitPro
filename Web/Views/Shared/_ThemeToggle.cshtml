@@ -1,0 +1,26 @@
+@{
+	var btnClass = ViewData["ThemeToggleClass"] as string ?? "topbar-icon-btn";
+}
+
+<div class="dropdown theme-toggle">
+	<button type="button" class="@btnClass no-loading" data-bs-toggle="dropdown" aria-expanded="false" title="Theme" aria-label="Theme">
+		<i class="fa-solid fa-sun fa-sm" data-theme-icon></i>
+	</button>
+	<ul class="dropdown-menu dropdown-menu-end shadow">
+		<li>
+			<button type="button" class="dropdown-item d-flex align-items-center gap-2" data-theme-value="light">
+				<i class="fa-solid fa-sun fa-fw"></i> Light <i class="fa-solid fa-check ms-auto theme-check"></i>
+			</button>
+		</li>
+		<li>
+			<button type="button" class="dropdown-item d-flex align-items-center gap-2" data-theme-value="dark">
+				<i class="fa-solid fa-moon fa-fw"></i> Dark <i class="fa-solid fa-check ms-auto theme-check"></i>
+			</button>
+		</li>
+		<li>
+			<button type="button" class="dropdown-item d-flex align-items-center gap-2" data-theme-value="system">
+				<i class="fa-solid fa-desktop fa-fw"></i> System <i class="fa-solid fa-check ms-auto theme-check"></i>
+			</button>
+		</li>
+	</ul>
+</div>

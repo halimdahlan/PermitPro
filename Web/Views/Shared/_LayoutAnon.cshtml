@@ -9,6 +9,10 @@
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<meta name="description" content="PermitPro" />
+	<meta name="color-scheme" content="light dark" />
+
+	<!-- Theme: before any CSS so the page never flashes the wrong theme -->
+	<script src="~/js/theme.js" asp-append-version="true"></script>
 
 	<link rel="apple-touch-icon" sizes="180x180" href="~/img/icons/apple-touch-icon.png">
 	<link rel="icon" type="image/png" sizes="32x32" href="~/img/icons/favicon-32x32.png">
@@ -42,6 +46,10 @@
 		<div class="loading-icon">
 			<i class="fa-solid fa-spinner fa-spin"></i>
 		</div>
+	</div>
+
+	<div class="anon-theme-toggle">
+		<partial name="_ThemeToggle" view-data='new ViewDataDictionary(ViewData) { { "ThemeToggleClass", "topbar-icon-btn anon-theme-btn" } }' />
 	</div>
 
 	@RenderBody()

@@ -5,6 +5,10 @@
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<meta name="description" content="PermitPro Admin" />
+	<meta name="color-scheme" content="light dark" />
+
+	<!-- Theme: before any CSS so the page never flashes the wrong theme -->
+	<script src="~/js/theme.js" asp-append-version="true"></script>
 
 	<link rel="icon" type="image/png" sizes="32x32" href="~/img/icons/favicon-32x32.png">
 	<link rel="shortcut icon" href="~/img/icons/favicon.ico" type="image/x-icon" />
@@ -87,7 +91,30 @@
 		.page-header h4 {
 			font-weight: 700;
 			margin: 0;
-			color: #1e293b;
+			color: var(--text);
+		}
+
+		[data-bs-theme="dark"] body.bg-light {
+			background-color: var(--bg) !important;
+		}
+
+		.admin-navbar .nav-links {
+			display: flex;
+			align-items: center;
+		}
+
+		.admin-navbar .admin-theme-btn {
+			background: transparent;
+			border: 0;
+			color: #94a3b8;
+			margin-left: 1.25rem;
+			padding: 0;
+			font-size: .85rem;
+			transition: color .15s;
+		}
+
+		.admin-navbar .admin-theme-btn:hover {
+			color: #fff;
 		}
 
 		.alert-flash {
@@ -132,6 +159,7 @@
 					<i class="fa-solid fa-sliders me-1"></i> Form Builder
 				</a>
 			}
+			<partial name="_ThemeToggle" view-data='new ViewDataDictionary(ViewData) { { "ThemeToggleClass", "admin-theme-btn" } }' />
 			<a href="/admin/logout">
 				<i class="fa-solid fa-arrow-right-from-bracket me-1"></i> Sign Out
 			</a>

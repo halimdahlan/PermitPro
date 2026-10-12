@@ -69,6 +69,16 @@
 	background-color: #f1f3f5;
 }
 
+[data-bs-theme="dark"] .accordion-button {
+	background-color: var(--surface-2);
+	color: var(--text);
+}
+
+[data-bs-theme="dark"] .accordion-button:not(.collapsed) {
+	background-color: var(--accent-light);
+	color: var(--accent);
+}
+
 	.accordion-button:not(.collapsed) {
 		/*background-color: #f1f3f5;*/
 	}
@@ -150,10 +160,10 @@ xthead tr, xtfoot tr {
 }
 
 .form-control:focus {
-	background-color: #fff;
+	background-color: var(--input-focus-bg);
 	border-color: #2c7be5;
 	box-shadow: none;
-	color: #12263f;
+	color: var(--input-focus-text);
 	outline: 0;
 }
 
@@ -189,6 +199,11 @@ xthead tr, xtfoot tr {
 	font-weight: 600;
 	letter-spacing: .08em;
 	text-transform: uppercase;
+}
+
+[data-bs-theme="dark"] #dlgFormB .table.table-gas-info tbody td:first-child:not(.dataTables_empty) {
+	background-color: var(--surface-2);
+	color: var(--muted);
 }
 
 .hazard-option {

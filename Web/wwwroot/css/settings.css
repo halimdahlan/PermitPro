@@ -36,7 +36,7 @@ input[type="text"].form-control {
 }
 
 .form-control:disabled, .form-control[readonly] {
-	background-color: #f7f7f7;
+	background-color: var(--input-disabled-bg);
 	opacity: 1;
 }
 
@@ -85,10 +85,10 @@ input[type="text"].form-control {
 }
 
 .form-control:focus {
-	background-color: #fff;
+	background-color: var(--input-focus-bg);
 	border-color: #2c7be5;
 	box-shadow: none;
-	color: #12263f;
+	color: var(--input-focus-text);
 	outline: 0;
 }
 

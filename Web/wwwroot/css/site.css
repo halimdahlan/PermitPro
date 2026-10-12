@@ -16,9 +16,26 @@
     --bg:                #f0f4f8;
     --card:              #ffffff;
     --border:            #e2e8f0;
+    --border-strong:     #cbd5e0;
     --text:              #1a2b4a;
     --muted:             #6b7c93;
     --muted-light:       #a0aec0;
+    --label:             #4a5568;
+    --surface-2:         #f8fafc;
+    --row-border:        #f0f4f8;
+    --row-hover:         #f6f9fc;
+    --input-focus-bg:    #fff;
+    --input-focus-text:  #12263f;
+    --input-disabled-bg: #f7f7f7;
+
+    /* Soft status tints behind coloured text/icons (badges, stat icons) */
+    --tint-blue:         #e8f0fb;
+    --tint-yellow:       #fff8e1;
+    --tint-green:        #e6f8f1;
+    --tint-gray:         #f0f4f8;
+    --tint-red:          #fdeaea;
+    --tint-orange:       #fff0e6;
+    --tint-purple:       #f0e8ff;
 
     --radius-sm:         6px;
     --radius-md:         10px;
@@ -139,8 +156,8 @@ html, a, div, nav, ul, li, input[type='text'], input[type='radio'], input[type='
 }
 
 .navbar-light {
-	background-color: #0d2137;
-	border-color: #0d2137;
+	background-color: var(--sidebar-bg);
+	border-color: var(--sidebar-bg);
 }
 
 	.navbar-light .navbar-nav .nav-link {
@@ -242,16 +259,132 @@ table.table thead tr td {
    ============================================================ */
 
 :root {
-	--pp-accent:       #2c7be5;
-	--pp-accent-dark:  #1a68d1;
-	--pp-text:         #1a2b4a;
-	--pp-muted:        #6b7c93;
-	--pp-muted-light:  #a0aec0;
-	--pp-bg:           #f0f4f8;
-	--pp-card:         #ffffff;
-	--pp-border:       #e2e8f0;
+	--pp-accent:       var(--accent);
+	--pp-accent-dark:  var(--accent-dark);
+	--pp-text:         var(--text);
+	--pp-muted:        var(--muted);
+	--pp-muted-light:  var(--muted-light);
+	--pp-bg:           var(--bg);
+	--pp-card:         var(--card);
+	--pp-border:       var(--border);
 	--pp-topbar-h:     64px;
 	--pp-font:         'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* ══ Dark theme ════════════════════════════════════════════════════════════
+   theme.js sets data-bs-theme on <html> (light / dark / system, per browser).
+   Bootstrap 5.3 switches its own components; the app tokens above are redefined
+   here, and Bootstrap's dark variables are pointed at the same palette. */
+[data-bs-theme="dark"] {
+	--sidebar-bg:        #0a1626;
+
+	--accent:            #3d8bef;
+	--accent-dark:       #2c7be5;
+	--accent-light:      rgba(61,139,239,.16);
+
+	--bg:                #0f1a29;
+	--card:              #162334;
+	--border:            #263548;
+	--border-strong:     #334155;
+	--text:              #e2e8f0;
+	--muted:             #94a3b8;
+	--muted-light:       #64748b;
+	--label:             #cbd5e1;
+	--surface-2:         #1b2a3d;
+	--row-border:        #1f2e42;
+	--row-hover:         #1c2c40;
+	--input-focus-bg:    var(--bs-body-bg);
+	--input-focus-text:  var(--text);
+	--input-disabled-bg: var(--surface-2);
+
+	--tint-blue:         rgba(61,139,239,.16);
+	--tint-yellow:       rgba(240,165,0,.16);
+	--tint-green:        rgba(0,184,148,.16);
+	--tint-gray:         rgba(148,163,184,.14);
+	--tint-red:          rgba(231,76,60,.18);
+	--tint-orange:       rgba(224,123,57,.18);
+	--tint-purple:       rgba(139,92,246,.2);
+
+	--shadow-sm:  0 1px 3px rgba(0,0,0,.35),  0 1px 2px rgba(0,0,0,.25);
+	--shadow-md:  0 4px 12px rgba(0,0,0,.4),  0 2px 6px rgba(0,0,0,.3);
+	--shadow-lg:  0 10px 28px rgba(0,0,0,.5), 0 4px 10px rgba(0,0,0,.35);
+
+	--bs-body-bg:                var(--bg);
+	--bs-body-bg-rgb:            15,26,41;
+	--bs-body-color:             var(--text);
+	--bs-body-color-rgb:         226,232,240;
+	--bs-emphasis-color:         #f8fafc;
+	--bs-secondary-color:        var(--muted);
+	--bs-secondary-bg:           var(--surface-2);
+	--bs-tertiary-bg:            #13202f;
+	--bs-tertiary-color:         var(--muted-light);
+	--bs-border-color:           var(--border);
+	--bs-border-color-translucent: rgba(255,255,255,.09);
+	--bs-link-color:             var(--accent);
+	--bs-link-color-rgb:         61,139,239;
+	--bs-link-hover-color:       #6aa6f3;
+	--bs-link-hover-color-rgb:   106,166,243;
+}
+
+/* html too: webawesome.css gives <html> its own background in its dark theme. */
+html[data-bs-theme="dark"],
+[data-bs-theme="dark"] body {
+	background-color: var(--bg);
+}
+
+[data-bs-theme="dark"] #sidebar {
+	border-right: 1px solid var(--border);
+}
+
+[data-bs-theme="dark"] .app-topbar {
+	box-shadow: 0 1px 4px rgba(0,0,0,.3);
+}
+
+/* Overlays sit on the card colour, not the (darker) page colour */
+[data-bs-theme="dark"] .modal-content     { --bs-modal-bg: var(--card); }
+[data-bs-theme="dark"] .dropdown-menu     { --bs-dropdown-bg: var(--card); --bs-dropdown-link-hover-bg: var(--surface-2); }
+[data-bs-theme="dark"] .popover           { --bs-popover-bg: var(--card); }
+[data-bs-theme="dark"] .offcanvas         { --bs-offcanvas-bg: var(--card); }
+[data-bs-theme="dark"] .list-group        { --bs-list-group-bg: var(--card); }
+[data-bs-theme="dark"] .accordion         { --bs-accordion-bg: var(--card); }
+[data-bs-theme="dark"] .table             { --bs-table-bg: transparent; }
+
+/* Bootstrap keeps these light in dark mode; remap them to the dark palette */
+[data-bs-theme="dark"] .bg-light   { background-color: var(--surface-2) !important; }
+[data-bs-theme="dark"] .bg-white   { background-color: var(--card) !important; }
+[data-bs-theme="dark"] .text-dark  { color: var(--text) !important; }
+[data-bs-theme="dark"] .table-light {
+	--bs-table-color: var(--text);
+	--bs-table-bg: var(--surface-2);
+	--bs-table-border-color: var(--border);
+	color: var(--text);
+}
+
+/* Bright backgrounds keep dark text */
+[data-bs-theme="dark"] .bg-warning,
+[data-bs-theme="dark"] .bg-info,
+[data-bs-theme="dark"] .bg-warning .text-dark,
+[data-bs-theme="dark"] .bg-info .text-dark {
+	color: #1a2b4a !important;
+}
+
+/* Theme toggle menu */
+.theme-toggle .theme-check { visibility: hidden; font-size: .7rem; }
+.theme-toggle [data-theme-value].active { background: transparent; color: var(--accent); font-weight: 600; }
+.theme-toggle [data-theme-value].active .theme-check { visibility: visible; }
+.theme-toggle .dropdown-item { font-size: .82rem; }
+
+/* Login / error pages (_LayoutAnon): floating theme button, top right */
+.anon-theme-toggle {
+	position: fixed;
+	top: 14px;
+	right: 14px;
+	z-index: 1050;
+}
+
+.anon-theme-toggle .anon-theme-btn {
+	background: var(--card);
+	box-shadow: var(--shadow-sm);
 }
 
 body, input, select, textarea, button {
@@ -293,7 +426,7 @@ body, input, select, textarea, button {
 }
 
 .app-topbar-breadcrumb .sep {
-	color: #cbd5e0;
+	color: var(--border-strong);
 }
 
 .app-topbar-breadcrumb .active {
@@ -336,7 +469,7 @@ body, input, select, textarea, button {
 	height: 7px;
 	border-radius: 50%;
 	background: #e74c3c;
-	border: 1.5px solid white;
+	border: 1.5px solid var(--card);
 }
 
 .topbar-vdivider {
@@ -441,15 +574,15 @@ body, input, select, textarea, button {
 }
 
 /* Colour variants */
-.stat-blue   .icon-wrap { background: #e8f0fb; color: var(--accent); }
+.stat-blue   .icon-wrap { background: var(--tint-blue); color: var(--accent); }
 .stat-blue   .stat-value { color: var(--accent); }
-.stat-yellow .icon-wrap { background: #fff8e1; color: #f0a500; }
+.stat-yellow .icon-wrap { background: var(--tint-yellow); color: #f0a500; }
 .stat-yellow .stat-value { color: #f0a500; }
-.stat-green  .icon-wrap { background: #e6f8f1; color: #00b894; }
+.stat-green  .icon-wrap { background: var(--tint-green); color: #00b894; }
 .stat-green  .stat-value { color: #00b894; }
-.stat-gray   .icon-wrap { background: #f0f4f8; color: #6b7c93; }
-.stat-gray   .stat-value { color: #6b7c93; }
-.stat-red    .icon-wrap { background: #fdeaea; color: #e74c3c; }
+.stat-gray   .icon-wrap { background: var(--tint-gray); color: var(--muted); }
+.stat-gray   .stat-value { color: var(--muted); }
+.stat-red    .icon-wrap { background: var(--tint-red); color: #e74c3c; }
 .stat-red    .stat-value { color: #e74c3c; }
 
 /* ── Cards ───────────────────────────────────────────────── */
@@ -480,13 +613,13 @@ body, input, select, textarea, button {
     font-size: .7rem; font-weight: 700; text-transform: uppercase;
     letter-spacing: .5px; color: var(--muted);
     border-bottom: 2px solid var(--border);
-    padding: 10px 14px; background: #f8fafc; white-space: nowrap;
+    padding: 10px 14px; background: var(--surface-2); white-space: nowrap;
 }
 .table tbody td {
-    padding: 13px 14px; border-color: #f0f4f8;
+    padding: 13px 14px; border-color: var(--row-border);
     vertical-align: middle;
 }
-.table-hover > tbody > tr:hover > * { background-color: #f6f9fc; }
+.table-hover > tbody > tr:hover > * { background-color: var(--row-hover); }
 
 /* ── Badges / pills ──────────────────────────────────────── */
 .badge-pill {
@@ -494,14 +627,14 @@ body, input, select, textarea, button {
     padding: 3px 9px; border-radius: 20px;
     font-size: .68rem; font-weight: 600; letter-spacing: .3px;
 }
-.badge-pill.approved  { background: #e6f8f1; color: #00b894; }
-.badge-pill.pending   { background: #fff8e1; color: #f0a500; }
-.badge-pill.rejected  { background: #fdeaea; color: #e74c3c; }
-.badge-pill.closed    { background: #f0f4f8; color: #6b7c93; }
-.badge-pill.suspended { background: #fff0e6; color: #e07b39; }
-.badge-pill.draft     { background: #f0e8ff; color: #8b5cf6; }
-.badge-pill.active    { background: #e8f0fb; color: var(--accent); }
-.badge-pill.inactive  { background: #f0f4f8; color: #a0aec0; }
+.badge-pill.approved  { background: var(--tint-green); color: #00b894; }
+.badge-pill.pending   { background: var(--tint-yellow); color: #f0a500; }
+.badge-pill.rejected  { background: var(--tint-red); color: #e74c3c; }
+.badge-pill.closed    { background: var(--tint-gray); color: var(--muted); }
+.badge-pill.suspended { background: var(--tint-orange); color: #e07b39; }
+.badge-pill.draft     { background: var(--tint-purple); color: #8b5cf6; }
+.badge-pill.active    { background: var(--tint-blue); color: var(--accent); }
+.badge-pill.inactive  { background: var(--tint-gray); color: var(--muted-light); }
 
 .badge-pill .dot {
     width: 5px; height: 5px; border-radius: 50%; background: currentColor;
@@ -515,7 +648,7 @@ body, input, select, textarea, button {
 .btn-outline-primary { color: var(--accent); border-color: var(--accent); }
 .btn-outline-primary:hover { background: var(--accent); color: #fff; }
 .btn-light { background: var(--bg); border-color: var(--border); color: var(--text); }
-.btn-light:hover { background: #e2e8f0; border-color: #cbd5e0; }
+.btn-light:hover { background: var(--border); border-color: var(--border-strong); color: var(--text); }
 .btn-icon { width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-sm); }
 
 /* ── Search bar ──────────────────────────────────────────── */
@@ -548,7 +681,7 @@ body, input, select, textarea, button {
 
 /* ── Chart placeholder ───────────────────────────────────── */
 .chart-placeholder {
-    background: linear-gradient(135deg, #f0f4f8 0%, #e8edf3 100%);
+    background: linear-gradient(135deg, var(--bg) 0%, var(--surface-2) 100%);
     border-radius: var(--radius-md);
     height: 220px;
     display: flex; align-items: center; justify-content: center;
@@ -575,7 +708,7 @@ body, input, select, textarea, button {
     content: none !important;
 }
 
-.form-label { font-weight: 500; font-size: .78rem; color: #4a5568; margin-bottom: 5px; }
+.form-label { font-weight: 500; font-size: .78rem; color: var(--label); margin-bottom: 5px; }
 .form-control, .form-select {
     font-family: var(--font); font-size: .85rem; border-radius: 8px;
     border-color: var(--border); padding: .45rem .8rem;
@@ -588,7 +721,7 @@ body, input, select, textarea, button {
 /* ── Activity feed ───────────────────────────────────────── */
 .activity-item {
     display: flex; gap: 14px; padding: 12px 0;
-    border-bottom: 1px solid #f0f4f8;
+    border-bottom: 1px solid var(--row-border);
 }
 .activity-item:last-child { border-bottom: none; padding-bottom: 0; }
 .activity-icon {
@@ -622,7 +755,7 @@ body, input, select, textarea, button {
     bottom: -100px; left: -80px;
 }
 .login-card {
-    background: #fff;
+    background: var(--card);
     border-radius: 20px;
     box-shadow: 0 20px 60px rgba(0,0,0,.3);
     padding: 44px 40px;

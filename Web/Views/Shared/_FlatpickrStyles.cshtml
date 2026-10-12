@@ -1,2 +1,65 @@
 @* Flatpickr date/time picker styles. Render inside @section CustomCss; pair with _FlatpickrScripts. *@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css" />
+<style>
+	/* Dark theme: Flatpickr hard-codes a white calendar. */
+	[data-bs-theme="dark"] .flatpickr-calendar {
+		background: var(--card);
+		box-shadow: 0 0 0 1px var(--border), var(--shadow-md);
+	}
+	[data-bs-theme="dark"] .flatpickr-calendar.arrowTop:before { border-bottom-color: var(--border); }
+	[data-bs-theme="dark"] .flatpickr-calendar.arrowTop:after { border-bottom-color: var(--card); }
+	[data-bs-theme="dark"] .flatpickr-calendar.arrowBottom:before { border-top-color: var(--border); }
+	[data-bs-theme="dark"] .flatpickr-calendar.arrowBottom:after { border-top-color: var(--card); }
+	[data-bs-theme="dark"] .flatpickr-months .flatpickr-month,
+	[data-bs-theme="dark"] .flatpickr-months .flatpickr-prev-month,
+	[data-bs-theme="dark"] .flatpickr-months .flatpickr-next-month,
+	[data-bs-theme="dark"] .flatpickr-current-month input.cur-year {
+		color: var(--text);
+		fill: var(--text);
+	}
+	[data-bs-theme="dark"] .flatpickr-current-month .flatpickr-monthDropdown-months .flatpickr-monthDropdown-month {
+		background-color: var(--card);
+	}
+	[data-bs-theme="dark"] .numInputWrapper span { border-color: var(--border); }
+	[data-bs-theme="dark"] .numInputWrapper span.arrowUp:after { border-bottom-color: var(--muted); }
+	[data-bs-theme="dark"] .numInputWrapper span.arrowDown:after { border-top-color: var(--muted); }
+	[data-bs-theme="dark"] span.flatpickr-weekday { color: var(--muted); }
+	[data-bs-theme="dark"] .flatpickr-day { color: var(--text); }
+	[data-bs-theme="dark"] .flatpickr-day:hover,
+	[data-bs-theme="dark"] .flatpickr-day:focus,
+	[data-bs-theme="dark"] .flatpickr-day.prevMonthDay:hover,
+	[data-bs-theme="dark"] .flatpickr-day.nextMonthDay:hover {
+		background: var(--surface-2);
+		border-color: var(--surface-2);
+	}
+	[data-bs-theme="dark"] .flatpickr-day.inRange {
+		background: var(--surface-2);
+		border-color: var(--surface-2);
+		box-shadow: -5px 0 0 var(--surface-2), 5px 0 0 var(--surface-2);
+	}
+	[data-bs-theme="dark"] .flatpickr-day.today { border-color: var(--muted); }
+	[data-bs-theme="dark"] .flatpickr-day.today:hover,
+	[data-bs-theme="dark"] .flatpickr-day.today:focus {
+		background: var(--muted);
+		border-color: var(--muted);
+		color: var(--bg);
+	}
+	[data-bs-theme="dark"] .flatpickr-day.prevMonthDay,
+	[data-bs-theme="dark"] .flatpickr-day.nextMonthDay,
+	[data-bs-theme="dark"] .flatpickr-day.flatpickr-disabled,
+	[data-bs-theme="dark"] .flatpickr-day.flatpickr-disabled:hover {
+		color: var(--muted-light);
+	}
+	[data-bs-theme="dark"] .flatpickr-calendar.hasTime .flatpickr-time { border-top-color: var(--border); }
+	[data-bs-theme="dark"] .flatpickr-time input,
+	[data-bs-theme="dark"] .flatpickr-time .flatpickr-am-pm,
+	[data-bs-theme="dark"] .flatpickr-time .flatpickr-time-separator {
+		color: var(--text);
+	}
+	[data-bs-theme="dark"] .flatpickr-time input:hover,
+	[data-bs-theme="dark"] .flatpickr-time input:focus,
+	[data-bs-theme="dark"] .flatpickr-time .flatpickr-am-pm:hover,
+	[data-bs-theme="dark"] .flatpickr-time .flatpickr-am-pm:focus {
+		background: var(--surface-2);
+	}
+</style>
