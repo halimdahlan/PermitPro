@@ -351,12 +351,12 @@
 							var c = chart.ctx;
 							c.save();
 							c.font = '700 28px system-ui, sans-serif';
-							c.fillStyle = '#1e293b';
+							c.fillStyle = PPTheme.color('--text');
 							c.textBaseline = 'middle';
 							c.textAlign = 'center';
 							c.fillText(total, w / 2, h / 2 - 10);
 							c.font = '500 10px system-ui, sans-serif';
-							c.fillStyle = '#94a3b8';
+							c.fillStyle = PPTheme.color('--muted-light');
 							c.fillText('PERMITS', w / 2, h / 2 + 12);
 							c.restore();
 						}
@@ -369,11 +369,11 @@
 					return '<div class="d-flex align-items-center justify-content-between mb-2">' +
 						'<div class="d-flex align-items-center gap-2">' +
 						'<span style="width:12px;height:12px;border-radius:50%;background:' + d.Color + ';flex-shrink:0;"></span>' +
-						'<span style="font-size:.8rem;font-weight:500;color:#334155;">' + d.Status + '</span>' +
+						'<span style="font-size:.8rem;font-weight:500;color:var(--label);">' + d.Status + '</span>' +
 						'</div>' +
 						'<div class="d-flex align-items-center gap-3">' +
-						'<span style="font-size:.8rem;font-weight:700;color:#1e293b;">' + d.Count + '</span>' +
-						'<span style="font-size:.7rem;color:#94a3b8;min-width:40px;text-align:right;">' + pct + '%</span>' +
+						'<span style="font-size:.8rem;font-weight:700;color:var(--text);">' + d.Count + '</span>' +
+						'<span style="font-size:.7rem;color:var(--muted-light);min-width:40px;text-align:right;">' + pct + '%</span>' +
 						'</div></div>';
 				}).join('');
 				document.getElementById('statusLegend').innerHTML = legendHtml;

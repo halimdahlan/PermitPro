@@ -261,7 +261,6 @@
 			pending:  '#f6c343',
 			other:    '#b2c1d6',
 			blue:     '#2c7be5',
-			white:    '#ffffff',
 			statusPalette: ['#b2c1d6', '#f6c343', '#00d97e', '#e63757', '#fd7e14', '#6f42c1', '#6e84a3'],
 		};
 
@@ -419,8 +418,9 @@
 								],
 								backgroundColor: chartColors.statusPalette,
 								borderWidth: 2,
-								borderColor: chartColors.white,
-								hoverBorderColor: chartColors.white,
+								// Segment gaps in the card colour; scriptable so they follow a theme switch.
+								borderColor: () => PPTheme.color('--card'),
+								hoverBorderColor: () => PPTheme.color('--card'),
 							}]
 						},
 						options: {

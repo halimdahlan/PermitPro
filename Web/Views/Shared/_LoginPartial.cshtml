@@ -26,6 +26,8 @@
 						 : "User";
 }
 
+<partial name="_ThemeToggle" />
+
 @if (_signInManager.IsSignedIn(User))
 {
 	<!-- Notifications -->
@@ -58,17 +60,17 @@
 		</a>
 		<ul class="dropdown-menu dropdown-menu-end shadow">
 			<li class="px-3 pt-2 pb-1">
-				<div style="font-size:.8rem;font-weight:600;color:#1a2b4a;">
+				<div style="font-size:.8rem;font-weight:600;color:var(--pp-text);">
 					@user?.FirstName @user?.LastName
 				</div>
-				<div style="font-size:.72rem;color:#6b7c93;">@user?.Email</div>
+				<div style="font-size:.72rem;color:var(--pp-muted);">@user?.Email</div>
 			</li>
 			<li>
 				<hr class="dropdown-divider my-1">
 			</li>
 			<li>
 				<a href="/@companyId/account/profile" class="dropdown-item no-loading d-flex align-items-center gap-2" style="font-size:.82rem;">
-					<i class="fa-solid fa-user fa-fw" style="color:#6b7c93;"></i> Profile
+					<i class="fa-solid fa-user fa-fw" style="color:var(--pp-muted);"></i> Profile
 				</a>
 			</li>
 			<li>

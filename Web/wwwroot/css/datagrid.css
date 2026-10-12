@@ -1,5 +1,54 @@
 /* List-page grids (DataTables 2 inside a .data-grid card) and Tom Select filters (.grid-filter). */
 
+:root {
+	--grid-control-border: rgb(210, 221, 236);
+}
+
+[data-bs-theme="dark"] {
+	--grid-control-border: var(--border-strong);
+}
+
+/* Tom Select hard-codes dark text and light greys; follow the theme in dark mode. */
+[data-bs-theme="dark"] .ts-control,
+[data-bs-theme="dark"] .ts-control input,
+[data-bs-theme="dark"] .ts-dropdown {
+	color: var(--text);
+}
+
+[data-bs-theme="dark"] .ts-dropdown {
+	background: var(--card);
+	border-color: var(--border-strong);
+}
+
+[data-bs-theme="dark"] .ts-dropdown .option.active {
+	background: var(--surface-2);
+	color: var(--text);
+}
+
+[data-bs-theme="dark"] .ts-dropdown .create {
+	color: var(--muted);
+}
+
+[data-bs-theme="dark"] .ts-wrapper.multi .ts-control > div {
+	background: var(--surface-2);
+	color: var(--text);
+	border-color: var(--border-strong);
+}
+
+[data-bs-theme="dark"] .ts-wrapper.multi .ts-control > div.active {
+	background: var(--accent);
+	color: #fff;
+}
+
+[data-bs-theme="dark"] .ts-wrapper .dropdown-header {
+	background: var(--surface-2);
+	border-color: var(--border);
+}
+
+[data-bs-theme="dark"] .ts-wrapper .dropdown-header-close {
+	color: var(--text);
+}
+
 .grid-filter {
 	width: 180px;
 }
@@ -11,7 +60,7 @@
 	.grid-filter .ts-control {
 		font-family: 'Poppins', sans-serif;
 		font-size: 14px;
-		border-color: rgb(210, 221, 236);
+		border-color: var(--grid-control-border);
 	}
 
 	.grid-filter .ts-dropdown {
@@ -28,16 +77,16 @@
 	align-items: center;
 	justify-content: center;
 	flex-shrink: 0;
-	border-color: rgb(210, 221, 236);
-	color: #6b7c93;
-	background: #fff;
+	border-color: var(--grid-control-border);
+	color: var(--muted);
+	background: var(--card);
 }
 
 	.grid-icon-btn:hover,
 	.grid-icon-btn:focus-visible {
 		color: var(--bs-primary);
 		border-color: var(--bs-primary);
-		background: #fff;
+		background: var(--card);
 	}
 
 .data-grid {
@@ -48,7 +97,7 @@
 	/* Headers: DataTables' default Bootstrap 5 look (dark, bold, normal case). */
 	/* Uppercase headers in a mid-dark slate (site.css's own ".table thead th" grey is too faint). */
 	.data-grid table.dataTable thead th {
-		color: #4a5568;
+		color: var(--label);
 		font-size: 13px;
 		font-weight: 700;
 		text-transform: uppercase;
@@ -201,7 +250,7 @@
 		border-radius: 10px;
 		padding: 10px 12px;
 		margin-bottom: 10px;
-		background: var(--bs-body-bg);
+		background: var(--card);
 	}
 
 	:is(.data-grid, .table-cards-wrap) table.dt-cards > tbody > tr > td {
@@ -227,7 +276,7 @@
 		margin-top: 2px;
 		font-size: 11px;
 		font-weight: 600;
-		color: #6b7c93;
+		color: var(--muted);
 		text-transform: uppercase;
 		letter-spacing: .03em;
 		line-height: 1.4;
