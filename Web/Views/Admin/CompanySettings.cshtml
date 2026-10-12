@@ -16,12 +16,12 @@
 		@if (!string.IsNullOrEmpty(Model.CompanyLogoFileName))
 		{
 			<img src="/img/logos/@Model.CompanyLogoFileName" alt="@Model.CompanyName logo"
-				  style="height:36px;width:36px;object-fit:contain;border:1px solid #e2e8f0;border-radius:6px;padding:3px;background:#fff;" />
+				  style="height:36px;width:36px;object-fit:contain;border:1px solid var(--border);border-radius:6px;padding:3px;background:#fff;" />
 		}
 		else
 		{
 			<div
-				style="height:36px;width:36px;border:1px solid #e2e8f0;border-radius:6px;background:#f8fafc;display:flex;align-items:center;justify-content:center;">
+				style="height:36px;width:36px;border:1px solid var(--border);border-radius:6px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;">
 				<i class="fa-solid fa-building text-muted" style="font-size:.75rem;"></i>
 			</div>
 		}

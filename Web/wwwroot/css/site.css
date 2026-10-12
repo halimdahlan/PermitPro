@@ -326,6 +326,8 @@ table.table thead tr td {
 	--bs-link-hover-color-rgb:   106,166,243;
 }
 
+/* html too: webawesome.css gives <html> its own background in its dark theme. */
+html[data-bs-theme="dark"],
 [data-bs-theme="dark"] body {
 	background-color: var(--bg);
 }
@@ -371,6 +373,19 @@ table.table thead tr td {
 .theme-toggle [data-theme-value].active { background: transparent; color: var(--accent); font-weight: 600; }
 .theme-toggle [data-theme-value].active .theme-check { visibility: visible; }
 .theme-toggle .dropdown-item { font-size: .82rem; }
+
+/* Login / error pages (_LayoutAnon): floating theme button, top right */
+.anon-theme-toggle {
+	position: fixed;
+	top: 14px;
+	right: 14px;
+	z-index: 1050;
+}
+
+.anon-theme-toggle .anon-theme-btn {
+	background: var(--card);
+	box-shadow: var(--shadow-sm);
+}
 
 body, input, select, textarea, button {
 	font-family: var(--pp-font);
