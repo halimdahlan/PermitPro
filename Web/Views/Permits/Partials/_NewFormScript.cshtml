@@ -3,38 +3,38 @@
 <style>
 /* ── Dropzone ────────────────────────────────────────────────────────────── */
 .pf-dropzone {
-    border: 2px dashed #cbd5e1;
+    border: 2px dashed var(--border-strong);
     border-radius: .5rem;
     padding: 1.25rem;
     text-align: center;
     cursor: pointer;
     transition: border-color .15s, background .15s;
-    background: #f9fafb;
+    background: var(--surface-2);
     user-select: none;
 }
 .pf-dropzone.drag-over {
-    border-color: #3b82f6;
-    background: #eff6ff;
+    border-color: var(--accent);
+    background: var(--accent-light);
 }
-.pf-dropzone .dz-icon { font-size: 1.6rem; color: #94a3b8; margin-bottom: .4rem; }
-.pf-dropzone .dz-label { font-size: .85rem; color: #64748b; }
-.pf-dropzone .dz-hint  { font-size: .75rem; color: #94a3b8; margin-top: .2rem; }
+.pf-dropzone .dz-icon { font-size: 1.6rem; color: var(--muted-light); margin-bottom: .4rem; }
+.pf-dropzone .dz-label { font-size: .85rem; color: var(--muted); }
+.pf-dropzone .dz-hint  { font-size: .75rem; color: var(--muted-light); margin-top: .2rem; }
 .pf-file-list { margin-top: .75rem; }
 .pf-file-item {
     display: flex;
     align-items: center;
     gap: .5rem;
     padding: .3rem .6rem;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border);
     border-radius: .35rem;
-    background: #fff;
+    background: var(--card);
     margin-bottom: .3rem;
     font-size: .82rem;
 }
 .pf-file-item .pf-file-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.pf-file-item .pf-file-size { color: #94a3b8; flex-shrink: 0; }
+.pf-file-item .pf-file-size { color: var(--muted-light); flex-shrink: 0; }
 .pf-file-remove {
-    background: none; border: none; color: #94a3b8; cursor: pointer;
+    background: none; border: none; color: var(--muted-light); cursor: pointer;
     padding: 0; line-height: 1; flex-shrink: 0;
 }
 .pf-file-remove:hover { color: #ef4444; }
@@ -44,16 +44,16 @@
 .pf-row.cols-1 { grid-template-columns:1fr; }
 .pf-row.cols-2 { grid-template-columns:1fr 1fr; }
 .pf-row.cols-3 { grid-template-columns:1fr 1fr 1fr; }
-.pf-field label { font-size:.85rem; font-weight:600; color:#374151; display:block; margin-bottom:.3rem; }
+.pf-field label { font-size:.85rem; font-weight:600; color:var(--label); display:block; margin-bottom:.3rem; }
 .pf-field .form-text { font-size:.75rem; }
 .pf-empty-slot {
     min-height:52px;
-    border:1px dashed #e2e8f0;
+    border:1px dashed var(--border);
     border-radius:.4rem;
-    background:#f9fafb;
+    background:var(--surface-2);
 }
 /* Flatpickr — match Bootstrap form-control sizing */
-.flatpickr-input { background-color:#fff !important; }
+.flatpickr-input { background-color:var(--bs-body-bg) !important; }
 .flatpickr-input.is-invalid { border-color:#dc3545 !important; }
 .flatpickr-input.is-valid   { border-color:#198754 !important; }
 /* Validation feedback */

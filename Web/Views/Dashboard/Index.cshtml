@@ -16,7 +16,7 @@
 			<div class="icon-wrap"><i class="fa-solid fa-circle-check"></i></div>
 			<div class="stat-value">@Model.TotalActive</div>
 			<div class="stat-label">Total Active Permits</div>
-			<div class="stat-change" style="color:#6b7c93;">
+			<div class="stat-change" style="color:var(--muted);">
 				<i class="fa-solid fa-address-card me-1"></i>Active permits on site
 			</div>
 			<i class="fa-solid fa-circle-check stat-bg-icon"></i>
@@ -29,7 +29,7 @@
 			<div class="icon-wrap"><i class="fa-solid fa-clock"></i></div>
 			<div class="stat-value">@Model.TotalPending</div>
 			<div class="stat-label">Total Pending Permits</div>
-			<div class="stat-change" style="color:#6b7c93;">
+			<div class="stat-change" style="color:var(--muted);">
 				<i class="fa-solid fa-hourglass-half me-1"></i>Awaiting approval
 			</div>
 			<i class="fa-solid fa-clock stat-bg-icon"></i>
@@ -42,7 +42,7 @@
 			<div class="icon-wrap"><i class="fa-solid fa-thumbs-up"></i></div>
 			<div class="stat-value">@Model.TotalApproved</div>
 			<div class="stat-label">Total Approved Permits</div>
-			<div class="stat-change" style="color:#6b7c93;">
+			<div class="stat-change" style="color:var(--muted);">
 				<i class="fa-solid fa-check me-1"></i>Approved and in progress
 			</div>
 			<i class="fa-solid fa-thumbs-up stat-bg-icon"></i>
@@ -55,7 +55,7 @@
 			<div class="icon-wrap"><i class="fa-solid fa-lock"></i></div>
 			<div class="stat-value">@Model.TotalClosed</div>
 			<div class="stat-label">Total Closed Permits</div>
-			<div class="stat-change" style="color:#6b7c93;">
+			<div class="stat-change" style="color:var(--muted);">
 				<i class="fa-solid fa-minus me-1"></i>Completed and closed
 			</div>
 			<i class="fa-solid fa-lock stat-bg-icon"></i>
@@ -68,7 +68,7 @@
 			<div class="icon-wrap"><i class="fa-solid fa-circle-xmark"></i></div>
 			<div class="stat-value">@Model.TotalRejected</div>
 			<div class="stat-label">Total Rejected Permits</div>
-			<div class="stat-change" style="color:#6b7c93;">
+			<div class="stat-change" style="color:var(--muted);">
 				<i class="fa-solid fa-triangle-exclamation me-1"></i>Requires attention
 			</div>
 			<i class="fa-solid fa-circle-xmark stat-bg-icon"></i>
@@ -81,23 +81,23 @@
 <div class="card mb-4" style="border:none;box-shadow:0 1px 3px rgba(0,0,0,.06);">
 	<div class="card-body py-3">
 		<div class="d-flex align-items-center gap-3 flex-wrap dash-date-filter">
-			<span class="d-flex align-items-center gap-2 dash-date-label" style="font-size:.78rem;color:#4a5568;white-space:nowrap;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">
+			<span class="d-flex align-items-center gap-2 dash-date-label" style="font-size:.78rem;color:var(--label);white-space:nowrap;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">
 				<i class="fa-regular fa-calendar" style="color:#2c7be5;"></i> Date range
 			</span>
 			<div class="input-group dash-date-input" style="max-width:190px;">
-				<span class="input-group-text" style="font-size:.75rem;border-radius:6px 0 0 6px;background:#f1f5f9;border-color:#e2e8f0;">
-					<i class="fa-regular fa-calendar" style="color:#94a3b8;"></i>
+				<span class="input-group-text" style="font-size:.75rem;border-radius:6px 0 0 6px;background:var(--surface-2);border-color:var(--border);">
+					<i class="fa-regular fa-calendar" style="color:var(--muted-light);"></i>
 				</span>
 				<input type="text" id="dateFrom" class="form-control form-control-sm" placeholder="From" required
-					style="font-size:.8rem;border-color:#e2e8f0;border-radius:0 6px 6px 0;padding:.35rem .6rem;" />
+					style="font-size:.8rem;border-color:var(--border);border-radius:0 6px 6px 0;padding:.35rem .6rem;" />
 			</div>
-			<span class="dash-date-sep" style="color:#cbd5e1;font-size:.85rem;">—</span>
+			<span class="dash-date-sep" style="color:var(--border-strong);font-size:.85rem;">—</span>
 			<div class="input-group dash-date-input" style="max-width:190px;">
-				<span class="input-group-text" style="font-size:.75rem;border-radius:6px 0 0 6px;background:#f1f5f9;border-color:#e2e8f0;">
-					<i class="fa-regular fa-calendar" style="color:#94a3b8;"></i>
+				<span class="input-group-text" style="font-size:.75rem;border-radius:6px 0 0 6px;background:var(--surface-2);border-color:var(--border);">
+					<i class="fa-regular fa-calendar" style="color:var(--muted-light);"></i>
 				</span>
 				<input type="text" id="dateTo" class="form-control form-control-sm" placeholder="To" required
-					style="font-size:.8rem;border-color:#e2e8f0;border-radius:0 6px 6px 0;padding:.35rem .6rem;" />
+					style="font-size:.8rem;border-color:var(--border);border-radius:0 6px 6px 0;padding:.35rem .6rem;" />
 			</div>
 			<button id="btnApply" class="btn btn-sm btn-primary dash-date-btn">
 				<i class="fa-solid fa-magnifying-glass me-1"></i> Apply
@@ -132,7 +132,7 @@
 				}
 				else
 				{
-					<div style="text-align:center;color:#a0aec0;"><i class="fa-solid fa-chart-pie fa-2xl mb-3 d-block"></i>No data</div>
+					<div style="text-align:center;color:var(--muted-light);"><i class="fa-solid fa-chart-pie fa-2xl mb-3 d-block"></i>No data</div>
 				}
 			</div>
 		</div>
@@ -151,7 +151,7 @@
 				<div id="locationBarWrap" style="position:relative;height:260px;">
 					<canvas id="locationBarChart"></canvas>
 				</div>
-				<div id="locationNoData" style="display:none;text-align:center;color:#a0aec0;"><i class="fa-solid fa-chart-bar fa-2xl mb-3 d-block"></i>No location data</div>
+				<div id="locationNoData" style="display:none;text-align:center;color:var(--muted-light);"><i class="fa-solid fa-chart-bar fa-2xl mb-3 d-block"></i>No location data</div>
 			</div>
 		</div>
 	</div>
@@ -215,7 +215,7 @@
 											<span class="badge-pill inactive"><span class="dot"></span>@permit.Status.ToString()</span>
 										}
 									</td>
-									<td style="color:#6b7c93;font-size:.78rem;">@permit.CreatedWhen.ToString("dd MMM yyyy")</td>
+									<td style="color:var(--muted);font-size:.78rem;">@permit.CreatedWhen.ToString("dd MMM yyyy")</td>
 								</tr>
 							}
 						</tbody>
@@ -247,7 +247,7 @@
 					<div class="activity-item">
 						<div class="activity-icon" style="background:@activity.IconBackground;"><i class="@activity.IconClass fa-sm" style="color:@activity.IconColor;"></i></div>
 						<div>
-							<div class="activity-text"><strong>@activity.Title</strong><br><span style="color:#6b7c93;">@activity.Description</span></div>
+							<div class="activity-text"><strong>@activity.Title</strong><br><span style="color:var(--muted);">@activity.Description</span></div>
 							<div class="activity-time">@activity.TimeAgo</div>
 						</div>
 					</div>

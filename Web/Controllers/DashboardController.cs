@@ -318,9 +318,9 @@ public class DashboardController : AppControllerBase
 
 	private static string GetActivityBackground(LogTypeEnum logType) => logType switch
 	{
-		LogTypeEnum.Error => "#fdeaea",
-		LogTypeEnum.Warning => "#fff8e1",
-		_ => "#e8f0fb",
+		LogTypeEnum.Error => "var(--tint-red)",
+		LogTypeEnum.Warning => "var(--tint-yellow)",
+		_ => "var(--tint-blue)",
 	};
 
 	private static string GetActivityIconColor(LogTypeEnum logType) => logType switch

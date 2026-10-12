@@ -26,6 +26,7 @@
     --row-hover:         #f6f9fc;
     --input-focus-bg:    #fff;
     --input-focus-text:  #12263f;
+    --input-disabled-bg: #f7f7f7;
 
     /* Soft status tints behind coloured text/icons (badges, stat icons) */
     --tint-blue:         #e8f0fb;
@@ -294,6 +295,7 @@ table.table thead tr td {
 	--row-hover:         #1c2c40;
 	--input-focus-bg:    var(--bs-body-bg);
 	--input-focus-text:  var(--text);
+	--input-disabled-bg: var(--surface-2);
 
 	--tint-blue:         rgba(61,139,239,.16);
 	--tint-yellow:       rgba(240,165,0,.16);

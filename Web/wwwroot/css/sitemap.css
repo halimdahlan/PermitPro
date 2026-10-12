@@ -94,6 +94,12 @@
     border: 1px solid rgba(0,0,0,.06);
 }
 
+/* Map pins and Google's info window stay white (like the map's own controls); the legend follows the theme. */
+[data-bs-theme="dark"] .map-legend {
+    background: rgba(22, 35, 52, .94);
+    border-color: var(--border);
+}
+
 .map-legend-title {
     font-size: .7rem;
     font-weight: 700;

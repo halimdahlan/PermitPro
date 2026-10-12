@@ -1,10 +1,10 @@
 /* ── Stat cards — exact match to mock admin.css ─────────── */
 .stat-card {
-    background: #ffffff;
+    background: var(--card);
     border-radius: 14px;
     padding: 22px 20px;
-    box-shadow: 0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.05);
-    border: 1px solid #e2e8f0;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
     position: relative;
     overflow: hidden;
     transition: box-shadow .2s, transform .2s;
@@ -12,7 +12,7 @@
 }
 
 .stat-card:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,.09), 0 2px 6px rgba(0,0,0,.06);
+    box-shadow: var(--shadow-md);
     transform: translateY(-2px);
 }
 
@@ -38,7 +38,7 @@
 .stat-card .stat-label {
     font-size: .75rem;
     font-weight: 500;
-    color: #6b7c93;
+    color: var(--muted);
     text-transform: uppercase;
     letter-spacing: .5px;
 }
@@ -58,19 +58,19 @@
 }
 
 /* ── Colour variants — exact match to mock ──────────────── */
-.stat-blue   .icon-wrap  { background: #e8f0fb; color: #2c7be5; }
+.stat-blue   .icon-wrap  { background: var(--tint-blue); color: #2c7be5; }
 .stat-blue   .stat-value { color: #2c7be5; }
 
-.stat-yellow .icon-wrap  { background: #fff8e1; color: #f0a500; }
+.stat-yellow .icon-wrap  { background: var(--tint-yellow); color: #f0a500; }
 .stat-yellow .stat-value { color: #f0a500; }
 
-.stat-green  .icon-wrap  { background: #e6f8f1; color: #00b894; }
+.stat-green  .icon-wrap  { background: var(--tint-green); color: #00b894; }
 .stat-green  .stat-value { color: #00b894; }
 
-.stat-gray   .icon-wrap  { background: #f0f4f8; color: #6b7c93; }
-.stat-gray   .stat-value { color: #6b7c93; }
+.stat-gray   .icon-wrap  { background: var(--tint-gray); color: var(--muted); }
+.stat-gray   .stat-value { color: var(--muted); }
 
-.stat-red    .icon-wrap  { background: #fdeaea; color: #e74c3c; }
+.stat-red    .icon-wrap  { background: var(--tint-red); color: #e74c3c; }
 .stat-red    .stat-value { color: #e74c3c; }
 
 /* ── Cards ───────────────────────────────────────────────── */
@@ -153,7 +153,7 @@
         column-gap: 12px;
         row-gap: 2px;
         padding: 12px 0;
-        border-bottom: 1px solid #e2e8f0;
+        border-bottom: 1px solid var(--border);
     }
 
     .recent-permits tbody tr:last-child {
@@ -175,7 +175,7 @@
 
     .recent-permits tbody td:nth-child(1) { grid-area: no; font-weight: 600; }
     .recent-permits tbody td:nth-child(2) { grid-area: loc; font-size: .8rem; }
-    .recent-permits tbody td:nth-child(3) { grid-area: req; font-size: .78rem; color: #6b7c93; }
+    .recent-permits tbody td:nth-child(3) { grid-area: req; font-size: .78rem; color: var(--muted); }
     .recent-permits tbody td:nth-child(4) { grid-area: status; justify-self: end; align-self: center; }
     .recent-permits tbody td:nth-child(5) { grid-area: date; justify-self: end; }
 }
