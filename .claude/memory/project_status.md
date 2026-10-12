@@ -1,6 +1,6 @@
 ---
 name: project-status
-description: "Where the work stands (2026-10-12): everything merged, dark mode (#19) merged but not yet confirmed deployed; open items and how to resume on another machine"
+description: "Where the work stands (2026-10-12): everything merged and deployed, including dark mode (#19); open items and how to resume on another machine"
 metadata:
   type: project
 ---
@@ -21,7 +21,7 @@ Snapshot as of **2026-10-11**, written when the user moved to a different comput
   - #15 CSP: `'unsafe-eval'` only on `Sitemap/Index` (`[AllowUnsafeEval]`)
   - #16 Monday-first date pickers, full-month Reports date range, multi-level Group by on Reports
   - #17 Mobile-responsive layout across the app (conventions in CLAUDE.md → "Mobile")
-  - #19 (2026-10-12) Dark mode: Light / Dark / System switch, per browser, all three layouts (conventions in CLAUDE.md → "Dark mode"). Merged and tested by the user; not yet confirmed deployed.
+  - #19 (2026-10-12) Dark mode: Light / Dark / System switch, per browser, all three layouts (conventions in CLAUDE.md → "Dark mode"). Merged, tested by the user and deployed (2026-10-12).
 - GitHub issues #2–#7 (security review items) were deleted on 2026-10-12 at the user's request ("addressed outside this project"). The code they described was unchanged at the time: dashboard chart `[ResponseCache]` before auth, ~59 POST actions without antiforgery, auth cookie not `SecurePolicy.Always`, 301 redirect for email links in `PermitsController.Edit`.
 
 ## Open / possible next work
