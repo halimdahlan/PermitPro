@@ -67,7 +67,7 @@ public class PermitsController : AppControllerBase
 	}
 
 
-	public async Task<IActionResult> Index(Guid company, string filter, string field)
+	public async Task<IActionResult> Index(Guid company, string filter, string field, CancellationToken ct)
 	{
 		var model = new PermitViewModel
 		{
@@ -76,6 +76,11 @@ public class PermitsController : AppControllerBase
 			GridFilter = filter,
 			GridFilterField = field,
 			StatusOptions = GetPermitStatusOptions(),
+			// New permits use the new form, but there is no permit template to build it from:
+			// "New permit" shows a message instead of opening the form.
+			PermitTemplateMissing = IsNewSystemActive()
+				&& !(await _formTemplates.GetAllAsync(company, Core.Enums.FormTemplateTypeEnum.Permit, ct)).Any(),
+			ShowPermitTemplateMissing = TempData["PermitTemplateMissing"] is true,
 		};
 
 		return View(model);
@@ -255,7 +260,8 @@ public class PermitsController : AppControllerBase
 		var template = allTemplates.FirstOrDefault();
 		if (template == null)
 		{
-			TempData["ErrorMessage"] = "No permit form template found. Please configure one in Admin → Form Templates.";
+			// Opened by URL (the button shows the message itself): the permit list opens the same message.
+			TempData["PermitTemplateMissing"] = true;
 			return RedirectToAction(nameof(Index), new { company });
 		}
 		var model = BuildNewFormViewModel(company, template, null, false, null);

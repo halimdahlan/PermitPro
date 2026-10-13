@@ -20,7 +20,14 @@
 		</div>
 	</div>
 	<div class="order-1 order-sm-2 ms-auto">
-		<a asp-controller="permits" asp-action="new" class="btn btn-sm btn-primary"><span class="px-2"><i class="fa-sharp fa-solid fa-plus me-2"></i> New permit</span></a>
+		@if (Model.PermitTemplateMissing)
+		{
+			<button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#dlgNoPermitTemplate"><span class="px-2"><i class="fa-sharp fa-solid fa-plus me-2"></i> New permit</span></button>
+		}
+		else
+		{
+			<a asp-controller="permits" asp-action="new" class="btn btn-sm btn-primary"><span class="px-2"><i class="fa-sharp fa-solid fa-plus me-2"></i> New permit</span></a>
+		}
 	</div>
 </div>
 
@@ -75,8 +82,52 @@
 	<link rel="stylesheet" href="~/css/permits-index.css" asp-append-version="true" />
 }
 
+@if (Model.PermitTemplateMissing || Model.ShowPermitTemplateMissing)
+{
+	var canCreateTemplate = User.IsInRole("Super User");
+
+	<div class="modal fade" id="dlgNoPermitTemplate" tabindex="-1" aria-labelledby="dlgNoPermitTemplateLabel" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content">
+				<div class="modal-header bg-warning">
+					<h6 class="modal-title w-100" id="dlgNoPermitTemplateLabel" style="font-weight:600;">Permit form not set up</h6>
+					<button type="button" class="btn btn-sm btn-clear" data-bs-dismiss="modal" aria-label="Close">
+						<i class="fa-regular fa-close fa-xl"></i>
+					</button>
+				</div>
+				<div class="modal-body">
+					<p class="mb-2">New permits now use the new permit form, but no permit form template has been created yet.</p>
+					@if (canCreateTemplate)
+					{
+						<p class="mb-0">Create one under <strong>Admin → Templates → Permit/Certificate</strong>, then try again.</p>
+					}
+					else
+					{
+						<p class="mb-0">Please ask your system administrator to set one up.</p>
+					}
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+					@if (canCreateTemplate)
+					{
+						<a href="/@companyId/formtemplates/new" class="btn btn-sm btn-primary"><i class="fa-solid fa-plus me-1"></i> Create permit template</a>
+					}
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
 @section Scripts {
 	<partial name="_DataGridScripts" />
+
+	@if (Model.ShowPermitTemplateMissing)
+	{
+		@* Sent here from the new-permit URL because there is no permit template. *@
+		<script>
+			document.addEventListener('DOMContentLoaded', () => bootstrap.Modal.getOrCreateInstance(document.getElementById('dlgNoPermitTemplate')).show());
+		</script>
+	}
 
 	<script>
 		var companyId = '@companyId';
