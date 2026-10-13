@@ -14,7 +14,7 @@ A multi-tenant, enterprise web application for managing **Permit-to-Work (PTW)**
 | **Auth** | ASP.NET Identity + JWT Bearer |
 | **UI Components** | Bootstrap 5.3, DataTables 2, Tom Select, Flatpickr, Treeselect.js, Chart.js |
 | **Real-time** | ASP.NET Core SignalR |
-| **Background Jobs** | Hangfire 1.8.14 (currently disabled) |
+| **Background Jobs** | None (Hangfire removed) |
 | **Rate Limiting** | ASP.NET Core built-in rate limiter (fixed-window, per-IP) |
 | **PDF Generation** | QuestPDF 2026.9.1 (old- and new-system permits) |
 | **Date Picker** | Flatpickr (CDN, new-system forms) |
