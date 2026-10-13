@@ -63,6 +63,10 @@
 	var isSuperUser = User.IsInRole("Super User");
 	var isPortalAdmin = User.IsInRole("Portal Admin");
 	var isContractor = User.IsInRole("Permit Holder / Contractor");
+
+	// Form builder menu: shown once a valid new_permit_form_cutover_date is set (even a future one),
+	// so templates can be prepared before new permits switch to the new form.
+	var showTemplates = isSuperUser && _systemConfigurationService.NewPermitFormCutoverDate.HasValue;
 }
 
 <ul class="navbar-nav mb-4">
@@ -163,28 +167,29 @@
 				</a>
 			</li>
 
-			<!--
-			<li class="nav-item">
-				<a href="#" id="templatesDropdown" class="d-flex no-loading nav-link @(isTemplatesActive ? "active-light active" : "")">
-					<i class="fa-solid fa-list-ul fa-fw me-3 mt-1"></i>Templates
-					<i class="fa-solid fa-fw ms-auto @arrowClass2"></i>
-				</a>
-				<div id="templateSubmenu" class="ps-3 collapse @templatesShow">
-					<ul class="navbar-nav">
-						<li class="nav-item">
-							<a href="/@companyId/formcontrols" class="nav-link @navFormControls">
-								<i class="fa-solid fa-sliders fa-fw me-3"></i>Form Controls
-							</a>
-						</li>
-						<li class="nav-item">
-							<a href="/@companyId/formtemplates" class="nav-link @navFormTemplates">
-								<i class="fa-solid fa-table-columns fa-fw me-3"></i>Permit/Certificate
-							</a>
-						</li>
-					</ul>
-				</div>
-			</li>
-			-->
+			@if (showTemplates)
+			{
+				<li class="nav-item">
+					<a href="#" id="templatesDropdown" class="d-flex no-loading nav-link @(isTemplatesActive ? "active-light active" : "")">
+						<i class="fa-solid fa-list-ul fa-fw me-3 mt-1"></i>Templates
+						<i class="fa-solid fa-fw ms-auto @arrowClass2"></i>
+					</a>
+					<div id="templateSubmenu" class="ps-3 collapse @templatesShow">
+						<ul class="navbar-nav">
+							<li class="nav-item">
+								<a href="/@companyId/formcontrols" class="nav-link @navFormControls">
+									<i class="fa-solid fa-sliders fa-fw me-3"></i>Form Controls
+								</a>
+							</li>
+							<li class="nav-item">
+								<a href="/@companyId/formtemplates" class="nav-link @navFormTemplates">
+									<i class="fa-solid fa-table-columns fa-fw me-3"></i>Permit/Certificate
+								</a>
+							</li>
+						</ul>
+					</div>
+				</li>
+			}
 		}
 	</ul>
 }

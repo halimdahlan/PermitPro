@@ -12,4 +12,6 @@ public class PermitViewModel
 	public string GridFilter { get; set; }
 	public string GridFilterField { get; set; }
 	public IList<SelectListItem> StatusOptions { get; set; } = new List<SelectListItem>();
+	public bool PermitTemplateMissing { get; set; }
+	public bool ShowPermitTemplateMissing { get; set; }
 }
