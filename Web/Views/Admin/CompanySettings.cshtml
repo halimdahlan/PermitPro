@@ -198,6 +198,7 @@ else
 							<option value="number">number</option>
 							<option value="email">email</option>
 							<option value="boolean">boolean</option>
+							<option value="date">date</option>
 						</select>
 					</div>
 					<div class="col-md-6 mb-3 d-flex align-items-end">
@@ -267,10 +268,13 @@ else
 </div>
 
 @section CustomCss {
+	<partial name="_FlatpickrStyles" />
 	<link rel="stylesheet" href="~/css/settings.css" />
 }
 
 @section Scripts {
+	<partial name="_FlatpickrScripts" />
+	<script src="~/js/setting-value.js" asp-append-version="true"></script>
 	<script>
 		const companyId = '@Model.CompanyId';
 		const baseUrl = `/admin/companies/${companyId}/settings`;
@@ -454,7 +458,8 @@ else
 			$('#stgDataType').val('text');
 			$('#stgIsEncrypted').prop('checked', false);
 			$('#stgSortOrder').val('0');
-			$('#stgValue').attr('type', 'text').prop('disabled', false);
+			$('#stgValue').prop('disabled', false);
+			SettingValue.setType('text');
 			$('#stgValueHint').hide();
 			$('#stgUseGlobalWrapper').hide();
 			$('#stgIsUsingGlobal').prop('checked', false);
@@ -473,8 +478,8 @@ else
 			$('#stgKey').val(s.Key);
 			$('#stgDataType').val(s.DataType);
 			$('#stgIsEncrypted').prop('checked', s.IsEncrypted);
-			$('#stgValue').val(s.IsEncrypted ? '' : (s.Value || ''))
-				.attr('type', s.DataType === 'password' ? 'password' : 'text');
+			$('#stgValue').val(s.IsEncrypted ? '' : (s.Value || ''));
+			SettingValue.setType(s.DataType);
 			$('#stgSortOrder').val(s.SortOrder);
 
 			$('#stgUseGlobalWrapper').toggle(!!s.HasGlobalOverrideAvailable);
@@ -485,7 +490,7 @@ else
 		};
 
 		const onDataTypeChange = () => {
-			$('#stgValue').attr('type', $('#stgDataType').val() === 'password' ? 'password' : 'text');
+			SettingValue.setType($('#stgDataType').val());
 		};
 
 		const onUseGlobalChange = () => {
