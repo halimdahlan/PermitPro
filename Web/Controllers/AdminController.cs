@@ -779,7 +779,7 @@ public class AdminController : Controller
         {
             Id = log.Id,
             CreatedWhen = GeneralHelper.GetDateInTimeZone(log.CreatedWhen),
-            UpdatedWhen = GeneralHelper.GetDateInTimeZone(log.UpdatedWhen.Value),
+            UpdatedWhen = log.UpdatedWhen.HasValue ? GeneralHelper.GetDateInTimeZone(log.UpdatedWhen.Value) : null,
             LogType = log.LogType.ToString(),
             Category = log.Category,
             EntityName = log.EntityName,
