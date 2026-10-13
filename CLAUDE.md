@@ -145,9 +145,22 @@ New-system permits and certificates use a drag-drop form builder:
 
 `NotificationHub` at `/{company}/notificationHub`. Pushes real-time notifications.
 
+### Permit Rules
+
+Per-company preset rules, managed by Super Users at **Admin → Rules** (`/{company}/rules`, `PermitRulesController`, `Views/PermitRules/Index.cshtml`), each switched on/off with settings stored as JSON (`PermitRule.SettingsJson`, models in `Core/Models/PermitRules`). Presets are created disabled on first visit (`IPermitRuleService.GetOrCreatePresetsAsync`); **Preview** is a dry run of which permits a rule would act on now. `PermitRuleTypeEnum`:
+- **EndDateReminder** — end date within the next `HoursBefore` (default 24); not Draft/Closed/Closed – no action/Rejected. Notifies the creator (own permits) and extra addresses. Once per permit, again only if the end date moves later.
+- **Overdue** — end date passed and not Closed/Closed – no action/Rejected (the Reports definition); Drafts only with `IncludeDrafts`. Notifies the creator, Super Users + Portal Admins and extra addresses; once, then every `RepeatEveryDays` (default 1) until closed. Never changes the status (the `Overdue` status isn't handled by any screen).
+- **PendingEscalation** — Pending at the same workflow step for more than `PendingHours` (default 24); "since" = latest workflow history entry, so moving to the next step restarts the clock. Notifies that step's approvers (permits waiting on them), Super Users + Portal Admins and extra addresses; repeats every `RepeatEveryHours`.
+- **AutoArchive** — Closed/Closed – no action/Rejected permits `DaysAfterClosed` (default 30) after closing (rejection date, else latest Closed/Rejected history entry, else `UpdatedWhen`) get `Permit.IsArchived`/`ArchivedWhen` (bulk `ExecuteUpdate`) and a `PermitRuleRun`. Archived permits are hidden from everyone but Super Users: permit list ("Show archived" switch, `GetGridData?archived=true`), site map, Dashboard recent permits, Reports' All Permits grid; Edit/EditForm/ExportPdf return 404. Dashboard and report figures still count them. Super Users can **Unarchive** from the permit page (`_ArchivedBanner` → `POST /{company}/rules/unarchive/{id}`); the rule skips any permit it has a `PermitRuleRun` for, so an unarchived permit is never archived again. No auto-close (the user's decision).
+- Notifying rules share one path (`PermitRuleService.SendDigestsAsync`): one in-app notification and one email (template `wwwroot/templates/html/permit-rule.html`) per recipient listing their permits; `PermitRuleRun` (unique per rule + permit) tracks the last reminder.
+- **Emails off by default** — `PermitRules:SendEmails` (`appsettings.json`, `false`): until the user turns it on, rules send in-app notifications only (the Rules page says so). Don't switch it on without the user's say-so.
+- **History** — `/{company}/rules/history`: every run that did something, from `PERMIT_RULE` audit log entries (company set, rule + permit list in `SerializedData`). Runs with nothing to do only update `PermitRule.LastRunWhen`/`LastRunSummary`.
+- **Runner** — `Web/Services/PermitRulesBackgroundService` (hosted service, no job framework) calls `IPermitRuleService.RunAllAsync` every `PermitRules:IntervalMinutes` (default 5, first run 1 minute after start). A SQL Server app lock (`sp_getapplock`, `PermitPro.PermitRules`) stops two app instances running rules at once during an app pool recycle. It needs IIS to keep the app running: app pool **Start Mode = AlwaysRunning**, **Idle Time-out = 0**, site **Preload Enabled = True** (README → Deployment).
+- No HTTP request in the runner: `ICurrentUserService.GetCurrentUser()` returns null without one, email links use `App:BaseUrl` (unset by default: `https://localhost:7079` in Development, `https://permitpro.app` otherwise), and in-app notification links are relative.
+
 ### Background Jobs
 
-No background job framework: Hangfire was removed on 2026-10-13 (it was never configured), and the user doesn't want it back. `ScheduledTaskController` (`api/ScheduledTask/*`) has two anonymous GET endpoints meant to be called from outside (a test log write, and suspended-permit auto-resume).
+No background job framework: Hangfire was removed on 2026-10-13 (it was never configured), and the user doesn't want it back. Permit rules run in a plain hosted service (see Permit Rules). `ScheduledTaskController` (`api/ScheduledTask/*`) has two anonymous GET endpoints meant to be called from outside (a test log write, and suspended-permit auto-resume).
 
 ## Conventions
 

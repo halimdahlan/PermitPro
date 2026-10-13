@@ -99,8 +99,11 @@ public class PermitsController : AppControllerBase
 		// New-system permits use a different view — redirect immediately.
 		var permitCheck = _dbContext.Permits.AsNoTracking()
 			.Where(p => p.Id == id)
-			.Select(p => new { p.CreatedWhen })
+			.Select(p => new { p.CreatedWhen, p.IsArchived })
 			.FirstOrDefault();
+
+		if (permitCheck != null && permitCheck.IsArchived && !CanSeeArchived)
+			return NotFound();
 
 		if (permitCheck != null && _systemConfigurationService.NewPermitFormCutoverDate.HasValue
 			&& permitCheck.CreatedWhen >= _systemConfigurationService.NewPermitFormCutoverDate.Value)
@@ -183,6 +186,7 @@ public class PermitsController : AppControllerBase
 				PermitStatusDisplay = GeneralHelper.GetPermitStatusDisplay(permit.PermitStatus, permit.PermitWorkflowStep.Name),
 				WorkflowStepName = permit.PermitWorkflowStep != null ? permit.PermitWorkflowStep.Name : null,
 				AlertBgColor = GeneralHelper.GetAlertBgColor(permit.PermitStatus),
+				ArchivedWhen = permit.IsArchived ? GeneralHelper.GetDateInTimeZone(permit.ArchivedWhen ?? DateTime.UtcNow) : null,
 				CompanyId = company,
 				UserRoles = _currentUserService.GetCurrentUserRoles().Result,
 				WorkflowHistories = permit.WorkflowHistories
@@ -282,7 +286,7 @@ public class PermitsController : AppControllerBase
 			.Include(p => p.WorkflowHistories)
 			.FirstOrDefaultAsync(p => p.Id == id, ct);
 
-		if (permit == null) return NotFound();
+		if (permit == null || (permit.IsArchived && !CanSeeArchived)) return NotFound();
 
 		if (!IsNewSystemPermit(permit))
 			return RedirectToAction(nameof(Edit), new { company, id });
@@ -301,13 +305,17 @@ public class PermitsController : AppControllerBase
 
 	#region "Grid"
 
-	public async Task<JsonResult> GetGridData(Guid company, string filter, CancellationToken ct)
+	public async Task<JsonResult> GetGridData(Guid company, string filter, bool archived, CancellationToken ct)
 	{
 		var isContractor = await _currentUserService.IsContractor();
 
 		IQueryable<Permit> query = _dbContext.Permits
 			.AsNoTracking()
 			.Where(e => e.CompanyId == company);
+
+		// Archived permits: Super Users only, behind the list's "Show archived" switch.
+		if (!(archived && CanSeeArchived))
+			query = query.Where(e => !e.IsArchived);
 
 		if (isContractor)
 		{
@@ -334,6 +342,7 @@ public class PermitsController : AppControllerBase
 				PermitStatus = e.PermitStatus.ToString().ToUpper(),
 				e.CreatedWhen,
 				CreatedById = e.CreatedBy.ToString().ToLower(),
+				e.IsArchived,
 			})
 			.ToListAsync(ct);
 
@@ -427,6 +436,7 @@ public class PermitsController : AppControllerBase
 				StatusBadge = GeneralHelper.GetStatusBadge(permit.PermitStatus.ToUpper()),
 				DateSubmitted = GeneralHelper.GetDateInTimeZone(permit.CreatedWhen),
 				SubmittedBy = userNames.GetValueOrDefault(permit.CreatedById, "Unknown"),
+				IsArchived = permit.IsArchived,
 			});
 		}
 
@@ -844,7 +854,7 @@ public class PermitsController : AppControllerBase
 			.Include(p => p.Certificates.Where(c => !c.IsDeleted)).ThenInclude(c => c.FormTemplate)
 			.FirstOrDefaultAsync(p => p.Id == permitId, ct);
 
-		if (permitCheck == null) return NotFound();
+		if (permitCheck == null || (permitCheck.IsArchived && !CanSeeArchived)) return NotFound();
 
 		byte[] pdf;
 
@@ -933,6 +943,9 @@ public class PermitsController : AppControllerBase
 		public string Description { get; init; }
 	}
 
+	// Archived permits (Auto-archive rule) are visible to Super Users only.
+	private bool CanSeeArchived => User.IsInRole("Super User");
+
 	private bool IsNewSystemActive()
 		=> _systemConfigurationService.NewPermitFormCutoverDate.HasValue
 			&& DateTime.UtcNow >= _systemConfigurationService.NewPermitFormCutoverDate.Value;
@@ -969,6 +982,7 @@ public class PermitsController : AppControllerBase
 				? GeneralHelper.GetPermitStatusDisplay(permit.PermitStatus, permit.PermitWorkflowStep?.Name)
 				: "Draft",
 			AlertBgColor = permit != null ? GeneralHelper.GetAlertBgColor(permit.PermitStatus) : "secondary",
+			ArchivedWhen = permit?.IsArchived == true ? GeneralHelper.GetDateInTimeZone(permit.ArchivedWhen ?? DateTime.UtcNow) : null,
 			CompanyId = companyId,
 			ActiveTemplateId = template.Id,
 			LayoutJson = enrichedLayout,

@@ -17,7 +17,7 @@ namespace PermitPro.Core.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.8")
+                .HasAnnotation("ProductVersion", "10.0.12")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -924,6 +924,9 @@ namespace PermitPro.Core.Migrations
                     b.Property<DateTime?>("ApprovedDateTime")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("ArchivedWhen")
+                        .HasColumnType("datetime2");
+
                     b.Property<bool>("AutoResumeSuspended")
                         .HasColumnType("bit");
 
@@ -947,6 +950,9 @@ namespace PermitPro.Core.Migrations
 
                     b.Property<DateTime?>("EndDateTime")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsArchived")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
@@ -1040,6 +1046,91 @@ namespace PermitPro.Core.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("PermitNumbers");
+                });
+
+            modelBuilder.Entity("PermitPro.Core.Entities.PermitRule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedWhen")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedWhen")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LastRunSummary")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("LastRunWhen")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("RuleType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SettingsJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("UpdatedWhen")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId", "RuleType")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
+
+                    b.ToTable("PermitRules");
+                });
+
+            modelBuilder.Entity("PermitPro.Core.Entities.PermitRuleRun", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("FirstRunWhen")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("LastRunWhen")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("PermitId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("PermitRuleId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("RunCount")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PermitId");
+
+                    b.HasIndex("PermitRuleId", "PermitId")
+                        .IsUnique();
+
+                    b.ToTable("PermitRuleRuns");
                 });
 
             modelBuilder.Entity("PermitPro.Core.Entities.Site", b =>
@@ -1727,6 +1818,36 @@ namespace PermitPro.Core.Migrations
                     b.Navigation("PermitWorkflowStep");
 
                     b.Navigation("Site");
+                });
+
+            modelBuilder.Entity("PermitPro.Core.Entities.PermitRule", b =>
+                {
+                    b.HasOne("PermitPro.Core.Entities.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Company");
+                });
+
+            modelBuilder.Entity("PermitPro.Core.Entities.PermitRuleRun", b =>
+                {
+                    b.HasOne("PermitPro.Core.Entities.Permit", "Permit")
+                        .WithMany()
+                        .HasForeignKey("PermitId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PermitPro.Core.Entities.PermitRule", "PermitRule")
+                        .WithMany()
+                        .HasForeignKey("PermitRuleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Permit");
+
+                    b.Navigation("PermitRule");
                 });
 
             modelBuilder.Entity("PermitPro.Core.Entities.Site", b =>

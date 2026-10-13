@@ -467,6 +467,9 @@ public class SitesController : AppControllerBase
 	{
 		try
 		{
+			// Archived permits (Auto-archive rule) are shown to Super Users only.
+			var canSeeArchived = User.IsInRole("Super User");
+
 			var sites = _dbContext.Sites
 				.Include(e => e.Permits)
 				.Where(x => x.Permits.Count > 0 && x.Latitude != null && x.Longitude != null && x.ShowInMap == true && x.SiteCompany.Id == companyId)
@@ -476,7 +479,7 @@ public class SitesController : AppControllerBase
 					x.Name,
 					x.Latitude,
 					x.Longitude,
-					Permits = x.Permits.Select(p => new
+					Permits = x.Permits.Where(p => canSeeArchived || !p.IsArchived).Select(p => new
 					{
 						p.Id,
 						p.PermitNo,

@@ -66,6 +66,11 @@ public class Permit : ISoftDeletable
 
 	public bool AutoResumeSuspended { get; set; }
 
+	// Archived by the Auto-archive rule: hidden from everyone except Super Users, still counted in stats.
+	public bool IsArchived { get; set; }
+
+	public DateTime? ArchivedWhen { get; set; }
+
 	public string? Remarks { get; set; }
 
 	public Workflow? PermitWorkflow { get; set; }

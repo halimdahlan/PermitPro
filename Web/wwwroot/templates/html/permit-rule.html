@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Permit Notice</title>
+	<style>
+		body, td, th {
+			font-family: Arial;
+			font-size: 16px;
+		}
+	</style>
+</head>
+<body>
+	<table cellpadding="0" cellspacing="0">
+		<tr>
+			<td>
+				Dear {{ recipient_name | html.escape }},
+			</td>
+		</tr>
+		<tr><td>&nbsp;</td></tr>
+		<tr>
+			<td>
+				{{ intro | html.escape }}
+			</td>
+		</tr>
+		<tr><td>&nbsp;</td></tr>
+		<tr>
+			<td>
+				<table cellpadding="6" cellspacing="0" style="border-collapse:collapse;">
+					<tr style="background:#f0f4f8;">
+						<th align="left" style="border:1px solid #d1dbe8;">Permit no</th>
+						<th align="left" style="border:1px solid #d1dbe8;">Description</th>
+						<th align="left" style="border:1px solid #d1dbe8;">Location</th>
+						<th align="left" style="border:1px solid #d1dbe8;">{{ date_label | html.escape }}</th>
+						<th align="left" style="border:1px solid #d1dbe8;">{{ extra_label | html.escape }}</th>
+					</tr>
+					{{ for p in permits }}
+					<tr>
+						<td style="border:1px solid #d1dbe8;white-space:nowrap;"><a href="{{ p.link }}" target="_blank">{{ p.permit_no }}</a></td>
+						<td style="border:1px solid #d1dbe8;">{{ p.description | html.escape }}</td>
+						<td style="border:1px solid #d1dbe8;">{{ p.location | html.escape }}</td>
+						<td style="border:1px solid #d1dbe8;white-space:nowrap;">{{ p.date }}</td>
+						<td style="border:1px solid #d1dbe8;white-space:nowrap;">{{ p.extra | html.escape }}</td>
+					</tr>
+					{{ end }}
+				</table>
+			</td>
+		</tr>
+		<tr><td>&nbsp;</td></tr>
+		<tr>
+			<td>
+				Click <a href="{{ permits_link }}" target="_blank">here</a> to open the permit list.
+			</td>
+		</tr>
+		{{ if footer }}
+		<tr><td>&nbsp;</td></tr>
+		<tr>
+			<td style="color:#6b7c93;font-size:13px;">
+				{{ footer | html.escape }}
+			</td>
+		</tr>
+		{{ end }}
+		<tr><td>&nbsp;</td></tr>
+		<tr>
+			<td>
+				Workflow Team<br />
+				PermitPRO{{ if company_name }} &middot; {{ company_name | html.escape }}{{ end }}
+			</td>
+		</tr>
+	</table>
+</body>
+</html>

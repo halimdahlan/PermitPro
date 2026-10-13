@@ -96,7 +96,10 @@ public class DashboardController : AppControllerBase
 			.ToList();
 
 		// Recent permits (last 5) — pre-fetch creator names to avoid N+1 queries
+		// Archived permits still count in the stats above but are listed for Super Users only.
+		var canSeeArchived = User.IsInRole("Super User");
 		var recentPermitsRaw = permits
+			.Where(e => canSeeArchived || !e.IsArchived)
 			.OrderByDescending(e => e.CreatedWhen)
 			.Take(5)
 			.ToList();
@@ -122,11 +125,11 @@ public class DashboardController : AppControllerBase
 			})
 			.ToList();
 
-		// Recent activity from AuditLog (last 3 for this company)
+		// Recent activity from AuditLog (last 3 for this company). Permit rule runs have their own page (Rules → History).
 		var recentActivity = (await _dbContext.AuditLogs
 			.AsNoTracking()
 			.Include(e => e.AuditLogUser)
-			.Where(e => e.CompanyId == company && e.LogType == LogTypeEnum.Information)
+			.Where(e => e.CompanyId == company && e.LogType == LogTypeEnum.Information && e.Category != "PERMIT_RULE")
 			.OrderByDescending(e => e.CreatedWhen)
 			.Take(3)
 			.ToListAsync(cancellationToken))

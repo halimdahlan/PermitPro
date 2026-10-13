@@ -1,0 +1,36 @@
+@model EditPermitViewModel
+
+@* Archived permit (Auto-archive rule): only Super Users can open it, so they get the Unarchive button. *@
+@if (Model.ArchivedWhen.HasValue)
+{
+	<div class="alert alert-secondary d-flex flex-wrap align-items-center gap-2 mb-3" role="alert" id="archivedBanner">
+		<i class="fa-solid fa-box-archive"></i>
+		<div class="flex-grow-1" style="min-width:0;">
+			<strong>Archived</strong> on @Model.ArchivedWhen.Value.ToString("dd MMM yyyy"), visible to Super Users only.
+			<span class="archived-error text-danger ms-1"></span>
+		</div>
+		<button type="button" class="btn btn-sm btn-outline-secondary ms-auto" id="btnUnarchive">
+			<i class="fa-solid fa-box-open me-1"></i> Unarchive
+		</button>
+	</div>
+
+	<script>
+		document.getElementById('btnUnarchive').addEventListener('click', async (e) => {
+			const button = e.currentTarget;
+			const error = document.querySelector('#archivedBanner .archived-error');
+			button.disabled = true;
+			error.textContent = '';
+			try {
+				const response = await fetch('/@Model.CompanyId/rules/unarchive/@Model.PermitId', {
+					method: 'POST',
+					headers: { 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '' },
+				});
+				if (!response.ok) throw new Error(await response.text() || 'Could not unarchive the permit.');
+				location.reload();
+			} catch (err) {
+				error.textContent = err.message;
+				button.disabled = false;
+			}
+		});
+	</script>
+}

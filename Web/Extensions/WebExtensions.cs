@@ -174,6 +174,10 @@ public static class WebExtensions
 		services.AddSignalR();
 		services.AddScoped<INotificationPushService, NotificationPushService>();
 
+		// Permit rules (Overdue, Auto-archive): runs every PermitRules:IntervalMinutes. Needs the IIS app pool
+		// on AlwaysRunning with preload, or it stops when the site is idle (see README).
+		services.AddHostedService<PermitRulesBackgroundService>();
+
 		return services;
 	}
 }

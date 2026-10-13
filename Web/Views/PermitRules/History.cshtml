@@ -1,0 +1,86 @@
+@model Guid
+
+@{
+	ViewData["Title"] = "Rules";
+	ViewData["SubTitle"] = "Run history";
+}
+
+<div class="d-flex flex-wrap align-items-center gap-3">
+	<p class="text-secondary mb-0 me-auto" style="font-size:.85rem;">
+		Every rule run that did something (reminders sent, permits archived, unarchives, errors), newest first. Runs with nothing to do aren't listed.
+	</p>
+	<a href="/@Model/rules" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-arrow-left me-1"></i> Rules</a>
+</div>
+
+<div class="mt-4 card data-grid">
+	<div class="card-body">
+		<div class="grid-error alert alert-danger d-none" role="alert"></div>
+		<table id="tblRuleHistory" class="table table-sm table-hover align-middle w-100">
+			<thead>
+				<tr>
+					<th>When</th>
+					<th>Rule</th>
+					<th class="text-center">Result</th>
+					<th>Details</th>
+					<th>Permits</th>
+				</tr>
+			</thead>
+		</table>
+	</div>
+</div>
+
+@section CustomCss {
+	<partial name="_DataGridStyles" />
+}
+
+@section Scripts {
+	<partial name="_DataGridScripts" />
+
+	<script>
+		$(document).ready(() => {
+			const companyId = '@Model';
+
+			// Permit numbers as links; long lists are collapsed behind "and N more".
+			const renderPermits = (permits, type) => {
+				if (type !== 'display') return (permits || []).map(p => p.PermitNo).join(' ');
+				if (!permits || permits.length === 0) return '&mdash;';
+				const link = p => `<a href="/${companyId}/permits/edit/${p.Id}" class="text-nowrap">${DataGrid.escapeHtml(p.PermitNo)}</a>`;
+				const shown = permits.slice(0, 5).map(link).join(', ');
+				if (permits.length <= 5) return shown;
+				return `${shown} <a href="javascript:;" class="no-loading show-all-permits text-nowrap">and ${permits.length - 5} more</a>` +
+					`<span class="d-none all-permits">, ${permits.slice(5).map(link).join(', ')}</span>`;
+			};
+
+			DataGrid.create('#tblRuleHistory', `/${companyId}/rules/history/data`, {
+				language: {
+					emptyTable: 'No rule has done anything yet.',
+					zeroRecords: 'No matching runs found.',
+				},
+				order: [[0, 'desc']],
+				columns: [
+					{
+						data: 'When',
+						className: 'text-nowrap',
+						render: (data, type) => type === 'display' ? moment(data).format('DD MMM YYYY, hh:mm A') : data,
+					},
+					{ data: 'Rule', className: 'text-nowrap', render: DataGrid.renderText },
+					{
+						data: 'Result',
+						className: 'text-center',
+						render: (data, type) => type === 'display'
+							? (data === 'Error'
+								? '<span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle">Error</span>'
+								: '<span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">OK</span>')
+							: data,
+					},
+					{ data: 'Message', render: DataGrid.renderText },
+					{ data: 'Permits', orderable: false, render: renderPermits },
+				],
+			});
+
+			$('#tblRuleHistory').on('click', '.show-all-permits', (e) => {
+				$(e.currentTarget).addClass('d-none').next('.all-permits').removeClass('d-none');
+			});
+		});
+	</script>
+}
