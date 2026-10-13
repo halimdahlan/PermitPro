@@ -147,7 +147,7 @@ New-system permits and certificates use a drag-drop form builder:
 
 ### Background Jobs
 
-Hangfire packages are installed and registered but the seed/execution is currently disabled (commented out in `Program.cs`).
+No background job framework: Hangfire was removed on 2026-10-13 (it was never configured), and the user doesn't want it back. `ScheduledTaskController` (`api/ScheduledTask/*`) has two anonymous GET endpoints meant to be called from outside (a test log write, and suspended-permit auto-resume).
 
 ## Conventions
 
