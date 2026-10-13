@@ -37,4 +37,6 @@ public class PermitListViewModel
 	public string? SubmittedBy { get; set; }
 
 	public string? CompanyId { get; set; }
+
+	public bool IsArchived { get; set; }
 }

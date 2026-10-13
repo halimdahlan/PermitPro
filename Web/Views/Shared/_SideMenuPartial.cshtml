@@ -25,6 +25,7 @@
 	var navAbout = currentRoute?.ToLower() == "settings" && currentAction?.ToLower() == "about" ? "active" : "";
 	var navFormControls  = currentRoute?.ToLower() == "tenantformcontrols"  ? "active" : "";
 	var navFormTemplates = currentRoute?.ToLower() == "tenantformtemplates" ? "active" : "";
+	var navRules = currentRoute?.ToLower() == "permitrules" ? "active" : "";
 	//var navCertTemplates = "";
 
 	if (TempData["CurrentPage"]?.ToString()?.ToLower().Contains("certificate", StringComparison.OrdinalIgnoreCase) == true)
@@ -164,6 +165,12 @@
 			<li class="nav-item">
 				<a href="/@companyId/settings" class="nav-link @navSettings">
 					<i class="fa-solid fa-cog fa-fw me-3"></i>System Settings
+				</a>
+			</li>
+
+			<li class="nav-item">
+				<a href="/@companyId/rules" class="nav-link @navRules">
+					<i class="fa-solid fa-list-check fa-fw me-3"></i>Rules
 				</a>
 			</li>
 

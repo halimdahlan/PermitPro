@@ -106,7 +106,10 @@ public class CurrentUserService : ICurrentUserService
 
 	public UserInfo GetCurrentUser()
 	{
-		var userId = _dbContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+		// No request (e.g. the permit rules background service): no current user.
+		var userId = _dbContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+		if (userId == null) return null;
+
 		return _dbContext.Users
 			.Include(f => f.UserCompany)
 			.Include(f => f.UserRoles)

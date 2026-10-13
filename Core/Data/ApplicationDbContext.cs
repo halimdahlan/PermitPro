@@ -94,6 +94,10 @@ public class ApplicationDbContext
 
 	public DbSet<FormTemplate> FormTemplates { get; set; }
 
+	public DbSet<PermitRule> PermitRules { get; set; }
+
+	public DbSet<PermitRuleRun> PermitRuleRuns { get; set; }
+
 	/// <summary>
 	/// Flag to control delete behavior. When TRUE (default), soft-deletes are used.
 	/// When FALSE, hard deletes (permanent removal) are performed.
@@ -246,6 +250,34 @@ public class ApplicationDbContext
 				   .WithMany()
 				   .HasForeignKey(x => x.CompanyId)
 				   .OnDelete(DeleteBehavior.Cascade);
+		});
+
+		builder.Entity<PermitRule>(options =>
+		{
+			options.HasOne(x => x.Company)
+				   .WithMany()
+				   .HasForeignKey(x => x.CompanyId)
+				   .OnDelete(DeleteBehavior.Cascade);
+			// One preset of each type per company.
+			options.HasIndex(x => new { x.CompanyId, x.RuleType })
+				   .IsUnique()
+				   .HasFilter("[IsDeleted] = 0");
+		});
+
+		builder.Entity<PermitRuleRun>(options =>
+		{
+			options.HasOne(x => x.PermitRule)
+				   .WithMany()
+				   .HasForeignKey(x => x.PermitRuleId)
+				   .OnDelete(DeleteBehavior.Cascade);
+			// Cascade so a permit's permanent delete (Recycle Bin) also removes its rule runs.
+			options.HasOne(x => x.Permit)
+				   .WithMany()
+				   .HasForeignKey(x => x.PermitId)
+				   .OnDelete(DeleteBehavior.Cascade);
+			options.HasIndex(x => new { x.PermitRuleId, x.PermitId }).IsUnique();
+			// Match Permit's soft-delete filter (required relationship), like UserRole below.
+			options.HasQueryFilter(x => !x.Permit!.IsDeleted);
 		});
 
 		builder.Entity<AuditLog>(options =>

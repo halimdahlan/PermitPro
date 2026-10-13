@@ -96,7 +96,10 @@ public class DashboardController : AppControllerBase
 			.ToList();
 
 		// Recent permits (last 5) — pre-fetch creator names to avoid N+1 queries
+		// Archived permits still count in the stats above but are listed for Super Users only.
+		var canSeeArchived = User.IsInRole("Super User");
 		var recentPermitsRaw = permits
+			.Where(e => canSeeArchived || !e.IsArchived)
 			.OrderByDescending(e => e.CreatedWhen)
 			.Take(5)
 			.ToList();

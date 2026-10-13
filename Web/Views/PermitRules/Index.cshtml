@@ -1,0 +1,229 @@
+@using PermitPro.Core.Enums
+@using PermitPro.Core.Models.PermitRules
+@using System.Text.Json
+
+@model PermitRulesViewModel
+
+@{
+	ViewData["Title"] = "Rules";
+	ViewData["SubTitle"] = "Permit rules";
+
+	var jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+	T Settings<T>(PermitRuleItemViewModel rule) where T : new()
+	{
+		try { return JsonSerializer.Deserialize<T>(rule.SettingsJson, jsonOptions) ?? new T(); }
+		catch (JsonException) { return new T(); }
+	}
+
+	var overdueRule = Model.Rules.First(r => r.RuleType == PermitRuleTypeEnum.Overdue);
+	var archiveRule = Model.Rules.First(r => r.RuleType == PermitRuleTypeEnum.AutoArchive);
+	var overdue = Settings<OverdueRuleSettings>(overdueRule);
+	var archive = Settings<AutoArchiveRuleSettings>(archiveRule);
+}
+
+@Html.AntiForgeryToken()
+
+<p class="text-secondary mb-4" style="font-size:.85rem;">
+	Rules run automatically every few minutes once they're switched on and saved. Use <strong>Preview</strong> to see which permits a rule would act on right now.
+</p>
+
+@* ── Overdue permits ─────────────────────────────────────────────── *@
+<div class="card mb-4 rule-card" data-rule-type="@((int)PermitRuleTypeEnum.Overdue)">
+	<div class="card-header">
+		<div>
+			<h6 class="card-title"><i class="fa-solid fa-clock-rotate-left me-2 text-danger"></i>Overdue permits</h6>
+			<div class="card-subtitle">Notify people when a permit's end date has passed and it isn't closed yet. The permit's status isn't changed.</div>
+		</div>
+		<div class="form-check form-switch mb-0 ms-3">
+			<input class="form-check-input rule-enabled" type="checkbox" role="switch" id="chkOverdueEnabled" @(overdueRule.IsEnabled ? "checked" : "") />
+			<label class="form-check-label rule-enabled-label" for="chkOverdueEnabled">@(overdueRule.IsEnabled ? "On" : "Off")</label>
+		</div>
+	</div>
+	<div class="card-body">
+		<div class="row g-3">
+			<div class="col-md-6">
+				<label class="form-label">Notify</label>
+				<div class="form-check">
+					<input class="form-check-input" type="checkbox" id="chkNotifyCreator" @(overdue.NotifyCreator ? "checked" : "") />
+					<label class="form-check-label" for="chkNotifyCreator">The permit's creator <span class="text-secondary">(their own permits)</span></label>
+				</div>
+				<div class="form-check">
+					<input class="form-check-input" type="checkbox" id="chkNotifyAdmins" @(overdue.NotifyAdmins ? "checked" : "") />
+					<label class="form-check-label" for="chkNotifyAdmins">Super Users and Portal Admins <span class="text-secondary">(all overdue permits)</span></label>
+				</div>
+				@if (Model.EmailsEnabled)
+				{
+					<div class="form-text">By email and in the notification bell.</div>
+				}
+				else
+				{
+					<div class="form-text text-warning"><i class="fa-solid fa-envelope-circle-xmark me-1"></i>Emails are turned off for now (<code>PermitRules:SendEmails</code>): only the notification bell is used.</div>
+				}
+			</div>
+			<div class="col-md-6">
+				<label class="form-label" for="txtExtraEmails">Extra email addresses</label>
+				<textarea class="form-control" id="txtExtraEmails" rows="2" placeholder="e.g. safety@company.com; manager@company.com">@overdue.ExtraEmails</textarea>
+				<div class="form-text">Separate with commas, semicolons or new lines. They get all overdue permits.</div>
+			</div>
+			<div class="col-md-6">
+				<label class="form-label" for="numRepeatDays">Remind again every</label>
+				<div class="input-group" style="max-width:220px;">
+					<input type="number" class="form-control" id="numRepeatDays" min="1" max="365" value="@overdue.RepeatEveryDays" />
+					<span class="input-group-text" style="font-size:.85rem;">day(s)</span>
+				</div>
+				<div class="form-text">The first reminder goes out when the permit becomes overdue, then again until it's closed.</div>
+			</div>
+		</div>
+	</div>
+	<div class="card-footer bg-transparent d-flex flex-wrap align-items-center gap-2">
+		<div class="small text-secondary me-auto rule-last-run">
+			@if (overdueRule.LastRunWhen.HasValue)
+			{
+				<span>Last checked @overdueRule.LastRunWhen.Value.ToString("dd MMM yyyy, hh:mm tt"): @overdueRule.LastRunSummary</span>
+			}
+			else
+			{
+				<span>Not run yet.</span>
+			}
+		</div>
+		<span class="small rule-status"></span>
+		<button type="button" class="btn btn-sm btn-outline-secondary btn-rule-preview"><i class="fa-solid fa-magnifying-glass me-1"></i> Preview</button>
+		<button type="button" class="btn btn-sm btn-primary btn-rule-save"><i class="fa-solid fa-floppy-disk me-1"></i> Save</button>
+	</div>
+	<div class="rule-preview d-none px-3 pb-3"></div>
+</div>
+
+@* ── Auto-archive ────────────────────────────────────────────────── *@
+<div class="card mb-4 rule-card" data-rule-type="@((int)PermitRuleTypeEnum.AutoArchive)">
+	<div class="card-header">
+		<div>
+			<h6 class="card-title"><i class="fa-solid fa-box-archive me-2 text-secondary"></i>Auto-archive</h6>
+			<div class="card-subtitle">Archive Closed, Closed – no action and Rejected permits some days after they were closed.</div>
+		</div>
+		<div class="form-check form-switch mb-0 ms-3">
+			<input class="form-check-input rule-enabled" type="checkbox" role="switch" id="chkArchiveEnabled" @(archiveRule.IsEnabled ? "checked" : "") />
+			<label class="form-check-label rule-enabled-label" for="chkArchiveEnabled">@(archiveRule.IsEnabled ? "On" : "Off")</label>
+		</div>
+	</div>
+	<div class="card-body">
+		<div class="row g-3">
+			<div class="col-md-6">
+				<label class="form-label" for="numArchiveDays">Archive after</label>
+				<div class="input-group" style="max-width:260px;">
+					<input type="number" class="form-control" id="numArchiveDays" min="1" max="3650" value="@archive.DaysAfterClosed" />
+					<span class="input-group-text" style="font-size:.85rem;">days closed</span>
+				</div>
+			</div>
+			<div class="col-md-6">
+				<div class="form-text mt-md-4">
+					Archived permits are hidden from everyone except Super Users (who can show them with <strong>Show archived</strong> on the permit list). They still count in the dashboard and report figures.
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="card-footer bg-transparent d-flex flex-wrap align-items-center gap-2">
+		<div class="small text-secondary me-auto rule-last-run">
+			@if (archiveRule.LastRunWhen.HasValue)
+			{
+				<span>Last checked @archiveRule.LastRunWhen.Value.ToString("dd MMM yyyy, hh:mm tt"): @archiveRule.LastRunSummary</span>
+			}
+			else
+			{
+				<span>Not run yet.</span>
+			}
+		</div>
+		<span class="small rule-status"></span>
+		<button type="button" class="btn btn-sm btn-outline-secondary btn-rule-preview"><i class="fa-solid fa-magnifying-glass me-1"></i> Preview</button>
+		<button type="button" class="btn btn-sm btn-primary btn-rule-save"><i class="fa-solid fa-floppy-disk me-1"></i> Save</button>
+	</div>
+	<div class="rule-preview d-none px-3 pb-3"></div>
+</div>
+
+@section Scripts {
+	<script>
+		(() => {
+			const companyId = '@Model.CompanyId';
+			const token = $('input[name="__RequestVerificationToken"]').val();
+			const OVERDUE = @((int)PermitRuleTypeEnum.Overdue);
+
+			const escapeHtml = (value) => $('<div>').text(value ?? '').html();
+
+			const settingsOf = (card) => card.data('ruleType') === OVERDUE
+				? {
+					RepeatEveryDays: parseInt($('#numRepeatDays').val(), 10) || 0,
+					NotifyCreator: $('#chkNotifyCreator').prop('checked'),
+					NotifyAdmins: $('#chkNotifyAdmins').prop('checked'),
+					ExtraEmails: $('#txtExtraEmails').val(),
+				}
+				: { DaysAfterClosed: parseInt($('#numArchiveDays').val(), 10) || 0 };
+
+			const requestOf = (card) => JSON.stringify({
+				RuleType: card.data('ruleType'),
+				IsEnabled: card.find('.rule-enabled').prop('checked'),
+				Settings: settingsOf(card),
+			});
+
+			const setStatus = (card, html, cls) => card.find('.rule-status').attr('class', 'small rule-status ' + (cls || '')).html(html);
+
+			const post = (url, card) => $.ajax({
+				url,
+				type: 'POST',
+				contentType: 'application/json',
+				data: requestOf(card),
+				headers: { 'RequestVerificationToken': token },
+			});
+
+			$('.rule-enabled').on('change', (e) => {
+				const card = $(e.currentTarget).closest('.rule-card');
+				card.find('.rule-enabled-label').text(e.currentTarget.checked ? 'On' : 'Off');
+				setStatus(card, 'Not saved yet.', 'text-warning');
+			});
+
+			$('.btn-rule-save').on('click', (e) => {
+				const card = $(e.currentTarget).closest('.rule-card');
+				setStatus(card, '<i class="fa-solid fa-loader fa-spin me-1"></i> Saving...', 'text-secondary');
+				post(`/${companyId}/rules/save`, card)
+					.done(() => {
+						const on = card.find('.rule-enabled').prop('checked');
+						setStatus(card, `<i class="fa-solid fa-check me-1"></i> Saved${on ? '. Runs within a few minutes.' : ' (switched off).'}`, 'text-success');
+					})
+					.fail((xhr) => setStatus(card, escapeHtml(xhr.responseText || 'Could not save. Please try again.'), 'text-danger'));
+			});
+
+			$('.btn-rule-preview').on('click', (e) => {
+				const card = $(e.currentTarget).closest('.rule-card');
+				const box = card.find('.rule-preview');
+				const isOverdue = card.data('ruleType') === OVERDUE;
+				box.removeClass('d-none').html('<div class="text-secondary small py-2"><i class="fa-solid fa-loader fa-spin me-1"></i> Checking permits...</div>');
+
+				post(`/${companyId}/rules/preview`, card)
+					.done((r) => {
+						if (!r.Count) {
+							box.html(`<div class="text-secondary small py-2">No permits ${isOverdue ? 'are overdue' : 'would be archived'} right now.</div>`);
+							return;
+						}
+						const rows = r.Sample.map(p => `
+							<tr>
+								<td class="text-nowrap" data-label="Permit No."><a href="/${companyId}/permits/edit/${p.Id}">${escapeHtml(p.PermitNo)}</a></td>
+								<td data-label="Description">${escapeHtml(p.Description)}</td>
+								<td data-label="Status">${escapeHtml(p.Status)}</td>
+								<td class="text-nowrap" data-label="${isOverdue ? 'End date' : 'Closed'}">${escapeHtml(p.Date)}</td>
+							</tr>`).join('');
+						box.html(`
+							<div class="small mb-2"><strong>${r.Count}</strong> permit${r.Count === 1 ? '' : 's'} ${isOverdue ? 'are overdue and would be included' : 'would be archived'}${r.Count > r.Sample.length ? ` (showing the first ${r.Sample.length})` : ''}.</div>
+							<div class="table-cards-wrap">
+								<table class="table table-sm align-middle mb-0 dt-cards">
+									<thead class="table-light"><tr><th>Permit No.</th><th>Description</th><th>Status</th><th>${isOverdue ? 'End date' : 'Closed'}</th></tr></thead>
+									<tbody>${rows}</tbody>
+								</table>
+							</div>`);
+					})
+					.fail((xhr) => box.html(`<div class="text-danger small py-2">${escapeHtml(xhr.responseText || 'Could not load the preview.')}</div>`));
+			});
+		})();
+	</script>
+}
+
+@section CustomCss {
+	<link rel="stylesheet" href="~/css/datagrid.css" asp-append-version="true" />
+}

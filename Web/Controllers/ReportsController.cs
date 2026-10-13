@@ -148,10 +148,14 @@ public class ReportsController : AppControllerBase
 
 	public async Task<JsonResult> GetReportGrid(Guid company, CancellationToken cancellationToken)
 	{
+		// The All Permits list hides archived permits from everyone but Super Users (KPIs and charts still count them).
+		var canSeeArchived = User.IsInRole("Super User");
+
 		var rawPermits = await _dbContext.Permits
 			.AsNoTracking()
 			.Include(e => e.Site)
 			.Where(e => e.Company.Id == company && e.PermitWorkflowStep != null && e.Site != null)
+			.Where(e => canSeeArchived || !e.IsArchived)
 			.OrderByDescending(e => e.CreatedWhen)
 			.Select(e => new
 			{

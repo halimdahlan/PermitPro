@@ -568,6 +568,7 @@ dotnet ef database update --project Core --startup-project Web
 - **DNS:** managed in Cloudflare and proxied. `permitpro.app` and `*.permitpro.app` resolve to the origin through Cloudflare.
 - **Redirect rule** (Cloudflare): any hostname other than `permitpro.app` gets a 301 redirect to `https://permitpro.app` plus the request path. See issue #4: it currently drops the query string.
 - **Client IP:** every request arrives from a Cloudflare edge IP. The app restores the real client IP from `CF-Connecting-IP` (`Web/Services/CloudflareClientIp.cs`), which the per-IP login rate limiter depends on.
+- **Keep the app running (permit rules):** the Overdue and Auto-archive rules run inside the app every few minutes, so IIS must not stop it when the site is idle. In IIS Manager: the site's application pool → *Advanced Settings* → **Start Mode = AlwaysRunning** and **Idle Time-out (minutes) = 0**; the site → *Advanced Settings* → **Preload Enabled = True**. This needs the IIS *Application Initialization* feature (Server Manager → Web Server → Application Development). Periodic recycles are fine: the app restarts and the rules carry on.
 - **Outbound access the server needs:** HTTPS to `api.cloudflare.com` (refreshes Cloudflare's IP ranges at startup and every 24 hours), plus SMTP for email. PDF export needs no outbound access (QuestPDF, embedded fonts, local images).
 - **Deploys are manual.** There's no CI/CD (see below), so merging to `master` doesn't change the live site. Publish, then copy the `publish` folder to the server:
 

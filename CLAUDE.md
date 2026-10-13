@@ -145,6 +145,16 @@ New-system permits and certificates use a drag-drop form builder:
 
 `NotificationHub` at `/{company}/notificationHub`. Pushes real-time notifications.
 
+### Permit Rules
+
+Per-company preset rules, managed by Super Users at **Admin → Rules** (`/{company}/rules`, `PermitRulesController`, `Views/PermitRules/Index.cshtml`). Phase 1 has two presets (`PermitRuleTypeEnum`), each switched on/off with settings stored as JSON (`PermitRule.SettingsJson`, models in `Core/Models/PermitRules`):
+- **Overdue** — permits whose `EndDateTime` has passed and whose status isn't Closed, Closed – no action or Rejected (the Reports definition). Emails (template `wwwroot/templates/html/permit-overdue.html`, via `MessageService` with the company's SMTP) and in-app notifications go to the creator (their own permits), the company's Super Users and Portal Admins, and extra addresses (all overdue permits), one digest per recipient. Notifies once, then every `RepeatEveryDays` (default 1) until closed; `PermitRuleRun` (unique per rule + permit) tracks the last reminder. Never changes the permit's status (the `Overdue` status isn't handled by any screen).
+- **Auto-archive** — Closed, Closed – no action and Rejected permits `DaysAfterClosed` days (default 30) after closing (rejection date, else the latest Closed/Rejected workflow history entry, else `UpdatedWhen`) get `Permit.IsArchived` / `ArchivedWhen` (bulk `ExecuteUpdate`). Archived permits are hidden from everyone but Super Users: permit list (Super Users have a "Show archived" switch, `GetGridData?archived=true`), site map, Dashboard recent permits, Reports' All Permits grid, and Edit / EditForm / ExportPdf return 404. Dashboard and report figures still count them. No auto-close (the user's decision).
+- The Rules page has a dry run (**Preview**) showing which permits a rule would act on now; presets are created disabled on first visit (`IPermitRuleService.GetOrCreatePresetsAsync`).
+- **Emails off by default** — `PermitRules:SendEmails` (`appsettings.json`, `false`): until the user turns it on, the Overdue rule sends in-app notifications only (the Rules page says so). Don't switch it on without the user's say-so.
+- **Runner** — `Web/Services/PermitRulesBackgroundService` (hosted service, no job framework) calls `IPermitRuleService.RunAllAsync` every `PermitRules:IntervalMinutes` (default 5, first run 1 minute after start). A SQL Server app lock (`sp_getapplock`, `PermitPro.PermitRules`) stops two app instances running rules at once during an app pool recycle. It needs IIS to keep the app running: app pool **Start Mode = AlwaysRunning**, **Idle Time-out = 0**, site **Preload Enabled = True** (README → Deployment). Each run writes `PERMIT_RULE` audit log entries with the company set, and `PermitRule.LastRunWhen` / `LastRunSummary` (shown on the page).
+- No HTTP request in the runner: `ICurrentUserService.GetCurrentUser()` returns null without one, email links use `App:BaseUrl` (unset by default: `https://localhost:7079` in Development, `https://permitpro.app` otherwise), and in-app notification links are relative.
+
 ### Background Jobs
 
 Hangfire packages are installed and registered but the seed/execution is currently disabled (commented out in `Program.cs`).
