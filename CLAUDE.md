@@ -17,6 +17,8 @@ dotnet publish Web/App.csproj --configuration Release --framework net10.0 --outp
 # EF Core migrations (Core holds DbContext, Web is the startup project)
 dotnet ef migrations add <MigrationName> --project Core --startup-project Web
 dotnet ef database update --project Core --startup-project Web
+# Production has no dotnet-ef: generate an idempotent script here and run it there (SSMS, or sqlcmd -I)
+dotnet ef migrations script --idempotent --project Core --startup-project Web --output publish-migrations.sql
 
 # Default URLs (Development)
 # HTTP:  http://localhost:5144
