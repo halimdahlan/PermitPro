@@ -9,134 +9,194 @@
 	ViewData["SubTitle"] = "Permit rules";
 
 	var jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-	T Settings<T>(PermitRuleItemViewModel rule) where T : new()
+	T Settings<T>(PermitRuleTypeEnum type) where T : new()
 	{
-		try { return JsonSerializer.Deserialize<T>(rule.SettingsJson, jsonOptions) ?? new T(); }
+		try { return JsonSerializer.Deserialize<T>(Model.Rules.First(r => r.RuleType == type).SettingsJson, jsonOptions) ?? new T(); }
 		catch (JsonException) { return new T(); }
 	}
+	PermitRuleItemViewModel Rule(PermitRuleTypeEnum type) => Model.Rules.First(r => r.RuleType == type);
 
-	var overdueRule = Model.Rules.First(r => r.RuleType == PermitRuleTypeEnum.Overdue);
-	var archiveRule = Model.Rules.First(r => r.RuleType == PermitRuleTypeEnum.AutoArchive);
-	var overdue = Settings<OverdueRuleSettings>(overdueRule);
-	var archive = Settings<AutoArchiveRuleSettings>(archiveRule);
+	var reminder = Settings<EndDateReminderRuleSettings>(PermitRuleTypeEnum.EndDateReminder);
+	var overdue = Settings<OverdueRuleSettings>(PermitRuleTypeEnum.Overdue);
+	var pending = Settings<PendingEscalationRuleSettings>(PermitRuleTypeEnum.PendingEscalation);
+	var archive = Settings<AutoArchiveRuleSettings>(PermitRuleTypeEnum.AutoArchive);
+
+	var notifyHint = Model.EmailsEnabled
+		? "By email and in the notification bell."
+		: "In the notification bell. Emails are turned off for now (PermitRules:SendEmails).";
 }
 
 @Html.AntiForgeryToken()
 
-<p class="text-secondary mb-4" style="font-size:.85rem;">
-	Rules run automatically every few minutes once they're switched on and saved. Use <strong>Preview</strong> to see which permits a rule would act on right now.
-</p>
+<div class="d-flex flex-wrap align-items-center gap-3 mb-4">
+	<p class="text-secondary mb-0 me-auto" style="font-size:.85rem;">
+		Rules run automatically every few minutes once they're switched on and saved. Use <strong>Preview</strong> to see which permits a rule would act on right now.
+	</p>
+	<a href="/@Model.CompanyId/rules/history" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-clock-rotate-left me-1"></i> History</a>
+</div>
 
-@* ── Overdue permits ─────────────────────────────────────────────── *@
-<div class="card mb-4 rule-card" data-rule-type="@((int)PermitRuleTypeEnum.Overdue)">
-	<div class="card-header">
-		<div>
-			<h6 class="card-title"><i class="fa-solid fa-clock-rotate-left me-2 text-danger"></i>Overdue permits</h6>
-			<div class="card-subtitle">Notify people when a permit's end date has passed and it isn't closed yet. The permit's status isn't changed.</div>
+@if (!Model.EmailsEnabled)
+{
+	<div class="alert alert-warning py-2 small mb-4" role="alert">
+		<i class="fa-solid fa-triangle-exclamation me-1"></i> Emails are turned off for now (<code>PermitRules:SendEmails</code>): rules only use the notification bell.
+	</div>
+}
+
+@* Card header and footer (switch, last run, preview/save) and inputs shared by every rule. *@
+@{
+	void Header(PermitRuleTypeEnum type, string icon, string iconClass, string title, string subtitle)
+	{
+		var rule = Rule(type);
+		<div class="card-header">
+			<div>
+				<h6 class="card-title"><i class="@icon me-2 @iconClass"></i>@title</h6>
+				<div class="card-subtitle">@subtitle</div>
+			</div>
+			<div class="form-check form-switch mb-0 ms-3">
+				<input class="form-check-input rule-enabled" type="checkbox" role="switch" id="chkEnabled@((int)type)" @(rule.IsEnabled ? "checked" : "") />
+				<label class="form-check-label rule-enabled-label" for="chkEnabled@((int)type)">@(rule.IsEnabled ? "On" : "Off")</label>
+			</div>
 		</div>
-		<div class="form-check form-switch mb-0 ms-3">
-			<input class="form-check-input rule-enabled" type="checkbox" role="switch" id="chkOverdueEnabled" @(overdueRule.IsEnabled ? "checked" : "") />
-			<label class="form-check-label rule-enabled-label" for="chkOverdueEnabled">@(overdueRule.IsEnabled ? "On" : "Off")</label>
+	}
+
+	void Footer(PermitRuleTypeEnum type)
+	{
+		var rule = Rule(type);
+		<div class="card-footer bg-transparent d-flex flex-wrap align-items-center gap-2">
+			<div class="small text-secondary me-auto rule-last-run">
+				@if (rule.LastRunWhen.HasValue)
+				{
+					<span>Last checked @rule.LastRunWhen.Value.ToString("dd MMM yyyy, hh:mm tt"): @rule.LastRunSummary</span>
+				}
+				else
+				{
+					<span>Not run yet.</span>
+				}
+			</div>
+			<span class="small rule-status"></span>
+			<button type="button" class="btn btn-sm btn-outline-secondary btn-rule-preview"><i class="fa-solid fa-magnifying-glass me-1"></i> Preview</button>
+			<button type="button" class="btn btn-sm btn-primary btn-rule-save"><i class="fa-solid fa-floppy-disk me-1"></i> Save</button>
+		</div>
+		<div class="rule-preview d-none px-3 pb-3"></div>
+	}
+
+	void ExtraEmails(PermitRuleTypeEnum type, string? value, string who)
+	{
+		<label class="form-label" for="txtExtra@((int)type)">Extra email addresses</label>
+		<textarea class="form-control" id="txtExtra@((int)type)" rows="2" data-setting="ExtraEmails" placeholder="e.g. safety@company.com; manager@company.com">@value</textarea>
+		<div class="form-text">Separate with commas, semicolons or new lines. They get @who.</div>
+	}
+
+	void Number(PermitRuleTypeEnum type, string setting, string label, int value, int min, int max, string unit, string? hint = null)
+	{
+		<label class="form-label" for="num@(setting)@((int)type)">@label</label>
+		<div class="input-group" style="max-width:240px;">
+			<input type="number" class="form-control" id="num@(setting)@((int)type)" data-setting="@setting" min="@min" max="@max" value="@value" />
+			<span class="input-group-text" style="font-size:.85rem;">@unit</span>
+		</div>
+		if (hint != null)
+		{
+			<div class="form-text">@hint</div>
+		}
+	}
+
+	void Check(PermitRuleTypeEnum type, string setting, bool value, string label, string? note = null)
+	{
+		<div class="form-check">
+			<input class="form-check-input" type="checkbox" id="chk@(setting)@((int)type)" data-setting="@setting" @(value ? "checked" : "") />
+			<label class="form-check-label" for="chk@(setting)@((int)type)">@label <span class="text-secondary">@(note != null ? $"({note})" : "")</span></label>
+		</div>
+	}
+}
+
+@* ── End-date reminder ───────────────────────────────────────────── *@
+<div class="card mb-4 rule-card" data-rule-type="@((int)PermitRuleTypeEnum.EndDateReminder)" data-date-label="End date" data-empty="No permits end within that time.">
+	@{ Header(PermitRuleTypeEnum.EndDateReminder, "fa-solid fa-hourglass-half", "text-warning", "End-date reminder", "Remind people shortly before a permit's end date, so it's closed or extended on time. Drafts, closed and rejected permits are left out."); }
+	<div class="card-body">
+		<div class="row g-3">
+			<div class="col-md-6">
+				@{ Number(PermitRuleTypeEnum.EndDateReminder, "HoursBefore", "Remind before the end date", reminder.HoursBefore, 1, 720, "hour(s)", "Once per permit; again if its end date is moved later."); }
+			</div>
+			<div class="col-md-6">
+				<label class="form-label">Notify</label>
+				@{ Check(PermitRuleTypeEnum.EndDateReminder, "NotifyCreator", reminder.NotifyCreator, "The permit's creator", "their own permits"); }
+				<div class="form-text">@notifyHint</div>
+			</div>
+			<div class="col-md-6">
+				@{ ExtraEmails(PermitRuleTypeEnum.EndDateReminder, reminder.ExtraEmails, "all permits ending soon"); }
+			</div>
 		</div>
 	</div>
+	@{ Footer(PermitRuleTypeEnum.EndDateReminder); }
+</div>
+
+@* ── Overdue permits ─────────────────────────────────────────────── *@
+<div class="card mb-4 rule-card" data-rule-type="@((int)PermitRuleTypeEnum.Overdue)" data-date-label="End date" data-empty="No permits are overdue right now.">
+	@{ Header(PermitRuleTypeEnum.Overdue, "fa-solid fa-clock-rotate-left", "text-danger", "Overdue permits", "Notify people when a permit's end date has passed and it isn't closed yet. The permit's status isn't changed."); }
 	<div class="card-body">
 		<div class="row g-3">
 			<div class="col-md-6">
 				<label class="form-label">Notify</label>
-				<div class="form-check">
-					<input class="form-check-input" type="checkbox" id="chkNotifyCreator" @(overdue.NotifyCreator ? "checked" : "") />
-					<label class="form-check-label" for="chkNotifyCreator">The permit's creator <span class="text-secondary">(their own permits)</span></label>
-				</div>
-				<div class="form-check">
-					<input class="form-check-input" type="checkbox" id="chkNotifyAdmins" @(overdue.NotifyAdmins ? "checked" : "") />
-					<label class="form-check-label" for="chkNotifyAdmins">Super Users and Portal Admins <span class="text-secondary">(all overdue permits)</span></label>
-				</div>
-				@if (Model.EmailsEnabled)
-				{
-					<div class="form-text">By email and in the notification bell.</div>
-				}
-				else
-				{
-					<div class="form-text text-warning"><i class="fa-solid fa-envelope-circle-xmark me-1"></i>Emails are turned off for now (<code>PermitRules:SendEmails</code>): only the notification bell is used.</div>
-				}
+				@{ Check(PermitRuleTypeEnum.Overdue, "NotifyCreator", overdue.NotifyCreator, "The permit's creator", "their own permits"); }
+				@{ Check(PermitRuleTypeEnum.Overdue, "NotifyAdmins", overdue.NotifyAdmins, "Super Users and Portal Admins", "all overdue permits"); }
+				<div class="form-text">@notifyHint</div>
 			</div>
 			<div class="col-md-6">
-				<label class="form-label" for="txtExtraEmails">Extra email addresses</label>
-				<textarea class="form-control" id="txtExtraEmails" rows="2" placeholder="e.g. safety@company.com; manager@company.com">@overdue.ExtraEmails</textarea>
-				<div class="form-text">Separate with commas, semicolons or new lines. They get all overdue permits.</div>
+				@{ ExtraEmails(PermitRuleTypeEnum.Overdue, overdue.ExtraEmails, "all overdue permits"); }
 			</div>
 			<div class="col-md-6">
-				<label class="form-label" for="numRepeatDays">Remind again every</label>
-				<div class="input-group" style="max-width:220px;">
-					<input type="number" class="form-control" id="numRepeatDays" min="1" max="365" value="@overdue.RepeatEveryDays" />
-					<span class="input-group-text" style="font-size:.85rem;">day(s)</span>
-				</div>
-				<div class="form-text">The first reminder goes out when the permit becomes overdue, then again until it's closed.</div>
+				@{ Number(PermitRuleTypeEnum.Overdue, "RepeatEveryDays", "Remind again every", overdue.RepeatEveryDays, 1, 365, "day(s)", "The first reminder goes out when the permit becomes overdue, then again until it's closed."); }
+			</div>
+			<div class="col-md-6">
+				<label class="form-label">Permits</label>
+				@{ Check(PermitRuleTypeEnum.Overdue, "IncludeDrafts", overdue.IncludeDrafts, "Also include drafts", "left out by default"); }
 			</div>
 		</div>
 	</div>
-	<div class="card-footer bg-transparent d-flex flex-wrap align-items-center gap-2">
-		<div class="small text-secondary me-auto rule-last-run">
-			@if (overdueRule.LastRunWhen.HasValue)
-			{
-				<span>Last checked @overdueRule.LastRunWhen.Value.ToString("dd MMM yyyy, hh:mm tt"): @overdueRule.LastRunSummary</span>
-			}
-			else
-			{
-				<span>Not run yet.</span>
-			}
-		</div>
-		<span class="small rule-status"></span>
-		<button type="button" class="btn btn-sm btn-outline-secondary btn-rule-preview"><i class="fa-solid fa-magnifying-glass me-1"></i> Preview</button>
-		<button type="button" class="btn btn-sm btn-primary btn-rule-save"><i class="fa-solid fa-floppy-disk me-1"></i> Save</button>
-	</div>
-	<div class="rule-preview d-none px-3 pb-3"></div>
+	@{ Footer(PermitRuleTypeEnum.Overdue); }
 </div>
 
-@* ── Auto-archive ────────────────────────────────────────────────── *@
-<div class="card mb-4 rule-card" data-rule-type="@((int)PermitRuleTypeEnum.AutoArchive)">
-	<div class="card-header">
-		<div>
-			<h6 class="card-title"><i class="fa-solid fa-box-archive me-2 text-secondary"></i>Auto-archive</h6>
-			<div class="card-subtitle">Archive Closed, Closed – no action and Rejected permits some days after they were closed.</div>
-		</div>
-		<div class="form-check form-switch mb-0 ms-3">
-			<input class="form-check-input rule-enabled" type="checkbox" role="switch" id="chkArchiveEnabled" @(archiveRule.IsEnabled ? "checked" : "") />
-			<label class="form-check-label rule-enabled-label" for="chkArchiveEnabled">@(archiveRule.IsEnabled ? "On" : "Off")</label>
-		</div>
-	</div>
+@* ── Approval escalation ─────────────────────────────────────────── *@
+<div class="card mb-4 rule-card" data-rule-type="@((int)PermitRuleTypeEnum.PendingEscalation)" data-date-label="Waiting since" data-empty="No permits have been waiting that long.">
+	@{ Header(PermitRuleTypeEnum.PendingEscalation, "fa-solid fa-user-clock", "text-primary", "Approval escalation", "Remind the approvers and escalate when a Pending permit has waited too long at the same workflow step. Moving to the next step starts the clock again."); }
 	<div class="card-body">
 		<div class="row g-3">
 			<div class="col-md-6">
-				<label class="form-label" for="numArchiveDays">Archive after</label>
-				<div class="input-group" style="max-width:260px;">
-					<input type="number" class="form-control" id="numArchiveDays" min="1" max="3650" value="@archive.DaysAfterClosed" />
-					<span class="input-group-text" style="font-size:.85rem;">days closed</span>
-				</div>
+				@{ Number(PermitRuleTypeEnum.PendingEscalation, "PendingHours", "Pending for more than", pending.PendingHours, 1, 2160, "hour(s)"); }
+			</div>
+			<div class="col-md-6">
+				@{ Number(PermitRuleTypeEnum.PendingEscalation, "RepeatEveryHours", "Remind again every", pending.RepeatEveryHours, 1, 2160, "hour(s)", "While the permit keeps waiting at the same step."); }
+			</div>
+			<div class="col-md-6">
+				<label class="form-label">Notify</label>
+				@{ Check(PermitRuleTypeEnum.PendingEscalation, "NotifyApprovers", pending.NotifyApprovers, "Approvers of the step it's waiting at", "permits waiting on them"); }
+				@{ Check(PermitRuleTypeEnum.PendingEscalation, "NotifyAdmins", pending.NotifyAdmins, "Super Users and Portal Admins", "all of them"); }
+				<div class="form-text">@notifyHint</div>
+			</div>
+			<div class="col-md-6">
+				@{ ExtraEmails(PermitRuleTypeEnum.PendingEscalation, pending.ExtraEmails, "all of them"); }
+			</div>
+		</div>
+	</div>
+	@{ Footer(PermitRuleTypeEnum.PendingEscalation); }
+</div>
+
+@* ── Auto-archive ────────────────────────────────────────────────── *@
+<div class="card mb-4 rule-card" data-rule-type="@((int)PermitRuleTypeEnum.AutoArchive)" data-date-label="Closed" data-empty="No permits would be archived right now.">
+	@{ Header(PermitRuleTypeEnum.AutoArchive, "fa-solid fa-box-archive", "text-secondary", "Auto-archive", "Archive Closed, Closed – no action and Rejected permits some days after they were closed."); }
+	<div class="card-body">
+		<div class="row g-3">
+			<div class="col-md-6">
+				@{ Number(PermitRuleTypeEnum.AutoArchive, "DaysAfterClosed", "Archive after", archive.DaysAfterClosed, 1, 3650, "days closed"); }
 			</div>
 			<div class="col-md-6">
 				<div class="form-text mt-md-4">
-					Archived permits are hidden from everyone except Super Users (who can show them with <strong>Show archived</strong> on the permit list). They still count in the dashboard and report figures.
+					Archived permits are hidden from everyone except Super Users, who can show them with <strong>Show archived</strong> on the permit list and unarchive them from the permit's page (an unarchived permit isn't archived again). They still count in the dashboard and report figures.
 				</div>
 			</div>
 		</div>
 	</div>
-	<div class="card-footer bg-transparent d-flex flex-wrap align-items-center gap-2">
-		<div class="small text-secondary me-auto rule-last-run">
-			@if (archiveRule.LastRunWhen.HasValue)
-			{
-				<span>Last checked @archiveRule.LastRunWhen.Value.ToString("dd MMM yyyy, hh:mm tt"): @archiveRule.LastRunSummary</span>
-			}
-			else
-			{
-				<span>Not run yet.</span>
-			}
-		</div>
-		<span class="small rule-status"></span>
-		<button type="button" class="btn btn-sm btn-outline-secondary btn-rule-preview"><i class="fa-solid fa-magnifying-glass me-1"></i> Preview</button>
-		<button type="button" class="btn btn-sm btn-primary btn-rule-save"><i class="fa-solid fa-floppy-disk me-1"></i> Save</button>
-	</div>
-	<div class="rule-preview d-none px-3 pb-3"></div>
+	@{ Footer(PermitRuleTypeEnum.AutoArchive); }
 </div>
 
 @section Scripts {
@@ -144,18 +204,19 @@
 		(() => {
 			const companyId = '@Model.CompanyId';
 			const token = $('input[name="__RequestVerificationToken"]').val();
-			const OVERDUE = @((int)PermitRuleTypeEnum.Overdue);
 
 			const escapeHtml = (value) => $('<div>').text(value ?? '').html();
 
-			const settingsOf = (card) => card.data('ruleType') === OVERDUE
-				? {
-					RepeatEveryDays: parseInt($('#numRepeatDays').val(), 10) || 0,
-					NotifyCreator: $('#chkNotifyCreator').prop('checked'),
-					NotifyAdmins: $('#chkNotifyAdmins').prop('checked'),
-					ExtraEmails: $('#txtExtraEmails').val(),
-				}
-				: { DaysAfterClosed: parseInt($('#numArchiveDays').val(), 10) || 0 };
+			// Every input with data-setting="Name" becomes Settings.Name.
+			const settingsOf = (card) => {
+				const settings = {};
+				card.find('[data-setting]').each((i, el) => {
+					settings[el.dataset.setting] = el.type === 'checkbox' ? el.checked
+						: el.type === 'number' ? (parseInt(el.value, 10) || 0)
+						: el.value;
+				});
+				return settings;
+			};
 
 			const requestOf = (card) => JSON.stringify({
 				RuleType: card.data('ruleType'),
@@ -193,13 +254,13 @@
 			$('.btn-rule-preview').on('click', (e) => {
 				const card = $(e.currentTarget).closest('.rule-card');
 				const box = card.find('.rule-preview');
-				const isOverdue = card.data('ruleType') === OVERDUE;
+				const dateLabel = card.data('dateLabel');
 				box.removeClass('d-none').html('<div class="text-secondary small py-2"><i class="fa-solid fa-loader fa-spin me-1"></i> Checking permits...</div>');
 
 				post(`/${companyId}/rules/preview`, card)
 					.done((r) => {
 						if (!r.Count) {
-							box.html(`<div class="text-secondary small py-2">No permits ${isOverdue ? 'are overdue' : 'would be archived'} right now.</div>`);
+							box.html(`<div class="text-secondary small py-2">${escapeHtml(card.data('empty'))}</div>`);
 							return;
 						}
 						const rows = r.Sample.map(p => `
@@ -207,13 +268,13 @@
 								<td class="text-nowrap" data-label="Permit No."><a href="/${companyId}/permits/edit/${p.Id}">${escapeHtml(p.PermitNo)}</a></td>
 								<td data-label="Description">${escapeHtml(p.Description)}</td>
 								<td data-label="Status">${escapeHtml(p.Status)}</td>
-								<td class="text-nowrap" data-label="${isOverdue ? 'End date' : 'Closed'}">${escapeHtml(p.Date)}</td>
+								<td class="text-nowrap" data-label="${escapeHtml(dateLabel)}">${escapeHtml(p.Date)}</td>
 							</tr>`).join('');
 						box.html(`
-							<div class="small mb-2"><strong>${r.Count}</strong> permit${r.Count === 1 ? '' : 's'} ${isOverdue ? 'are overdue and would be included' : 'would be archived'}${r.Count > r.Sample.length ? ` (showing the first ${r.Sample.length})` : ''}.</div>
+							<div class="small mb-2"><strong>${r.Count}</strong> ${r.Count === 1 ? 'permit matches' : 'permits match'} right now${r.Count > r.Sample.length ? ` (showing the first ${r.Sample.length})` : ''}.</div>
 							<div class="table-cards-wrap">
 								<table class="table table-sm align-middle mb-0 dt-cards">
-									<thead class="table-light"><tr><th>Permit No.</th><th>Description</th><th>Status</th><th>${isOverdue ? 'End date' : 'Closed'}</th></tr></thead>
+									<thead class="table-light"><tr><th>Permit No.</th><th>Description</th><th>Status</th><th>${escapeHtml(dateLabel)}</th></tr></thead>
 									<tbody>${rows}</tbody>
 								</table>
 							</div>`);

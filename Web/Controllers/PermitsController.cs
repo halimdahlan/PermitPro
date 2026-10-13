@@ -186,6 +186,7 @@ public class PermitsController : AppControllerBase
 				PermitStatusDisplay = GeneralHelper.GetPermitStatusDisplay(permit.PermitStatus, permit.PermitWorkflowStep.Name),
 				WorkflowStepName = permit.PermitWorkflowStep != null ? permit.PermitWorkflowStep.Name : null,
 				AlertBgColor = GeneralHelper.GetAlertBgColor(permit.PermitStatus),
+				ArchivedWhen = permit.IsArchived ? GeneralHelper.GetDateInTimeZone(permit.ArchivedWhen ?? DateTime.UtcNow) : null,
 				CompanyId = company,
 				UserRoles = _currentUserService.GetCurrentUserRoles().Result,
 				WorkflowHistories = permit.WorkflowHistories
@@ -981,6 +982,7 @@ public class PermitsController : AppControllerBase
 				? GeneralHelper.GetPermitStatusDisplay(permit.PermitStatus, permit.PermitWorkflowStep?.Name)
 				: "Draft",
 			AlertBgColor = permit != null ? GeneralHelper.GetAlertBgColor(permit.PermitStatus) : "secondary",
+			ArchivedWhen = permit?.IsArchived == true ? GeneralHelper.GetDateInTimeZone(permit.ArchivedWhen ?? DateTime.UtcNow) : null,
 			CompanyId = companyId,
 			ActiveTemplateId = template.Id,
 			LayoutJson = enrichedLayout,

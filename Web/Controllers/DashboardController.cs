@@ -125,11 +125,11 @@ public class DashboardController : AppControllerBase
 			})
 			.ToList();
 
-		// Recent activity from AuditLog (last 3 for this company)
+		// Recent activity from AuditLog (last 3 for this company). Permit rule runs have their own page (Rules → History).
 		var recentActivity = (await _dbContext.AuditLogs
 			.AsNoTracking()
 			.Include(e => e.AuditLogUser)
-			.Where(e => e.CompanyId == company && e.LogType == LogTypeEnum.Information)
+			.Where(e => e.CompanyId == company && e.LogType == LogTypeEnum.Information && e.Category != "PERMIT_RULE")
 			.OrderByDescending(e => e.CreatedWhen)
 			.Take(3)
 			.ToListAsync(cancellationToken))

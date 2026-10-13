@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<title>Overdue Permits</title>
+	<title>Permit Notice</title>
 	<style>
 		body, td, th {
 			font-family: Arial;
@@ -21,8 +21,7 @@
 		<tr><td>&nbsp;</td></tr>
 		<tr>
 			<td>
-				{{ if permit_count == 1 }}The following permit has passed its end date and is not closed yet.{{ else }}The following {{ permit_count }} permits have passed their end date and are not closed yet.{{ end }}
-				Please close {{ if permit_count == 1 }}it{{ else }}them{{ end }} or update the end date.
+				{{ intro | html.escape }}
 			</td>
 		</tr>
 		<tr><td>&nbsp;</td></tr>
@@ -33,16 +32,16 @@
 						<th align="left" style="border:1px solid #d1dbe8;">Permit no</th>
 						<th align="left" style="border:1px solid #d1dbe8;">Description</th>
 						<th align="left" style="border:1px solid #d1dbe8;">Location</th>
-						<th align="left" style="border:1px solid #d1dbe8;">End date</th>
-						<th align="left" style="border:1px solid #d1dbe8;">Overdue</th>
+						<th align="left" style="border:1px solid #d1dbe8;">{{ date_label | html.escape }}</th>
+						<th align="left" style="border:1px solid #d1dbe8;">{{ extra_label | html.escape }}</th>
 					</tr>
 					{{ for p in permits }}
 					<tr>
 						<td style="border:1px solid #d1dbe8;white-space:nowrap;"><a href="{{ p.link }}" target="_blank">{{ p.permit_no }}</a></td>
 						<td style="border:1px solid #d1dbe8;">{{ p.description | html.escape }}</td>
 						<td style="border:1px solid #d1dbe8;">{{ p.location | html.escape }}</td>
-						<td style="border:1px solid #d1dbe8;white-space:nowrap;">{{ p.end_date }}</td>
-						<td style="border:1px solid #d1dbe8;white-space:nowrap;">{{ if p.days_overdue == 0 }}today{{ else if p.days_overdue == 1 }}1 day{{ else }}{{ p.days_overdue }} days{{ end }}</td>
+						<td style="border:1px solid #d1dbe8;white-space:nowrap;">{{ p.date }}</td>
+						<td style="border:1px solid #d1dbe8;white-space:nowrap;">{{ p.extra | html.escape }}</td>
 					</tr>
 					{{ end }}
 				</table>
@@ -54,12 +53,14 @@
 				Click <a href="{{ permits_link }}" target="_blank">here</a> to open the permit list.
 			</td>
 		</tr>
+		{{ if footer }}
 		<tr><td>&nbsp;</td></tr>
 		<tr>
 			<td style="color:#6b7c93;font-size:13px;">
-				You'll be reminded again {{ if repeat_every_days == 1 }}tomorrow{{ else }}in {{ repeat_every_days }} days{{ end }} while a permit stays overdue.
+				{{ footer | html.escape }}
 			</td>
 		</tr>
+		{{ end }}
 		<tr><td>&nbsp;</td></tr>
 		<tr>
 			<td>

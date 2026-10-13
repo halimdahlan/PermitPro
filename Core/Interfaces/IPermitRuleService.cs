@@ -17,4 +17,10 @@ public interface IPermitRuleService
 
 	// Runs every enabled rule of every active company once (PermitRulesBackgroundService).
 	Task RunAllAsync(CancellationToken ct = default);
+
+	// Super User undoes an archive; Auto-archive won't archive that permit again. False if not found / not archived.
+	Task<bool> UnarchiveAsync(Guid companyId, Guid permitId, string byName, CancellationToken ct = default);
+
+	// Runs that did something, newest first (from the PERMIT_RULE audit log).
+	Task<List<PermitRuleHistoryItem>> GetHistoryAsync(Guid companyId, int take = 500, CancellationToken ct = default);
 }

@@ -12,6 +12,11 @@ using PermitPro.Core.Enums;
 using PermitPro.Core.Helpers;
 using PermitPro.Core.Interfaces;
 
+using Microsoft.EntityFrameworkCore;
+
+using PermitPro.Core.Services;
+
+using System.Security.Claims;
 using System.Text.Json;
 
 namespace PermitPro.App.Controllers;
@@ -23,6 +28,7 @@ public class PermitRulesController : AppControllerBase
 {
 	private readonly IPermitRuleService _rules;
 	private readonly IConfiguration _configuration;
+	private readonly ApplicationDbContext _db;
 
 	private static readonly JsonSerializerOptions _json = new() { PropertyNamingPolicy = null };
 
@@ -37,6 +43,7 @@ public class PermitRulesController : AppControllerBase
 	{
 		_rules = rules;
 		_configuration = configuration;
+		_db = dbContext;
 	}
 
 	private bool IsSuperUser() => User.IsInRole("Super User");
@@ -114,5 +121,48 @@ public class PermitRulesController : AppControllerBase
 				Date = p.Date.HasValue ? GeneralHelper.GetDateInTimeZone(p.Date.Value).ToString("dd MMM yyyy, hh:mm tt") : "",
 			}),
 		}, _json);
+	}
+
+
+	// Super User undoes an archive (button on the archived permit's page). Auto-archive leaves it alone afterwards.
+	[HttpPost("{company}/rules/unarchive/{id:guid}")]
+	[ValidateAntiForgeryToken]
+	public async Task<IActionResult> Unarchive(Guid id, CancellationToken ct)
+	{
+		if (!IsSuperUser()) return Forbid();
+
+		var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+		var byName = await _db.Users
+			.Where(u => u.Id == userId)
+			.Select(u => ((u.FirstName ?? "") + " " + (u.LastName ?? "")).Trim())
+			.FirstOrDefaultAsync(ct);
+
+		var done = await _rules.UnarchiveAsync(CompanyID, id, string.IsNullOrEmpty(byName) ? User.Identity?.Name ?? "a Super User" : byName, ct);
+		return done ? Ok() : NotFound("Permit not found or not archived.");
+	}
+
+
+	[HttpGet("{company}/rules/history")]
+	public IActionResult History()
+	{
+		if (!IsSuperUser()) return Forbid();
+		return View(CompanyID);
+	}
+
+	[HttpGet("{company}/rules/history/data")]
+	public async Task<IActionResult> HistoryData(CancellationToken ct)
+	{
+		if (!IsSuperUser()) return Forbid();
+
+		var history = await _rules.GetHistoryAsync(CompanyID, ct: ct);
+
+		return new JsonResult(history.Select(h => new
+		{
+			When = GeneralHelper.GetDateInTimeZone(h.When),
+			Rule = h.RuleType.HasValue ? PermitRuleService.RuleName(h.RuleType.Value) : "",
+			Result = h.IsError ? "Error" : "OK",
+			h.Message,
+			h.Permits,
+		}), _json);
 	}
 }

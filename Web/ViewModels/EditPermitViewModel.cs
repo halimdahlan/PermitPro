@@ -28,6 +28,9 @@ public record EditPermitViewModel
 
 	public string AlertBgColor { get; set; }
 
+	// Set when the permit is archived (Auto-archive rule), Malaysia time; the page shows the Unarchive banner.
+	public DateTime? ArchivedWhen { get; set; }
+
 	public PermitStatusEnum PermitStatus { get; set; }
 
 	public string PermitStatusDisplay { get; set; }
