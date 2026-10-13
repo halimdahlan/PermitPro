@@ -98,6 +98,16 @@ public class SystemConfigurationService : ISystemConfigurationService
 
    public int SuspendedAutoResume => _appSettings.GetIntAsync(GetCurrentCompanyId(), "workflow", "suspended_autoresume_days").GetAwaiter().GetResult();
 
+   // general / permit_list_description_words; 20 (the previous fixed value) when missing or not a positive number.
+   public int PermitListDescriptionWords
+   {
+       get
+       {
+           var words = _appSettings.GetIntAsync(GetCurrentCompanyId(), "general", "permit_list_description_words").GetAwaiter().GetResult();
+           return words > 0 ? words : 20;
+       }
+   }
+
    public DateTime? NewPermitFormCutoverDate
    {
        get
