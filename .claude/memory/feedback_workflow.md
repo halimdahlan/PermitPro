@@ -14,6 +14,7 @@ Working agreement that held for every change in 2026-09/10.
 - **Branch per piece of work** off `master` (`feature/...`, `fix/...`, `chore/...`, `docs/...`). Never commit to `master` directly.
 - **Commit only when the user says so.** They test first ("tested, all good" → commit). Then push and open a PR with `gh pr create`; the user merges. After "merge is done": `git checkout master && git pull --ff-only`, delete the branch locally and on origin.
 - **Merging does not deploy.** Deployment is manual (self-contained win-x64 publish, see CLAUDE.md). Never say a merge puts something live.
+- **Hand-off notes PRs only after a deploy** (user, 2026-10-13). After "merge is done", just update `master` and delete the branch; when the user says it's deployed, update [[project-status]] with everything merged since, as merged and live, in one `docs/...` PR.
 - **Work section by section** on big jobs (e.g. the mobile pass): finish one section, report, wait for "tested, proceed" before the next.
 - **Ask before** behaviour/policy decisions (e.g. what a permanent delete should do with references), offering a recommended option. Small, obvious fixes found along the way: fix and mention them.
 - **Old-system PDF layout/field mapping**: change only with explicit approval.
