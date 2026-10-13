@@ -35,6 +35,9 @@ public interface ISystemConfigurationService
 
 	DateTime? NewPermitFormCutoverDate { get; }
 
+	// Words of the description shown in the permit list before it is cut off with "...".
+	int PermitListDescriptionWords { get; }
+
 	void Init();
 
 	bool HasAccess(string controller);

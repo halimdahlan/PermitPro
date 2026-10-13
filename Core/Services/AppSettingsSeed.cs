@@ -81,6 +81,7 @@ public static class AppSettingsSeed
             new() { Id = Guid.NewGuid(), CategoryId = generalCategoryId, CompanyId = companyId, Key = "upload_max_file_count",     DisplayName = "Maximum Upload File Count",        DataType = "number", IsEncrypted = false, SortOrder = 4, Value = "5" },
             new() { Id = Guid.NewGuid(), CategoryId = generalCategoryId, CompanyId = companyId, Key = "upload_allowed_file_types",       DisplayName = "Allowed Upload File Types",                       DataType = "text",   IsEncrypted = false, SortOrder = 5, Value = "pdf,docx,jpg,jpeg,png" },
             new() { Id = Guid.NewGuid(), CategoryId = generalCategoryId, CompanyId = companyId, Key = "new_permit_form_cutover_date", DisplayName = "New Permit Form Cutover Date (yyyy-MM-dd)", DataType = "text",   IsEncrypted = false, SortOrder = 6, Value = "" },
+            new() { Id = Guid.NewGuid(), CategoryId = generalCategoryId, CompanyId = companyId, Key = "permit_list_description_words", DisplayName = "Permit List Description Length (words)", DataType = "number", IsEncrypted = false, SortOrder = 7, Value = "20" },
         };
 
         await db.AppSettings.AddRangeAsync(generalSettings);

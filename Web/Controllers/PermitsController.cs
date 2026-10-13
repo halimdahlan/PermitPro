@@ -357,6 +357,7 @@ public class PermitsController : AppControllerBase
 			.ToDictionaryAsync(u => u.UserId, u => u.FullName, ct);
 
 		List<PermitListViewModel> result = new();
+		var descriptionWords = _systemConfigurationService.PermitListDescriptionWords;
 
 		foreach (var permit in permits)
 		{
@@ -415,7 +416,7 @@ public class PermitsController : AppControllerBase
 			{
 				Id = permit.Id,
 				PermitNumber = string.Format("PTW{0:000000}", permit.RunningNumber),
-				Description = GetTruncatedWords(description, 20),
+				Description = GetTruncatedWords(description, descriptionWords),
 				Location = permit.LocationName,
 				StartDate = dtmStart,
 				EndDate = dtmEnd,
