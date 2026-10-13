@@ -1,6 +1,6 @@
 ---
 name: project-status
-description: "Where the work stands (2026-10-13): everything merged and deployed through #24; open items and how to resume on another machine"
+description: "Where the work stands (2026-10-14): everything merged and deployed through #28 (permit rules); open items and how to resume on another machine"
 metadata:
   type: project
 ---
@@ -24,6 +24,9 @@ Snapshot as of **2026-10-11**, written when the user moved to a different comput
   - #19 (2026-10-12) Dark mode: Light / Dark / System switch, per browser, all three layouts (conventions in CLAUDE.md → "Dark mode"). Merged, tested and deployed (2026-10-12).
   - #23 (2026-10-13) Admin Logs: the details modal works (it threw on every entry because `UpdatedWhen` is always null), pager links fixed (`Url.Action` produced `/00000000-…/Admin/Logs`), tenant-style pager with server-side paging (~17k log rows), Malaysia time in the grid.
   - #24 (2026-10-13) Cutover date: "date" data type in the three settings modals (Flatpickr, saves `yyyy-MM-dd`); Admin → Templates menu for Super Users once a cutover date is set (even a future one); "Permit form not set up" dialog on New permit when the new form is active but there's no permit template.
+  - #26 (2026-10-14) Permit list description length is the app setting `general / permit_list_description_words` (default 20 when missing); `SqlScripts/AddPermitListDescriptionWordsSetting.sql` adds the global row.
+  - #27 (2026-10-14) Hangfire removed (never configured); no job framework.
+  - #28 (2026-10-14) Permit rules (Admin → Rules, CLAUDE.md → "Permit Rules"): End-date reminder, Overdue, Approval escalation, Auto-archive (+ Unarchive, Rules → History). Hosted service every 5 min; IIS app pool set to AlwaysRunning / idle time-out 0 on production. Emails off (`PermitRules:SendEmails = false`); rules switched off on production until the user turns them on. Migration `AddPermitRules` also copied old permits' start/end dates from the JSON into the columns.
 - GitHub issues #2–#7 (security review items) were deleted on 2026-10-12 at the user's request ("addressed outside this project"). The code they described was unchanged at the time: dashboard chart `[ResponseCache]` before auth, ~59 POST actions without antiforgery, auth cookie not `SecurePolicy.Always`, 301 redirect for email links in `PermitsController.Edit`.
 
 ## Open / possible next work
@@ -33,9 +36,11 @@ Snapshot as of **2026-10-11**, written when the user moved to a different comput
 3. Old-system PDF: the main form doesn't print the permit's start/end dates (same as the former HTML export; the user hasn't asked to add them).
 4. IronPdf licence keys were committed in the past (removed from the tree in #14, still in git history); the user was told to treat them as exposed if still valid.
 5. **Dark mode, never seen with data:** new-system permit/certificate pages, the form builder with real controls, notifications with items, the reset-password page.
-6. `Permits/GetGridData` reads and parses every permit's `PermitForm` JSON (~10 MB for IOTM) because 996 old permits have no `StartDateTime`/`EndDateTime` columns filled and certificate names live only in the JSON. Slow in dev on a cold SQL cache; fast in production, and the user is fine with that. Fix if it ever matters: backfill the date columns, add a certificate-codes column, drop `PermitForm` from the grid query. The `try/catch` around the JSON parse was removed in 9f5a60a, so one malformed `PermitForm` would break the whole grid.
+6. `Permits/GetGridData` still reads and parses every permit's `PermitForm` JSON (~10 MB for IOTM). Since #28 the old permits' `StartDateTime`/`EndDateTime` columns are filled (only 1 permit without dates left), so the grid could take dates from the columns; certificate names still live only in the JSON (a certificate-codes column would let the grid drop `PermitForm`). Slow in dev on a cold SQL cache, fast in production; the user is fine with that. The `try/catch` around the JSON parse was removed in 9f5a60a, so one malformed `PermitForm` would break the whole grid.
 7. **Admin layout on phones:** the admin navbar's links don't wrap, so admin pages scroll sideways below ~540px (Logs 492px, Companies 541px wide at a 390px viewport). Never part of the mobile pass.
-8. **Dev DB state (2026-10-13):** the global `new_permit_form_cutover_date` is `2026-10-13` (type `date`), so dev uses the new permit form; IOTM had no permit template at the time, so New permit shows the "Permit form not set up" dialog until one is built.
+8. **Dev DB state (2026-10-14):** migrations applied through `AddPermitRules`. Global `new_permit_form_cutover_date` = `2026-10-13`, but IOTM has its own empty override row (not using global), so IOTM is back on the old permit form and the Templates menu is hidden for it. 892 IOTM permits are archived (the user ran Auto-archive at 90 days on 2026-10-13); all four rules are off.
+9. **Production follow-ups:** confirm the site's **Preload Enabled = True** (plus the IIS Application Initialization feature), or rules stop after a recycle until the first visit. Production has no `dotnet ef`: migrate with an idempotent script generated on the dev machine (`dotnet ef migrations script --idempotent --project Core --startup-project Web --output publish-migrations.sql`, run in SSMS, or sqlcmd with `-I`).
+10. `ScheduledTaskController` (`api/ScheduledTask/*`): anonymous GET endpoints; the suspended-permit auto-resume check is inverted (resumes within `suspended_autoresume_days` instead of after) and ignores the company in the URL. Candidate for a permit rule.
 
 ## Future enhancements (KIV)
 
