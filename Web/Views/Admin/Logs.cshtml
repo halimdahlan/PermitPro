@@ -1,4 +1,5 @@
 @using PermitPro.App.ViewModels
+@using PermitPro.Core.Helpers
 
 @{
 	Layout = "_LayoutAdmin";
@@ -6,6 +7,14 @@
 }
 
 @model AdminLogsViewModel
+
+@section CustomCss {
+	<link rel="stylesheet" href="~/css/datagrid.css" asp-append-version="true" />
+	<style>
+		.logs-pager .dt-length select { width: auto; min-width: 4.5rem; }
+		.logs-pager .dt-info, .logs-pager .dt-length label { font-size: 14px; font-weight: normal; }
+	</style>
+}
 
 <div class="page-header">
 	<h4><i class="fa-solid fa-file-lines me-2 text-primary"></i> Logs</h4>
@@ -48,77 +57,139 @@
 		}
 		else
 		{
-			<table class="table table-hover mb-0 align-middle">
-				<thead class="table-light">
-					<tr>
-						<th style="padding-left:1.25rem;">Date/Time</th>
-						<th>Type</th>
-						<th>Category</th>
-						<th>Entity</th>
-						<th>Description</th>
-						<th>User</th>
-						<th class="text-end" style="padding-right:1.25rem;">Actions</th>
-					</tr>
-				</thead>
-				<tbody>
-					@foreach (var log in Model.Logs)
-					{
-						var badgeClass = log.LogType switch
-						{
-							"Error" => "bg-danger-subtle text-danger-emphasis border border-danger-subtle",
-							"Warning" => "bg-warning-subtle text-warning-emphasis border border-warning-subtle",
-							_ => "bg-info-subtle text-info-emphasis border border-info-subtle",
-						};
-						var shortDescription = (log.Description ?? string.Empty).Length > 90
-							? log.Description!.Substring(0, 90) + "…"
-							: log.Description;	
-
-						<tr>
-							<td style="padding-left:1.25rem;white-space:nowrap;">
-								<small class="text-muted">@log.CreatedWhen.ToString("dd MMM yyyy, HH:mm:ss")</small>
-							</td>
-							<td><span class="badge @badgeClass">@log.LogType</span></td>
-							<td>@log.Category</td>
-							<td>@log.EntityName</td>
-							<td>@shortDescription</td>
-							<td>
-								@if (!string.IsNullOrEmpty(log.UserName))
+			<div class="data-grid">
+				<div class="table-cards-wrap">
+					<table class="table table-hover mb-0 align-middle dt-cards">
+						<thead class="table-light">
+							<tr>
+								<th style="padding-left:1.25rem;">Date/Time</th>
+								<th>Type</th>
+								<th>Category</th>
+								<th>Entity</th>
+								<th>Description</th>
+								<th>User</th>
+								<th class="text-end" style="padding-right:1.25rem;">Actions</th>
+							</tr>
+						</thead>
+						<tbody>
+							@foreach (var log in Model.Logs)
+							{
+								var badgeClass = log.LogType switch
 								{
-									@log.UserName
+									"Error" => "bg-danger-subtle text-danger-emphasis border border-danger-subtle",
+									"Warning" => "bg-warning-subtle text-warning-emphasis border border-warning-subtle",
+									_ => "bg-info-subtle text-info-emphasis border border-info-subtle",
+								};
+								var shortDescription = (log.Description ?? string.Empty).Length > 90
+									? log.Description!.Substring(0, 90) + "…"
+									: log.Description;
+
+								<tr>
+									<td data-label="Date/Time" style="padding-left:1.25rem;white-space:nowrap;">
+										<small class="text-muted">@GeneralHelper.GetDateInTimeZone(log.CreatedWhen).ToString("dd MMM yyyy, HH:mm:ss")</small>
+									</td>
+									<td data-label="Type"><span class="badge @badgeClass">@log.LogType</span></td>
+									<td data-label="Category">@log.Category</td>
+									<td data-label="Entity" class="@(string.IsNullOrEmpty(log.EntityName) ? "dt-card-empty" : "")">@log.EntityName</td>
+									<td data-label="Description">@shortDescription</td>
+									<td data-label="User">
+										@if (!string.IsNullOrEmpty(log.UserName))
+										{
+											@log.UserName
+										}
+										else
+										{
+											<span class="text-muted">—</span>
+										}
+									</td>
+									<td class="text-end dt-card-actions" style="padding-right:1.25rem;">
+										<button type="button" class="btn btn-sm btn-outline-secondary" title="View details" onclick="viewLogDetail('@log.Id')">
+											<i class="fa-solid fa-eye"></i>
+										</button>
+									</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+
+				@* Same layout and markup as the tenant DataTables grids (datagrid.css): paging bottom left,
+				   row count and page size bottom right. Paging stays server-side (the log table is large). *@
+				@{
+					var firstRow = (Model.Page - 1) * Model.PageSize + 1;
+					var lastRow = Math.Min(Model.Page * Model.PageSize, Model.TotalCount);
+				}
+				<div class="logs-pager d-flex flex-wrap align-items-center justify-content-center justify-content-md-between gap-3 px-3 py-3">
+					<nav aria-label="Log pages">
+						<ul class="pagination mb-0">
+							<li class="page-item @(Model.Page <= 1 ? "disabled" : "")">
+								<a class="page-link" href="@PageUrl(1)" aria-label="First">«</a>
+							</li>
+							<li class="page-item @(Model.Page <= 1 ? "disabled" : "")">
+								<a class="page-link" href="@PageUrl(Model.Page - 1)" aria-label="Previous">‹</a>
+							</li>
+							@foreach (var n in PageNumbers(Model.Page, Model.TotalPages))
+							{
+								if (n == 0)
+								{
+									<li class="page-item disabled"><span class="page-link">…</span></li>
 								}
 								else
 								{
-									<span class="text-muted">—</span>
+									<li class="page-item @(n == Model.Page ? "active" : "")">
+										<a class="page-link" href="@PageUrl(n)" aria-current="@(n == Model.Page ? "page" : null)">@n</a>
+									</li>
 								}
-							</td>
-							<td class="text-end" style="padding-right:1.25rem;">
-								<button type="button" class="btn btn-sm btn-outline-secondary" title="View details" onclick="viewLogDetail('@log.Id')">
-									<i class="fa-solid fa-eye"></i>
-								</button>
-							</td>
-						</tr>
-					}
-				</tbody>
-			</table>
+							}
+							<li class="page-item @(Model.Page >= Model.TotalPages ? "disabled" : "")">
+								<a class="page-link" href="@PageUrl(Model.Page + 1)" aria-label="Next">›</a>
+							</li>
+							<li class="page-item @(Model.Page >= Model.TotalPages ? "disabled" : "")">
+								<a class="page-link" href="@PageUrl(Model.TotalPages)" aria-label="Last">»</a>
+							</li>
+						</ul>
+					</nav>
+					<div class="d-flex flex-wrap align-items-center justify-content-center gap-3">
+						<div class="dt-info">Showing @firstRow.ToString("N0") to @lastRow.ToString("N0") of @Model.TotalCount.ToString("N0") entries</div>
+						<div class="dt-length d-flex align-items-center gap-2">
+							<select id="ddlPageSize" class="form-select form-select-sm" aria-label="Entries per page">
+								@foreach (var size in new[] { 10, 20, 50, 100 })
+								{
+									<option value="@size" selected="@(size == Model.PageSize)">@size</option>
+								}
+							</select>
+							<label for="ddlPageSize" class="mb-0 text-nowrap">entries per page</label>
+						</div>
+					</div>
+				</div>
+			</div>
 		}
 	</div>
 </div>
 
-@if (Model.TotalPages > 1)
-{
-	<nav class="mt-3">
-		<ul class="pagination pagination-sm justify-content-center mb-0">
-			<li class="page-item @(Model.Page <= 1 ? "disabled" : "")">
-				<a class="page-link" href="@Url.Action("Logs", new { page = Model.Page - 1, pageSize = Model.PageSize, logType = Model.LogTypeFilter, search = Model.SearchTerm })">Previous</a>
-			</li>
-			<li class="page-item disabled">
-				<span class="page-link">Page @Model.Page of @Model.TotalPages (@Model.TotalCount total)</span>
-			</li>
-			<li class="page-item @(Model.Page >= Model.TotalPages ? "disabled" : "")">
-				<a class="page-link" href="@Url.Action("Logs", new { page = Model.Page + 1, pageSize = Model.PageSize, logType = Model.LogTypeFilter, search = Model.SearchTerm })">Next</a>
-			</li>
-		</ul>
-	</nav>
+@functions {
+	// Built by hand: Url.Action picks the conventional {company}/{controller}/{action} route,
+	// which produces /00000000-…/Admin/Logs instead of /admin/logs.
+	string PageUrl(int page, int? pageSize = null)
+	{
+		var query = new Dictionary<string, string?>
+		{
+			["page"] = page.ToString(),
+			["pageSize"] = (pageSize ?? Model.PageSize).ToString(),
+		};
+		if (!string.IsNullOrEmpty(Model.LogTypeFilter)) query["logType"] = Model.LogTypeFilter;
+		if (!string.IsNullOrEmpty(Model.SearchTerm)) query["search"] = Model.SearchTerm;
+		return Microsoft.AspNetCore.WebUtilities.QueryHelpers.AddQueryString("/admin/logs", query);
+	}
+
+	// DataTables' numbering (as in the tenant grids): at most 7 buttons; 0 marks an ellipsis.
+	static IEnumerable<int> PageNumbers(int page, int pages)
+	{
+		if (pages <= 7) return Enumerable.Range(1, pages);
+		if (page <= 4) return [1, 2, 3, 4, 5, 0, pages];
+		if (page >= pages - 3) return [1, 0, pages - 4, pages - 3, pages - 2, pages - 1, pages];
+		return [1, 0, page - 1, page, page + 1, 0, pages];
+	}
 }
 
 @* ── Log detail modal ────────────────────────────────────────────────── *@
@@ -155,6 +226,16 @@
 				.replace(/'/g, '&#039;');
 		};
 
+		document.getElementById('ddlPageSize')?.addEventListener('change', (e) => {
+			location.href = @(Json.Serialize(PageUrl(1, 0))).replace('pageSize=0', 'pageSize=' + e.target.value);
+		});
+
+		// The server sends Malaysia time without an offset; show it as-is, in the grid's format.
+		const formatDate = (value) => new Date(value).toLocaleString('en-GB', {
+			day: '2-digit', month: 'short', year: 'numeric',
+			hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+		});
+
 		const viewLogDetail = (id) => {
 			$('#dlgLogDetailBody').html('<div class="text-center text-muted py-4"><i class="fa-regular fa-spinner fa-spin me-1"></i> Loading...</div>');
 			$('#dlgLogDetail').modal('show');
@@ -169,7 +250,7 @@
 				const html = `
 					<dl class="row mb-0">
 						<dt class="col-sm-3">Date/Time</dt>
-						<dd class="col-sm-9">${new Date(log.CreatedWhen).toLocaleString()}</dd>
+						<dd class="col-sm-9">${formatDate(log.CreatedWhen)}</dd>
 
 						<dt class="col-sm-3">Type</dt>
 						<dd class="col-sm-9"><span class="badge ${badgeClass}">${escapeHtml(log.LogType)}</span></dd>
