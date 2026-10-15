@@ -9,7 +9,7 @@
 	<p class="text-secondary mb-0 me-auto" style="font-size:.85rem;">
 		Every rule run that did something (reminders sent, permits archived, unarchives, errors), newest first. Runs with nothing to do aren't listed.
 	</p>
-	<a href="/@Model/rules" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-arrow-left me-1"></i> Rules</a>
+	<a href="@Context.CompanyPathBase()/rules" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-arrow-left me-1"></i> Rules</a>
 </div>
 
 <div class="mt-4 card data-grid">
@@ -44,14 +44,14 @@
 			const renderPermits = (permits, type) => {
 				if (type !== 'display') return (permits || []).map(p => p.PermitNo).join(' ');
 				if (!permits || permits.length === 0) return '&mdash;';
-				const link = p => `<a href="/${companyId}/permits/edit/${p.Id}" class="text-nowrap">${DataGrid.escapeHtml(p.PermitNo)}</a>`;
+				const link = p => `<a href="${companyBase}/permits/edit/${p.Id}" class="text-nowrap">${DataGrid.escapeHtml(p.PermitNo)}</a>`;
 				const shown = permits.slice(0, 5).map(link).join(', ');
 				if (permits.length <= 5) return shown;
 				return `${shown} <a href="javascript:;" class="no-loading show-all-permits text-nowrap">and ${permits.length - 5} more</a>` +
 					`<span class="d-none all-permits">, ${permits.slice(5).map(link).join(', ')}</span>`;
 			};
 
-			DataGrid.create('#tblRuleHistory', `/${companyId}/rules/history/data`, {
+			DataGrid.create('#tblRuleHistory', `${companyBase}/rules/history/data`, {
 				language: {
 					emptyTable: 'No rule has done anything yet.',
 					zeroRecords: 'No matching runs found.',

@@ -38,7 +38,7 @@
 
 				<div class="d-md-flex flex-row align-items-center justify-content-between mt-5 d-none">
 					<div>
-						<a asp-controller="permits" asp-action="index"><i class="fa-sharp fa-solid fa-chevrons-left me-2"></i> Back</a>
+						<a href="@Context.CompanyPathBase()/permits"><i class="fa-sharp fa-solid fa-chevrons-left me-2"></i> Back</a>
 					</div>
 					<div>
 						<button type="button" class="btn btn-sm btn-secondary btn-draft me-3">
@@ -73,7 +73,7 @@
 				<i class="fa-light fa-check-to-slot me-2"></i>Submit for approval
 			</button>
 		</div>
-		<a asp-controller="permits" asp-action="index" class="permit-mobile-back"><i class="fa-sharp fa-solid fa-chevrons-left me-2"></i> Back</a>
+		<a href="@Context.CompanyPathBase()/permits" class="permit-mobile-back"><i class="fa-sharp fa-solid fa-chevrons-left me-2"></i> Back</a>
 	</div>
 </div>
 

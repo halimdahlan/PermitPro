@@ -28,6 +28,7 @@
 					<tr>
 						<th style="padding-left:1.25rem;width:52px;"></th>
 						<th>Company</th>
+						<th>Address</th>
 						<th>Status</th>
 						<th class="text-center">Users</th>
 						<th class="text-center">Sites</th>
@@ -58,6 +59,20 @@
 								@if (!string.IsNullOrEmpty(c.Description))
 								{
 									<small class="text-muted">@c.Description</small>
+								}
+							</td>
+							<td>
+								@if (c.SiteUrl != null)
+								{
+									<a href="@c.SiteUrl" target="_blank" rel="noopener" class="small text-decoration-none">
+										@c.SiteUrl.Split("://")[1] <i class="fa-solid fa-arrow-up-right-from-square ms-1" style="font-size:.65rem;"></i>
+									</a>
+								}
+								else
+								{
+									<a href="/admin/companies/@c.Id/edit" class="small text-warning text-decoration-none">
+										<i class="fa-solid fa-triangle-exclamation me-1"></i>Not set
+									</a>
 								}
 							</td>
 							<td>

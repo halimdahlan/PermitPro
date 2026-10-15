@@ -12,6 +12,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 using PermitPro.App.Controllers.Base;
 using PermitPro.App.Models.Ajax;
+using PermitPro.App.Services;
 using PermitPro.App.ViewModels;
 using PermitPro.Core.Data;
 using PermitPro.Core.Entities;
@@ -36,6 +37,8 @@ public class AdminController : Controller
     private readonly IMemoryCache _cache;
     private readonly IConfiguration _configuration;
     private readonly HealthCheckService _healthCheckService;
+    private readonly TenancySettings _tenancy;
+    private readonly TenantDirectory _tenants;
 
     private static readonly HashSet<string> _allowedLogoExts =
         new(StringComparer.OrdinalIgnoreCase) { ".png", ".jpg", ".jpeg", ".webp", ".svg" };
@@ -49,8 +52,12 @@ public class AdminController : Controller
         IAppSettingsService appSettings,
         IMemoryCache cache,
         IConfiguration configuration,
-        HealthCheckService healthCheckService)
+        HealthCheckService healthCheckService,
+        TenancySettings tenancy,
+        TenantDirectory tenants)
     {
+        _tenancy = tenancy;
+        _tenants = tenants;
         _signInManager = signInManager;
         _userManager = userManager;
         _db = db;
@@ -146,12 +153,17 @@ public class AdminController : Controller
                 Description = c.Description,
                 IsActive = c.IsActive,
                 LogoFileName = c.LogoFileName,
+                Subdomain = c.Subdomain,
                 UserCount = _db.Users.Count(u => u.UserCompany.Id == c.Id),
                 SiteCount = _db.Sites.IgnoreQueryFilters().Count(s => s.SiteCompany.Id == c.Id),
                 CreatedWhen = c.CreatedWhen,
             })
             .OrderBy(c => c.Name)
             .ToListAsync();
+
+        var port = Request.Host.Port is int p ? $":{p}" : "";
+        foreach (var c in companies.Where(c => c.Subdomain != null))
+            c.SiteUrl = $"{Request.Scheme}://{_tenancy.CompanyHost(c.Subdomain)}{port}";
 
         return View(companies);
     }
@@ -161,7 +173,7 @@ public class AdminController : Controller
     public IActionResult CompanyCreate()
     {
         if (!IsSuperUser()) return Forbid();
-        return View("CompanyForm", new AdminCompanyFormViewModel { Name = string.Empty });
+        return View("CompanyForm", new AdminCompanyFormViewModel { Name = string.Empty, HostSuffix = HostSuffix() });
     }
 
     [Authorize]
@@ -170,6 +182,9 @@ public class AdminController : Controller
     public async Task<IActionResult> CompanyCreate(AdminCompanyFormViewModel model)
     {
         if (!IsSuperUser()) return Forbid();
+
+        model.HostSuffix = HostSuffix();
+        await ValidateSubdomainAsync(model, null);
 
         if (!ModelState.IsValid)
             return View("CompanyForm", model);
@@ -187,6 +202,7 @@ public class AdminController : Controller
             Name = model.Name,
             Description = model.Description,
             IsActive = model.IsActive,
+            Subdomain = model.Subdomain,
         };
 
         if (model.LogoFile != null)
@@ -202,6 +218,8 @@ public class AdminController : Controller
 
         _db.Companies.Add(company);
         await _db.SaveChangesAsync();
+
+        _tenants.Invalidate();
 
         await _logService.LogMessageAsync(Core.Enums.LogTypeEnum.Information, "ADMIN_COMPANY_CREATE", $"Company '{company.Name}' created.", CurrentUser());
 
@@ -224,6 +242,8 @@ public class AdminController : Controller
             Name = company.Name,
             Description = company.Description,
             IsActive = company.IsActive,
+            Subdomain = company.Subdomain,
+            HostSuffix = HostSuffix(),
             ExistingLogoFileName = company.LogoFileName,
         });
     }
@@ -234,6 +254,9 @@ public class AdminController : Controller
     public async Task<IActionResult> CompanyEdit(Guid id, AdminCompanyFormViewModel model)
     {
         if (!IsSuperUser()) return Forbid();
+
+        model.HostSuffix = HostSuffix();
+        await ValidateSubdomainAsync(model, id);
 
         if (!ModelState.IsValid)
             return View("CompanyForm", model);
@@ -252,6 +275,7 @@ public class AdminController : Controller
         company.Name = model.Name;
         company.Description = model.Description;
         company.IsActive = model.IsActive;
+        company.Subdomain = model.Subdomain;
 
         if (model.RemoveLogo && !string.IsNullOrEmpty(company.LogoFileName))
         {
@@ -278,6 +302,7 @@ public class AdminController : Controller
         await _db.SaveChangesAsync();
 
         AppControllerBase.InvalidateCompanyMetaCache(_cache, id);
+        _tenants.Invalidate();
         await _logService.LogMessageAsync(Core.Enums.LogTypeEnum.Information, "ADMIN_COMPANY_EDIT", $"Company '{company.Name}' updated.", CurrentUser());
 
         TempData["SuccessMessage"] = $"Company \"{company.Name}\" updated successfully.";
@@ -299,6 +324,7 @@ public class AdminController : Controller
         await _db.SaveChangesAsync();
 
         AppControllerBase.InvalidateCompanyMetaCache(_cache, id);
+        _tenants.Invalidate();
         var state = company.IsActive ? "activated" : "deactivated";
         await _logService.LogMessageAsync(Core.Enums.LogTypeEnum.Information, "ADMIN_COMPANY_TOGGLE", $"Company '{company.Name}' {state}.", CurrentUser());
 
@@ -321,6 +347,7 @@ public class AdminController : Controller
 
         var currentUserId = Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var uid) ? uid : Guid.Empty;
         await _db.SoftDeleteAsync(company, currentUserId);
+        _tenants.Invalidate();
 
         await _logService.LogMessageAsync(Core.Enums.LogTypeEnum.Information, "ADMIN_COMPANY_DELETE", $"Company '{company.Name}' soft-deleted.", CurrentUser());
 
@@ -827,6 +854,25 @@ public class AdminController : Controller
 
     private bool IsSuperUser() =>
         User.IsInRole("Super User") || User.IsInRole("SUPERUSER");
+
+    // ".permitpro.app" (".localhost:5144" in development), shown after the subdomain box.
+    private string HostSuffix() =>
+        $".{_tenancy.RootDomain}{(Request.Host.Port is int port ? $":{port}" : "")}";
+
+    // Normalizes model.Subdomain and checks format, reserved names and that no other company (deleted ones
+    // included, as the database index is) already has it.
+    private async Task ValidateSubdomainAsync(AdminCompanyFormViewModel model, Guid? companyId)
+    {
+        model.Subdomain = CompanySubdomain.Normalize(model.Subdomain);
+        if (model.Subdomain == null) return;   // [Required] reports it
+
+        var error = CompanySubdomain.Validate(model.Subdomain);
+        if (error == null && await _db.Companies.IgnoreQueryFilters().AnyAsync(c => c.Subdomain == model.Subdomain && c.Id != companyId))
+            error = "Another company already uses this subdomain.";
+
+        if (error != null)
+            ModelState.AddModelError(nameof(model.Subdomain), error);
+    }
 
     private UserInfo CurrentUser()
     {

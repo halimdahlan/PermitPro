@@ -34,7 +34,7 @@
 		}
 		else
 		{
-			<a asp-controller="permits" asp-action="new" class="btn btn-sm btn-primary"><span class="px-2"><i class="fa-sharp fa-solid fa-plus me-2"></i> New permit</span></a>
+			<a href="@Context.CompanyPathBase()/permits/new" class="btn btn-sm btn-primary"><span class="px-2"><i class="fa-sharp fa-solid fa-plus me-2"></i> New permit</span></a>
 		}
 	</div>
 </div>
@@ -118,7 +118,7 @@
 					<button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
 					@if (canCreateTemplate)
 					{
-						<a href="/@companyId/formtemplates/new" class="btn btn-sm btn-primary"><i class="fa-solid fa-plus me-1"></i> Create permit template</a>
+						<a href="@Context.CompanyPathBase()/formtemplates/new" class="btn btn-sm btn-primary"><i class="fa-solid fa-plus me-1"></i> Create permit template</a>
 					}
 				</div>
 			</div>
@@ -150,7 +150,7 @@
 
 		$(document).ready(() => {
 
-			tbl = DataGrid.create('#tblPermits', '@Url.Action("GetGridData", "Permits", new { company = Model.CompanyId })', {
+			tbl = DataGrid.create('#tblPermits', '@Context.CompanyPathBase()/permits/getgriddata', {
 				language: {
 					emptyTable: 'No permits found.',
 					zeroRecords: 'No matching permits found.',
@@ -160,7 +160,7 @@
 						data: 'PermitNumber',
 						className: 'text-nowrap',
 						render: (data, type, row) => type === 'display'
-							? `<a href="/${companyId}/permits/edit/${row.Id}">${DataGrid.escapeHtml(data)}</a>`
+							? `<a href="${companyBase}/permits/edit/${row.Id}">${DataGrid.escapeHtml(data)}</a>`
 							: data,
 					},
 					{ data: 'Description', className: 'col-description', render: DataGrid.renderText },
@@ -185,7 +185,7 @@
 					DataGrid.htmlColumn(null, {
 						className: 'text-center text-nowrap',
 						render: (data, type, row) =>
-							`<a href="/${companyId}/permits/edit/${row.Id}" class="no-loading text-secondary me-3" title="Edit"><i class="fa-solid fa-money-check-pen fa-lg"></i></a>` +
+							`<a href="${companyBase}/permits/edit/${row.Id}" class="no-loading text-secondary me-3" title="Edit"><i class="fa-solid fa-money-check-pen fa-lg"></i></a>` +
 							`<a href="javascript:;" class="no-loading text-danger btn-delete-permit" data-id="${row.Id}" data-permit-number="${DataGrid.escapeHtml(row.PermitNumber)}" title="Delete"><i class="fa-solid fa-trash-xmark fa-lg"></i></a>`,
 					}),
 				],
@@ -259,7 +259,7 @@
 			$('.loading').show();
 
 			const xhr = $.ajax({
-				url: '/' + companyId + '/permits/' + id,
+				url: companyBase + '/permits/' + id,
 				method: 'DELETE',
 				headers: { 'RequestVerificationToken': DataGrid.antiForgeryToken() },
 			});

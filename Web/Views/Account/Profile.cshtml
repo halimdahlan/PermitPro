@@ -234,7 +234,7 @@
 			const form = new FormData();
 			form.append('file', file);
 
-			const res = await fetch('/@companyId/account/profile/upload-avatar', {
+			const res = await fetch('@Context.CompanyPathBase()/account/profile/upload-avatar', {
 				method: 'POST',
 				headers: { 'RequestVerificationToken': document.querySelector('[name="__RequestVerificationToken"]').value },
 				body: form

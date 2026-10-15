@@ -46,6 +46,23 @@
 				<span asp-validation-for="Name" class="text-danger small"></span>
 			</div>
 
+			<!-- Subdomain -->
+			<div class="mb-3">
+				<label asp-for="Subdomain" class="form-label fw-600">
+					@Html.DisplayNameFor(f => f.Subdomain) <span class="text-danger">*</span>
+				</label>
+				<div class="input-group">
+					<input asp-for="Subdomain" class="form-control" placeholder="e.g. acme" maxlength="63"
+						   autocapitalize="none" autocorrect="off" autocomplete="off" spellcheck="false" />
+					<span class="input-group-text">@Model.HostSuffix</span>
+				</div>
+				<div class="form-text">
+					The company's own address: its users sign in there. Lowercase letters, digits and hyphens.
+					Changing it changes the address its users must use.
+				</div>
+				<span asp-validation-for="Subdomain" class="text-danger small"></span>
+			</div>
+
 			<!-- Description -->
 			<div class="mb-3">
 				<label asp-for="Description" class="form-label fw-600">@Html.DisplayNameFor(f => f.Description)</label>
@@ -98,7 +115,7 @@
 					<input asp-for="IsActive" class="form-check-input" type="checkbox" role="switch" />
 					<label asp-for="IsActive" class="form-check-label fw-600">Active</label>
 				</div>
-				<small class="text-muted">Inactive companies cannot be selected on the login page.</small>
+				<small class="text-muted">An inactive company's address shows "company not found", so its users can't sign in.</small>
 			</div>
 
 			<hr class="my-3" />

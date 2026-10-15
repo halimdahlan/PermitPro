@@ -1,6 +1,10 @@
+@using PermitPro.App.Services
 @{
 	Layout = "_LayoutAnon";
 	ViewData["Title"] = "Sign In";
+
+	// Always set: AccountController.Login shows this view only on a company's host.
+	var tenant = Context.GetTenant();
 }
 
 @model SignInViewModel
@@ -8,13 +12,20 @@
 <div class="login-page">
 	<div class="login-card">
 
-		<!-- Logo -->
+		<!-- Logo: the company's own, else PermitPro's -->
 		<div class="login-logo">
-			<div class="logo-icon">
-				<i class="fa-solid fa-helmet-safety"></i>
-			</div>
+			@if (!string.IsNullOrEmpty(tenant?.LogoFileName))
+			{
+				<img src="/img/logos/@tenant.LogoFileName" alt="" class="login-company-logo" />
+			}
+			else
+			{
+				<div class="logo-icon">
+					<i class="fa-solid fa-helmet-safety"></i>
+				</div>
+			}
 			<div class="logo-text">PermitPro</div>
-			<div class="logo-sub">Permit-to-Work Management System</div>
+			<div class="logo-sub">@(tenant?.DisplayName ?? "Permit-to-Work Management System")</div>
 		</div>
 
 		<h5 class="login-heading">Welcome back</h5>
@@ -30,22 +41,6 @@
 				</div>
 			}
 
-			<!-- Company -->
-			<div class="mb-3">
-				<label asp-for="CompanyId" class="form-label">@Html.DisplayNameFor(f => f.CompanyId)</label>
-				<div class="input-group input-group-icon">
-					<span class="input-group-text">
-						<i class="fa-solid fa-building"></i>
-					</span>
-					<select class="form-control form-select" style="border-left:none;"
-					        asp-for="CompanyId"
-					        asp-items="@(new SelectList(ViewBag.CompanyList, "Id", "Name"))">
-						<option value="">Select your company…</option>
-					</select>
-				</div>
-				<span asp-validation-for="CompanyId" class="text-danger"></span>
-			</div>
-
 			<!-- Email -->
 			<div class="mb-3">
 				<label asp-for="Email" class="form-label">@Html.DisplayNameFor(f => f.Email)</label>
@@ -53,7 +48,7 @@
 					<span class="input-group-text">
 						<i class="fa-regular fa-envelope"></i>
 					</span>
-					<input asp-for="Email" class="form-control" placeholder="you@company.com" required />
+					<input asp-for="Email" class="form-control" placeholder="you@company.com" required autofocus />
 				</div>
 				<span asp-validation-for="Email" class="text-danger"></span>
 			</div>
@@ -94,9 +89,6 @@
 			<!-- Hidden fields -->
 			<input type="hidden" asp-for="Token" />
 			<input type="hidden" asp-for="ReturnUrl" />
-			<input type="hidden" asp-for="Entity" />
-			<input type="hidden" asp-for="EntityId" />
-			<input type="hidden" asp-for="Origin" />
 
 		</form>
 

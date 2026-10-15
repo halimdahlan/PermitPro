@@ -38,7 +38,7 @@ const deleteItem = (companyId, controller, entity, itemId) => {
   $('.loading').show();
 
   const xhr = $.ajax({
-    url: `/${companyId}/${controller}/${itemId}`,
+    url: `${companyBase}/${controller}/${itemId}`,
     method: 'DELETE',
   });
 

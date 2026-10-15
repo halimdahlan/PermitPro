@@ -74,7 +74,7 @@
 	@if (isContractor)
 	{
 		<li class="nav-item">
-			<a href="/@companyId/permits" class="nav-link @navPermits">
+			<a href="@Context.CompanyPathBase()/permits" class="nav-link @navPermits">
 				<i class="fa-solid fa-list-ul fa-fw me-3"></i>Permits
 			</a>
 		</li>
@@ -82,7 +82,7 @@
 	else
 	{
 		<li class="nav-item">
-			<a href="/@companyId/dashboard" class="nav-link @navDashboard" href="#">
+			<a href="@Context.CompanyPathBase()/dashboard" class="nav-link @navDashboard" href="#">
 				<i class="fa-regular fa-chart-line fa-fw me-3"></i>Dashboard
 			</a>
 		</li>
@@ -94,12 +94,12 @@
 			<div id="permitSubmenu" class="ps-3 collapse @showMenu">
 				<ul class="navbar-nav">
 					<li class="nav-item">
-						<a href="/@companyId/permits" class="nav-link @navPermits">
+						<a href="@Context.CompanyPathBase()/permits" class="nav-link @navPermits">
 							<i class="fa-solid fa-list-ul fa-fw me-3"></i>All Permits
 						</a>
 					</li>
 					<li class="nav-item">
-						<a href="/@companyId/sitemap" class="nav-link @navSitemap">
+						<a href="@Context.CompanyPathBase()/sitemap" class="nav-link @navSitemap">
 							<i class="fa-solid fa-map-location-dot fa-fw me-3"></i>Site Map
 						</a>
 					</li>
@@ -111,7 +111,7 @@
 	@if (isPortalAdmin || isSuperUser)
 	{
 		<li class="nav-item">
-			<a href="/@companyId/contractors" class="nav-link @navContractors">
+			<a href="@Context.CompanyPathBase()/contractors" class="nav-link @navContractors">
 				<i class="fa-regular fa-user-helmet-safety fa-fw me-3"></i>Contractors
 			</a>
 		</li>
@@ -120,14 +120,14 @@
 	@if (!isContractor)
 	{
 		<li class="nav-item">
-			<a href="/@companyId/reports" class="nav-link @navReports">
+			<a href="@Context.CompanyPathBase()/reports" class="nav-link @navReports">
 				<i class="fa-sharp fa-regular fa-file-invoice fa-fw me-3"></i>Reports
 			</a>
 		</li>
 	}
 	
 	<li class="nav-item">
-		<a href="/@companyId/notifications" class="nav-link @navNotifications">
+		<a href="@Context.CompanyPathBase()/notifications" class="nav-link @navNotifications">
 			<i class="fa-sharp fa-solid fa-envelope-open-text fa-fw me-3"></i>Notifications
 		</a>
 	</li>
@@ -138,17 +138,17 @@
 	<h5 class="sidebar-heading text-uppercase text-white" style="opacity: 0.3;">Settings</h5>
 	<ul class="navbar-nav mt-2 mb-4">
 		<li class="nav-item">
-			<a href="/@companyId/sites" class="nav-link @navSites">
+			<a href="@Context.CompanyPathBase()/sites" class="nav-link @navSites">
 				<i class="fa-sharp fa-regular fa-map-location-dot fa-fw me-3"></i>Locations
 			</a>
 		</li>
 		<li class="nav-item">
-			<a href="/@companyId/users" class="nav-link @navUsers">
+			<a href="@Context.CompanyPathBase()/users" class="nav-link @navUsers">
 				<i class="fa-solid fa-user-gear fa-fw me-3"></i>Users
 			</a>
 		</li>
 		<li class="nav-item">
-			<a href="/@companyId/workflow" class="nav-link @navWorkflow">
+			<a href="@Context.CompanyPathBase()/workflow" class="nav-link @navWorkflow">
 				<i class="fa-regular fa-people-carry-box fa-fw me-3"></i>Workflows
 			</a>
 		</li>
@@ -156,20 +156,20 @@
 	<h5 class="sidebar-heading text-uppercase text-white" style="opacity: 0.3;">Admin</h5>
 	<ul class="navbar-nav mt-2">
 		<li class="nav-item">
-			<a href="/@companyId/recyclebin" class="nav-link @navRecycleBin">
+			<a href="@Context.CompanyPathBase()/recyclebin" class="nav-link @navRecycleBin">
 				<i class="fa-solid fa-trash-can-arrow-up fa-fw me-3"></i>Recycle Bin
 			</a>
 		</li>
 		@if (isSuperUser)
 		{
 			<li class="nav-item">
-				<a href="/@companyId/settings" class="nav-link @navSettings">
+				<a href="@Context.CompanyPathBase()/settings" class="nav-link @navSettings">
 					<i class="fa-solid fa-cog fa-fw me-3"></i>System Settings
 				</a>
 			</li>
 
 			<li class="nav-item">
-				<a href="/@companyId/rules" class="nav-link @navRules">
+				<a href="@Context.CompanyPathBase()/rules" class="nav-link @navRules">
 					<i class="fa-solid fa-list-check fa-fw me-3"></i>Rules
 				</a>
 			</li>
@@ -184,12 +184,12 @@
 					<div id="templateSubmenu" class="ps-3 collapse @templatesShow">
 						<ul class="navbar-nav">
 							<li class="nav-item">
-								<a href="/@companyId/formcontrols" class="nav-link @navFormControls">
+								<a href="@Context.CompanyPathBase()/formcontrols" class="nav-link @navFormControls">
 									<i class="fa-solid fa-sliders fa-fw me-3"></i>Form Controls
 								</a>
 							</li>
 							<li class="nav-item">
-								<a href="/@companyId/formtemplates" class="nav-link @navFormTemplates">
+								<a href="@Context.CompanyPathBase()/formtemplates" class="nav-link @navFormTemplates">
 									<i class="fa-solid fa-table-columns fa-fw me-3"></i>Permit/Certificate
 								</a>
 							</li>

@@ -10,7 +10,7 @@
 <div class="d-flex flex-row justify-content-between align-items-center mb-3">
 	<div></div>
 	<div>
-		<a href="/@companyId/users/roles/new" class="btn btn-sm btn-primary"><span class="px-2"><i class="fa-sharp fa-solid fa-plus me-2"></i> New role</span></a>
+		<a href="@Context.CompanyPathBase()/users/roles/new" class="btn btn-sm btn-primary"><span class="px-2"><i class="fa-sharp fa-solid fa-plus me-2"></i> New role</span></a>
 	</div>
 </div>
 
@@ -43,7 +43,7 @@
 
 <div class="d-flex flex-row align-items-center justify-content-between mt-4">
 	<div>
-		<a asp-controller="users" asp-action="index">
+		<a href="@Context.CompanyPathBase()/users">
 			<span class="mx-3"><i class="fa-solid fa-arrow-left me-3"></i> Back to Users</span>
 		</a>
 	</div>
@@ -86,7 +86,7 @@
 
 		$(document).ready(() => {
 
-			tbl = DataGrid.create('#tblRoles', '/@companyId/users/roles/grid', {
+			tbl = DataGrid.create('#tblRoles', '@Context.CompanyPathBase()/users/roles/grid', {
 				pageLength: 20,
 				language: {
 					emptyTable: 'No roles found.',
@@ -96,7 +96,7 @@
 					{
 						data: 'Name',
 						render: (data, type, row) => type === 'display'
-							? `<a href="/@companyId/users/roles/${row.Id}/edit">${DataGrid.escapeHtml(data)}</a>`
+							? `<a href="@Context.CompanyPathBase()/users/roles/${row.Id}/edit">${DataGrid.escapeHtml(data)}</a>`
 							: data,
 					},
 					{ data: 'Description', render: DataGrid.renderText },

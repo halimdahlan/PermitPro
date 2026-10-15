@@ -135,6 +135,22 @@ public static class WebExtensions
 	public static IApplicationBuilder UseCloudflareClientIp(this IApplicationBuilder app)
 		=> app.UseMiddleware<CloudflareClientIpMiddleware>();
 
+	public static IServiceCollection AddTenancy(this IServiceCollection services)
+	{
+		// Company by host name (iotm.permitpro.app). TenancySettings is registered in Program.cs. See Tenancy.cs.
+		services.AddSingleton<TenantDirectory>();
+
+		return services;
+	}
+
+	// Before UseRouting: it rewrites /permits/... to /{company id}/permits/... for the existing routes.
+	public static IApplicationBuilder UseTenantResolution(this IApplicationBuilder app)
+		=> app.UseMiddleware<TenantResolutionMiddleware>();
+
+	// After UseAuthentication (needs the user) and UseRouting (reads the {company} route value).
+	public static IApplicationBuilder UseTenantAccess(this IApplicationBuilder app)
+		=> app.UseMiddleware<TenantAccessMiddleware>();
+
 	public static IServiceCollection AddRateLimiting(this IServiceCollection services)
 	{
 		// Rate-limit auth endpoints: 20 requests per 1-minute window per client IP.

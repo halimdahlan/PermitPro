@@ -32,7 +32,7 @@
 	<p class="text-secondary mb-0 me-auto" style="font-size:.85rem;">
 		Rules run automatically every few minutes once they're switched on and saved. Use <strong>Preview</strong> to see which permits a rule would act on right now.
 	</p>
-	<a href="/@Model.CompanyId/rules/history" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-clock-rotate-left me-1"></i> History</a>
+	<a href="@Context.CompanyPathBase()/rules/history" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-clock-rotate-left me-1"></i> History</a>
 </div>
 
 @if (!Model.EmailsEnabled)
@@ -243,7 +243,7 @@
 			$('.btn-rule-save').on('click', (e) => {
 				const card = $(e.currentTarget).closest('.rule-card');
 				setStatus(card, '<i class="fa-solid fa-loader fa-spin me-1"></i> Saving...', 'text-secondary');
-				post(`/${companyId}/rules/save`, card)
+				post(`${companyBase}/rules/save`, card)
 					.done(() => {
 						const on = card.find('.rule-enabled').prop('checked');
 						setStatus(card, `<i class="fa-solid fa-check me-1"></i> Saved${on ? '. Runs within a few minutes.' : ' (switched off).'}`, 'text-success');
@@ -257,7 +257,7 @@
 				const dateLabel = card.data('dateLabel');
 				box.removeClass('d-none').html('<div class="text-secondary small py-2"><i class="fa-solid fa-loader fa-spin me-1"></i> Checking permits...</div>');
 
-				post(`/${companyId}/rules/preview`, card)
+				post(`${companyBase}/rules/preview`, card)
 					.done((r) => {
 						if (!r.Count) {
 							box.html(`<div class="text-secondary small py-2">${escapeHtml(card.data('empty'))}</div>`);
@@ -265,7 +265,7 @@
 						}
 						const rows = r.Sample.map(p => `
 							<tr>
-								<td class="text-nowrap" data-label="Permit No."><a href="/${companyId}/permits/edit/${p.Id}">${escapeHtml(p.PermitNo)}</a></td>
+								<td class="text-nowrap" data-label="Permit No."><a href="${companyBase}/permits/edit/${p.Id}">${escapeHtml(p.PermitNo)}</a></td>
 								<td data-label="Description">${escapeHtml(p.Description)}</td>
 								<td data-label="Status">${escapeHtml(p.Status)}</td>
 								<td class="text-nowrap" data-label="${escapeHtml(dateLabel)}">${escapeHtml(p.Date)}</td>

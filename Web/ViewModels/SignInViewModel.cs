@@ -19,17 +19,19 @@ public class SignInViewModel
 	[Display(Name = "Remember me")]
 	public bool RememberMe { get; set; }
 
-	[Required(ErrorMessage = "This field is required")]
-	[Display(Name = "Company")]
-	public required string CompanyId { get; set; }
-
 	public string? Token { get; set; }
 
+	// Where to go after signing in (local URLs only), e.g. a permit opened from a workflow email.
 	public string? ReturnUrl { get; set; }
+}
 
-	public string? Entity { get; set; }
 
-	public string? EntityId { get; set; }
+// The apex's sign-in page: the company's address, e.g. "iotm" + ".permitpro.app".
+public class CompanyAddressViewModel
+{
+	public string? Subdomain { get; set; }
 
-	public string? Origin { get; set; }
+	public required string HostSuffix { get; set; }
+
+	public string? ErrorMessage { get; set; }
 }

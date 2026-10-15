@@ -9,6 +9,10 @@
 	<!-- Theme: before any CSS so the page never flashes the wrong theme -->
 	<script src="~/js/theme.js" asp-append-version="true"></script>
 
+	<!-- Prefix for links to this company's pages: "" on its own host (iotm.permitpro.app/permits), "/{company id}"
+	     elsewhere. Scripts write `${companyBase}/permits`; views write @@Context.CompanyPathBase(). See Services/Tenancy.cs. -->
+	<script>window.companyBase = '@Context.CompanyPathBase()';</script>
+
 	<link rel="apple-touch-icon" sizes="180x180" href="~/img/icons/apple-touch-icon.png">
 	<link rel="icon" type="image/png" sizes="32x32" href="~/img/icons/favicon-32x32.png">
 	<link rel="icon" type="image/png" sizes="16x16" href="~/img/icons/favicon-16x16.png">
@@ -277,7 +281,7 @@
 					const badge = document.getElementById('bellBadge');
 
 					// initial count on page load
-					fetch('/@_companyIdForBadge/notifications/count')
+					fetch('@Context.CompanyPathBase()/notifications/count')
 						.then(r => r.json())
 						.then(d => {
 							if (badge && d.count > 0) {
@@ -289,7 +293,7 @@
 
 					// SignalR real-time push
 					const notifConn = new signalR.HubConnectionBuilder()
-						.withUrl('/@_companyIdForBadge/notificationHub')
+						.withUrl('@Context.CompanyPathBase()/notificationHub')
 						.withAutomaticReconnect()
 						.build();
 

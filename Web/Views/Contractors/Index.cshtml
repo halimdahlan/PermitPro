@@ -18,7 +18,7 @@
 		</div>
 	</div>
 	<div class="order-1 order-sm-2 ms-auto">
-		<a href="/@Model.CompanyId/users/new?org=c" class="btn btn-sm btn-primary no-loading"><span class="px-2"><i class="fa-sharp fa-solid fa-plus me-2"></i> New contractor</span></a>
+		<a href="@Context.CompanyPathBase()/users/new?org=c" class="btn btn-sm btn-primary no-loading"><span class="px-2"><i class="fa-sharp fa-solid fa-plus me-2"></i> New contractor</span></a>
 	</div>
 </div>
 
@@ -72,7 +72,7 @@
 
 		$(document).ready(() => {
 
-			tbl = DataGrid.create('#tblContractors', '/@Model.CompanyId/contractors/grid', {
+			tbl = DataGrid.create('#tblContractors', '@Context.CompanyPathBase()/contractors/grid', {
 				language: {
 					emptyTable: 'No contractors found.',
 					zeroRecords: 'No matching contractors found.',
@@ -81,7 +81,7 @@
 					{
 						data: 'Name',
 						render: (data, type, row) => type === 'display'
-							? `<a href="/@Model.CompanyId/users/edit/${row.Id}?org=c">${DataGrid.escapeHtml(data)}</a>`
+							? `<a href="@Context.CompanyPathBase()/users/edit/${row.Id}?org=c">${DataGrid.escapeHtml(data)}</a>`
 							: data,
 					},
 					{ data: 'Email', render: DataGrid.renderText },
@@ -114,7 +114,7 @@
 
 				var xhr = $.ajax({
 					method: 'DELETE',
-					url: `/@Model.CompanyId/users/${id}`,
+					url: `@Context.CompanyPathBase()/users/${id}`,
 					headers: { 'RequestVerificationToken': DataGrid.antiForgeryToken() },
 				});
 

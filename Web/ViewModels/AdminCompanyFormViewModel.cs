@@ -13,6 +13,8 @@ public class AdminCompanyListViewModel
     public int SiteCount { get; set; }
     public DateTime CreatedWhen { get; set; }
     public string? LogoFileName { get; set; }
+    public string? Subdomain { get; set; }
+    public string? SiteUrl { get; set; }
 }
 
 public class AdminCompanyFormViewModel
@@ -27,6 +29,15 @@ public class AdminCompanyFormViewModel
     [MaxLength(500, ErrorMessage = "Description must not exceed 500 characters")]
     [Display(Name = "Description")]
     public string? Description { get; set; }
+
+    // Format, reserved names and uniqueness are checked in AdminController (CompanySubdomain rules).
+    [Required(ErrorMessage = "Subdomain is required")]
+    [MaxLength(63, ErrorMessage = "Subdomain must not exceed 63 characters")]
+    [Display(Name = "Subdomain")]
+    public string? Subdomain { get; set; }
+
+    // ".permitpro.app", shown after the subdomain box.
+    public string HostSuffix { get; set; } = string.Empty;
 
     [Display(Name = "Active")]
     public bool IsActive { get; set; } = true;

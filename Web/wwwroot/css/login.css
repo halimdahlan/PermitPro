@@ -118,6 +118,19 @@ html, body {
     margin: 0 auto 12px;
 }
 
+/* A company's own logo: any shape, so contain it rather than crop to the square above.
+   White behind it, as uploaded logos are drawn for a light background (also in dark mode). */
+.login-logo img.login-company-logo {
+    width: auto;
+    height: auto;
+    max-width: 200px;
+    max-height: 64px;
+    object-fit: contain;
+    background: #fff;
+    padding: 6px;
+    border-radius: 10px;
+}
+
 .login-logo .logo-text {
     font-family: var(--login-font);
     font-weight: 800;
@@ -205,6 +218,15 @@ html, body {
 }
 .input-group-icon .btn-pwd-toggle:hover { color: var(--login-accent); }
 .input-group-icon .btn-pwd-toggle:focus { box-shadow: none; }
+
+/* Right-side host name on the company address page (".permitpro.app") */
+.input-group-icon .input-group-text.host-suffix {
+    border-left: none;
+    border-right: 1px solid var(--login-border);
+    color: var(--login-muted);
+    font-family: var(--login-font);
+    font-size: .8rem;
+}
 
 /* Plain select/input without icon prefix */
 .form-control-login,

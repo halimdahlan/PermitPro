@@ -285,7 +285,7 @@ else
 	// Settings table
 	// -------------------------------------------------------------------------
 	const loadSettings = (categoryId) => {
-		$.get(`/${companyId}/settings/getsettings?categoryId=${categoryId}`, function (data) {
+		$.get(`${companyBase}/settings/getsettings?categoryId=${categoryId}`, function (data) {
 			renderSettingsTable(categoryId, data);
 		}).fail(() => {
 			$(`#stg-panel-${categoryId}`).html('<p class="text-danger small mb-0">Failed to load settings.</p>');
@@ -395,7 +395,7 @@ else
 
 		$('.loading').show();
 		$.ajax({
-			url: `/${companyId}/settings/savecategory`,
+			url: `${companyBase}/settings/savecategory`,
 			type: 'POST',
 			contentType: 'application/json',
 			data: JSON.stringify(payload),
@@ -418,7 +418,7 @@ else
 			() => {
 				$('.loading').show();
 				$.ajax({
-					url: `/${companyId}/settings/deletecategory?id=${id}`,
+					url: `${companyBase}/settings/deletecategory?id=${id}`,
 					type: 'DELETE',
 					headers: { 'RequestVerificationToken': antiForgeryToken },
 					success: () => { $('.loading').hide(); location.reload(); },
@@ -509,7 +509,7 @@ else
 
 		$('.loading').show();
 		$.ajax({
-			url: `/${companyId}/settings/savesetting`,
+			url: `${companyBase}/settings/savesetting`,
 			type: 'POST',
 			contentType: 'application/json',
 			data: JSON.stringify(payload),
@@ -532,7 +532,7 @@ else
 			() => {
 				$('.loading').show();
 				$.ajax({
-					url: `/${companyId}/settings/deletesetting?id=${id}`,
+					url: `${companyBase}/settings/deletesetting?id=${id}`,
 					type: 'DELETE',
 					headers: { 'RequestVerificationToken': antiForgeryToken },
 					success: () => { $('.loading').hide(); loadSettings(categoryId); },

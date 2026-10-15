@@ -181,6 +181,10 @@ public class ApplicationDbContext
 					.WithOne(x => x.Company)
 					.HasForeignKey(x => x.CompanyId);
 
+			// Unique across all companies, deleted ones included: a soft-deleted company keeps its name.
+			options.Property(x => x.Subdomain).HasMaxLength(63);
+			options.HasIndex(x => x.Subdomain).IsUnique().HasFilter("[Subdomain] IS NOT NULL");
+
 		});
 
 		builder.Entity<Permit>(options =>

@@ -30,7 +30,7 @@
 			@* ── Status bar ───────────────────────────────────────────────────── *@
 			<div class="alert alert-@Model.AlertBgColor mb-3" role="alert">
 				<div class="d-flex flex-row align-items-center">
-					<a class="me-3 text-dark" href="/@companyId/permits">
+					<a class="me-3 text-dark" href="@Context.CompanyPathBase()/permits">
 						<i class="fa-sharp fa-regular fa-chevron-left fa-xl"></i>
 					</a>
 					<h5 class="mb-0">@Model.PermitNo</h5>
@@ -139,7 +139,7 @@
 				@if (!isReadonly)
 				{
 					<div class="d-flex gap-2 justify-content-end mb-4">
-						<a href="/@companyId/permits" class="btn btn-outline-secondary btn-sm align-content-center">
+						<a href="@Context.CompanyPathBase()/permits" class="btn btn-outline-secondary btn-sm align-content-center">
 							<i class="fa-solid fa-xmark me-1"></i> Cancel
 						</a>
 						<button type="button" class="btn btn-outline-primary btn-sm" onclick="submitPermit('draft')">
@@ -263,7 +263,7 @@
 			@if (Model.PermitId != Guid.Empty)
 			{
 				<div class="mb-4">
-					<a href="/@companyId/permits/@Model.PermitId/certificates"
+					<a href="@Context.CompanyPathBase()/permits/@Model.PermitId/certificates"
 					   class="btn btn-sm btn-outline-secondary w-100">
 						<i class="fa-solid fa-certificate me-2"></i> Certificates
 					</a>
@@ -319,7 +319,7 @@
 	const LAYOUT   = @Html.Raw(layoutJson);
 	const FIELDS   = @Html.Raw(savedFields);
 	const READONLY = @Html.Raw(isReadonly ? "true" : "false");
-	const SAVE_URL = '/@companyId/permits/form/@Model.PermitId';
+	const SAVE_URL = '@Context.CompanyPathBase()/permits/form/@Model.PermitId';
 	const METHOD   = 'PUT';
 </script>
 <partial name="~/Views/Permits/Partials/_NewFormScript.cshtml" />
@@ -338,12 +338,12 @@
 
 				btn.disabled = true;
 				try {
-					const res = await fetch('/@companyId/permits/permit/status', {
+					const res = await fetch('@Context.CompanyPathBase()/permits/permit/status', {
 						method: 'POST',
 						headers: { 'RequestVerificationToken': token },
 						body: fd,
 					});
-					if (res.ok) window.location.href = '/@companyId/permits';
+					if (res.ok) window.location.href = '@Context.CompanyPathBase()/permits';
 					else showToast('Action failed: ' + await res.text(), 'danger');
 				} catch (e) {
 					showToast('Error: ' + e.message, 'danger');
@@ -360,7 +360,7 @@
 			fd.append('Id', '@Model.PermitId');
 
 			try {
-				const res = await fetch('/@companyId/permits/permit/export/pdf', {
+				const res = await fetch('@Context.CompanyPathBase()/permits/permit/export/pdf', {
 					method: 'POST',
 					headers: { 'RequestVerificationToken': token },
 					body: fd,
@@ -387,12 +387,12 @@
 			fd.append('Notes', notes);
 
 			try {
-				const res = await fetch('/@companyId/permits/closed', {
+				const res = await fetch('@Context.CompanyPathBase()/permits/closed', {
 					method: 'PUT',
 					headers: { 'RequestVerificationToken': token },
 					body: fd,
 				});
-				if (res.ok) window.location.href = '/@companyId/permits';
+				if (res.ok) window.location.href = '@Context.CompanyPathBase()/permits';
 				else showToast('Could not close permit.', 'danger');
 			} catch (e) {
 				showToast('Error: ' + e.message, 'danger');
@@ -405,7 +405,7 @@
 
     async function loadAttachments() {
         try {
-            const res = await fetch(`/@companyId/permits/permit/${PERMIT_ID}/files`);
+            const res = await fetch(`@Context.CompanyPathBase()/permits/permit/${PERMIT_ID}/files`);
             if (!res.ok) return;
             const json = await res.json();
             // Endpoint returns a bare array (not wrapped in { Data: [...] })
@@ -475,7 +475,7 @@
         fd.append('FileId', id);
 
         try {
-            const res = await fetch(`/@companyId/permits/attachments/remove`, {
+            const res = await fetch(`@Context.CompanyPathBase()/permits/attachments/remove`, {
                 method: 'POST',
                 headers: { 'RequestVerificationToken': token },
                 body: fd,

@@ -169,7 +169,7 @@
 					<div class="card-title">Recent Permits</div>
 					<div class="card-subtitle">Latest permit activity</div>
 				</div>
-				<a asp-controller="permits" asp-action="index" class="btn btn-light btn-sm">
+				<a href="@Context.CompanyPathBase()/permits" class="btn btn-light btn-sm">
 					View all <i class="fa-solid fa-arrow-right ms-1"></i>
 				</a>
 			</div>
@@ -190,7 +190,7 @@
 							@foreach (var permit in Model.RecentPermits)
 							{
 								<tr>
-									<td><a href="/@permit.CompanyId/permits/edit/@permit.Id"><span>@permit.PermitNumber</span></a></td>
+									<td><a href="@Context.CompanyPathBase()/permits/edit/@permit.Id"><span>@permit.PermitNumber</span></a></td>
 									<td><span>@permit.SiteName</span></td>
 									<td>@permit.RequestedByName</td>
 									<td>
@@ -268,12 +268,11 @@
 	<partial name="_FlatpickrScripts" />
 	<script>
 		(function () {
-			var companyId = '@Model.CompanyId';
 			var donutChart, barChart;
 
 			/* ── helpers ─────────────────────────────── */
 			function apiPath(route) {
-				return '/' + companyId + route;
+				return companyBase + route;
 			}
 
 			function buildParams() {

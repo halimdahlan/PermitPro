@@ -9,15 +9,18 @@ var appConfig = builder.Configuration;
 var connectionString = appConfig.GetConnectionString("MSSQL")!;
 var ptwSettings = appConfig.GetSection("PTWSettings").Get<PTWSettings>()!;
 var jwtSettings = appConfig.GetSection("JwtSettings").Get<JwtSettings>()!;
+var tenancySettings = appConfig.GetSection("Tenancy").Get<TenancySettings>() ?? new TenancySettings();
 
 builder.Services.AddSingleton(ptwSettings);
 builder.Services.AddSingleton(jwtSettings);
+builder.Services.AddSingleton(tenancySettings);
 
 builder.Services.AddDatabase(connectionString);
 builder.Services.AddIdentityConfiguration();
 builder.Services.AddJwtAuthentication(jwtSettings);
 builder.Services.AddCloudflareClientIp();
 builder.Services.AddRateLimiting();
+builder.Services.AddTenancy();
 builder.Services.AddWebServices(connectionString);
 builder.Services.AddPermitProServices();
 
@@ -89,6 +92,10 @@ app.UseDefaultFiles();
 app.UseStaticFiles();
 
 app.UseHttpsRedirection();
+
+// Company from the host name (iotm.permitpro.app); must run before routing. See Services/Tenancy.cs.
+app.UseTenantResolution();
+
 app.UseRouting();
 
 // Must come after UseRouting: [EnableRateLimiting("auth")] is endpoint metadata, and before
@@ -96,6 +103,10 @@ app.UseRouting();
 app.UseRateLimiter();
 
 app.UseAuthentication();
+
+// Signed-in users only see their own company's pages (Super Admins excepted).
+app.UseTenantAccess();
+
 app.UseAuthorization();
 
 app.MapControllerRoute(

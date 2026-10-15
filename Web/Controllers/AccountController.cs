@@ -11,6 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 
 using MimeKit;
 
+using PermitPro.App.Services;
 using PermitPro.App.ViewModels;
 using PermitPro.Core.Data;
 using PermitPro.Core.Entities;
@@ -44,6 +45,8 @@ public class AccountController : Controller
 	private readonly ILogService _logService;
 	private readonly JwtSettings _jwtSettings;
 	private readonly ISystemConfigurationService _systemConfigurationService;
+	private readonly TenancySettings _tenancy;
+	private readonly TenantDirectory _tenants;
 
 
 	public AccountController(
@@ -59,8 +62,12 @@ public class AccountController : Controller
 		, ISystemConfigurationService systemConfigurationService
 		, IAppSettingsService appSettings
 		, ILogService logService
-		, JwtSettings jwtSettings)
+		, JwtSettings jwtSettings
+		, TenancySettings tenancy
+		, TenantDirectory tenants)
 	{
+		_tenancy = tenancy;
+		_tenants = tenants;
 		_userManager = userManager;
 		_userStore = userStore;
 		_emailStore = GetEmailStore();
@@ -90,48 +97,64 @@ public class AccountController : Controller
 	}
 
 
+	// On a company's host (iotm.permitpro.app): email and password. On the apex (permitpro.app): the
+	// company address page, as the apex has no company to sign in to.
 	[HttpGet("account/login")]
-	public IActionResult Login()
+	public async Task<IActionResult> Login(string returnUrl, string url, string company, string entity, string id, CancellationToken ct)
 	{
-		// Already authenticated — skip the login form and go straight to the user's dashboard.
-		if (User.Identity?.IsAuthenticated == true)
-		{
-			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-			var currentUser = _context.Users
-				.Include(e => e.UserCompany)
-				.FirstOrDefault(e => e.Id == userId);
+		var tenant = HttpContext.GetTenant();
 
-			if (currentUser?.UserCompany != null)
-				return LocalRedirect($"/{currentUser.UserCompany.Id}/landing");
+		// Workflow emails link to /account/login?company={id}&entity=permits&id={permit id}: open that
+		// permit after signing in. (PermitsController.Edit sends ?origin=email links here with ?url=.)
+		returnUrl ??= url;
+		if (string.IsNullOrEmpty(returnUrl) && entity == "permits" && Guid.TryParse(id, out var permitId))
+			returnUrl = $"/permits/edit/{permitId}";
+
+		if (tenant == null)
+		{
+			// Old email links on the apex, and users already signed in there: on to the company's own host.
+			var linkedId = Guid.TryParse(company, out var companyId) ? companyId : await CurrentUserCompanyIdAsync(ct);
+			if (linkedId != null && await _tenants.FindByIdAsync(linkedId.Value, ct) is { } linked)
+				return Redirect($"{Request.CompanyBaseUrl(_tenancy, linked)}/account/login{Request.QueryString}");
+
+			return View("CompanyAddress", new CompanyAddressViewModel { HostSuffix = HostSuffix() });
 		}
 
-		var companies = _context.Companies
-			.Where(x => x.IsActive == true)
-			.Select(x => new
-			{
-				x.Id,
-				x.Name,
-			})
-			.ToList();
+		// Already signed in here (TenantAccessMiddleware has checked it's one of this company's users).
+		if (User.Identity?.IsAuthenticated == true)
+			return LocalRedirect(SafeReturnUrl(returnUrl));
 
-		ViewBag.CompanyList = companies;
-
-		var company = _httpContextAccessor.HttpContext.Request.Query.FirstOrDefault(f => f.Key.ToLower() == "company");
-		var entity = _httpContextAccessor.HttpContext.Request.Query.FirstOrDefault(f => f.Key.ToLower() == "entity");
-		var entityId = _httpContextAccessor.HttpContext.Request.Query.FirstOrDefault(f => f.Key.ToLower() == "id");
-		var origin = _httpContextAccessor.HttpContext.Request.Query.FirstOrDefault(f => f.Key.ToLower() == "origin");
-
-		var model = new SignInViewModel
+		return View(new SignInViewModel
 		{
 			Email = "",
 			Password = "",
-			CompanyId = company.Value,
-			Entity = entity.Value,
-			EntityId = entityId.Value,
-			Origin = origin.Value,
-		};
+			ReturnUrl = returnUrl,
+		});
+	}
 
-		return View(model);
+
+	// The company address form on the apex: iotm → https://iotm.permitpro.app/account/login
+	[HttpGet("account/find")]
+	[EnableRateLimiting("auth")]
+	public async Task<IActionResult> FindCompany(string subdomain, CancellationToken ct)
+	{
+		var model = new CompanyAddressViewModel { Subdomain = subdomain, HostSuffix = HostSuffix() };
+
+		var normalized = CompanySubdomain.Normalize(subdomain);
+		if (normalized == null)
+		{
+			model.ErrorMessage = "Enter your company's address.";
+			return View("CompanyAddress", model);
+		}
+
+		var tenant = await _tenants.FindBySubdomainAsync(normalized, ct);
+		if (tenant == null)
+		{
+			model.ErrorMessage = $"There's no company at {normalized}{model.HostSuffix}. Check the address with your administrator.";
+			return View("CompanyAddress", model);
+		}
+
+		return Redirect($"{Request.CompanyBaseUrl(_tenancy, tenant)}/account/login");
 	}
 
 
@@ -140,16 +163,11 @@ public class AccountController : Controller
 	[EnableRateLimiting("auth")]
 	public async Task<IActionResult> Login(SignInViewModel model)
 	{
-		var companies = _context.Companies
-			.Where(x => x.IsActive == true)
-			.Select(x => new
-			{
-				x.Id,
-				x.Name,
-			})
-			.ToList();
+		var tenant = HttpContext.GetTenant();
 
-		ViewBag.CompanyList = companies;
+		// No company on the apex: back to the company address page.
+		if (tenant == null)
+			return Redirect("/account/login");
 
 		if (!ModelState.IsValid)
 		{
@@ -174,16 +192,15 @@ public class AccountController : Controller
 			return View(model);
 		}
 
-		// Skip company checking if user is in role SUPERUSER
+		// Only this host's company's users may sign in here; Super Admins (SUPERUSER) anywhere.
 		var isSuperUser = user.UserRoles.Any(e => e.Role.NormalizedName == "SUPERUSER");
 
-		if (!isSuperUser)
+		if (!isSuperUser && user.UserCompany?.Id != tenant.Id)
 		{
-			if (user.UserCompany.Id.ToString() != model.CompanyId)
-			{
-				ModelState.AddModelError("invalid_company", "Invalid company");
-				return View(model);
-			}
+			await _logService.LogMessageAsync(Core.Enums.LogTypeEnum.Error, "SIGN_IN", $"Sign-in attempt on another company's site ({tenant.Subdomain}).", user);
+
+			ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+			return View(model);
 		}
 
 		var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: true);
@@ -192,12 +209,7 @@ public class AccountController : Controller
 		{
 			await _logService.LogMessageAsync(Core.Enums.LogTypeEnum.Information, "SIGN_IN", $"User ({user.UserName}) has successfully logged in.", user);
 
-			if (!string.IsNullOrEmpty(model.Entity) && !string.IsNullOrEmpty(model.EntityId))
-			{
-				//return LocalRedirect($"/{model.CompanyId}/landing?entity={model.Entity}&entityId={model.EntityId}");
-			}
-
-			return LocalRedirect(WebUtility.UrlDecode($"/{model.CompanyId}/landing"));
+			return LocalRedirect(SafeReturnUrl(model.ReturnUrl));
 		}
 
 		if (result.IsLockedOut)
@@ -268,14 +280,23 @@ public class AccountController : Controller
 		var htmlTemplate = System.IO.File.ReadAllText(Path.Combine(_webHostEnvironment.WebRootPath, "templates", "html", "reset-password.html"));
 		var template = Template.Parse(htmlTemplate);
 
-		// Link back to whichever host this request came in on (production, UAT or localhost), like the
-		// workflow email links in PermitService. Safe only because AllowedHosts (appsettings.json) restricts
-		// the Host header to our own domains — otherwise a forged Host would put the reset token in a link
-		// to an attacker's site (password-reset poisoning).
+		// The link goes to the user's own company's host (so "Back to login" after the reset lands on their
+		// login page, wherever they asked), keeping this request's scheme and port. Users without one (Super
+		// Admins) get this request's host. Safe only because AllowedHosts (appsettings.json) restricts the
+		// Host header to our own domains — otherwise a forged Host would put the reset token in a link to an
+		// attacker's site (password-reset poisoning).
+		var userTenant = await _context.Users.AsNoTracking()
+			.Where(u => u.Id == user.Id)
+			.Select(u => u.UserCompany == null ? (Guid?)null : u.UserCompany.Id)
+			.FirstOrDefaultAsync() is Guid userCompanyId
+				? await _tenants.FindByIdAsync(userCompanyId)
+				: null;
+		var resetBaseUrl = userTenant != null ? Request.CompanyBaseUrl(_tenancy, userTenant) : $"{Request.Scheme}://{Request.Host}";
+
 		var templateData = new
 		{
 			RecipientName = $"{user.FirstName} {user.LastName}",
-			ResetLink = $"{Request.Scheme}://{Request.Host}/account/reset-password?token={Base64UrlEncoder.Encode(token)}&id={WebUtility.UrlEncode(user.Id)}",
+			ResetLink = $"{resetBaseUrl}/account/reset-password?token={Base64UrlEncoder.Encode(token)}&id={WebUtility.UrlEncode(user.Id)}",
 			ExpiryMinutes = (int)tokenLifespan.TotalMinutes,
 		};
 
@@ -869,6 +890,28 @@ public class AccountController : Controller
 
 
 	#region Private methods/functions
+
+	// Only local URLs (no open redirect); the company's home page otherwise.
+	private string SafeReturnUrl(string returnUrl)
+		=> !string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl) ? returnUrl : "/";
+
+
+	// ".permitpro.app" (".localhost:5144" in development), shown after the address box.
+	private string HostSuffix()
+		=> $".{_tenancy.RootDomain}{(Request.Host.Port is int port ? $":{port}" : "")}";
+
+
+	private async Task<Guid?> CurrentUserCompanyIdAsync(CancellationToken ct)
+	{
+		var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+		if (userId == null) return null;
+
+		return await _context.Users.AsNoTracking()
+			.Where(u => u.Id == userId)
+			.Select(u => u.UserCompany == null ? (Guid?)null : u.UserCompany.Id)
+			.FirstOrDefaultAsync(ct);
+	}
+
 
 	private async Task<(string storedName, string path, long size)> FileSaveAsync(Stream stream, string originalFileName, string folder, CancellationToken ct = default)
 	{

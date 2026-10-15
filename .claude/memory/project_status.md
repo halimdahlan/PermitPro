@@ -1,6 +1,6 @@
 ---
 name: project-status
-description: "Where the work stands (2026-10-14): everything merged and deployed through #28 (permit rules); open items and how to resume on another machine"
+description: "Where the work stands (2026-10-15): master deployed through #28; company subdomains in progress on feature/subdomain-tenancy; open items and how to resume on another machine"
 metadata:
   type: project
 ---
@@ -28,6 +28,17 @@ Snapshot as of **2026-10-11**, written when the user moved to a different comput
   - #27 (2026-10-14) Hangfire removed (never configured); no job framework.
   - #28 (2026-10-14) Permit rules (Admin → Rules, CLAUDE.md → "Permit Rules"): End-date reminder, Overdue, Approval escalation, Auto-archive (+ Unarchive, Rules → History). Hosted service every 5 min; IIS app pool set to AlwaysRunning / idle time-out 0 on production. Emails off (`PermitRules:SendEmails = false`); rules switched off on production until the user turns them on. Migration `AddPermitRules` also copied old permits' start/end dates from the JSON into the columns.
 - GitHub issues #2–#7 (security review items) were deleted on 2026-10-12 at the user's request ("addressed outside this project"). The code they described was unchanged at the time: dashboard chart `[ResponseCache]` before auth, ~59 POST actions without antiforgery, auth cookie not `SecurePolicy.Always`, 301 redirect for email links in `PermitsController.Edit`.
+
+## In progress: company subdomains (branch `feature/subdomain-tenancy`, pushed 2026-10-15, not merged)
+
+Each company on its own host (`iotm.permitpro.app`), no GUID in addresses, `permitpro.app` = "Enter your company's address" page + Super Admin. Design and conventions: CLAUDE.md → Multi-Tenancy; deploy/Cloudflare/IIS/demo steps: `docs/subdomain-tenancy-setup.md`.
+
+- **Phase 1** (host → company, login without company dropdown, access check, `Company.Subdomain` + Admin field, migration `AddCompanySubdomain`): tested by the user, "all good".
+- **Phase 2** (no GUID in addresses, docs): done and checked by Claude in the browser (read-only: page loads, grids, charts, hub, redirects). **Not yet tested by the user.** Never exercised: saving a permit, attachment upload, workflow step saves, deletes.
+- User decisions: remove the GUID (yes); apex shows the company address page; **demo** = reserved subdomain, demo site runs on `demo.permitpro.app` via `Tenancy:HostAliases` until the user registers a separate domain; IOTM's subdomain is `iotm` (not "oitm").
+- **Dev DB:** migration `AddCompanySubdomain` applied 2026-10-14 (with the user's OK); IOTM = `iotm`, **TMOTM has no subdomain** (its users can't sign in until one is set: Admin → Companies → Edit). Must be set before deploying.
+- **New machine:** add to the git-ignored `Web/appsettings.Development.json`: `"AllowedHosts": "localhost;*.localhost"` and `"Tenancy": { "RootDomain": "localhost", "Scheme": "http", "Port": 5144 }`, then use the **http** profile: `http://localhost:5144` / `http://iotm.localhost:5144`. Run Claude's own test copies on port 5312, not 5144 (a leftover test app on 5144 once blocked the user's debugger).
+- **Next:** user tests Phase 2 → commit any fixes → PR → merge → deploy following the doc (DB script, TMOTM subdomain, IIS `*.permitpro.app` bindings, check origin cert SAN, then change the Cloudflare redirect rule to `www`-only). Update this note once deployed.
 
 ## Open / possible next work
 

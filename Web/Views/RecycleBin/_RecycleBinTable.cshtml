@@ -54,7 +54,7 @@ else
 						<td class="text-end dt-card-actions" data-label="">
 							<div class="d-flex justify-content-end gap-2">
 								<form id="restore-form-@item.Id" method="post"
-										action="/@companyId/recyclebin/restore/@item.EntityType/@item.Id">
+										action="@Context.CompanyPathBase()/recyclebin/restore/@item.EntityType/@item.Id">
 									@Html.AntiForgeryToken()
 									<button type="button" class="btn btn-sm btn-outline-success recycle-bin-confirm-btn"
 											  data-action="restore" data-entity="@item.EntityType" data-item="@item.DisplayName"
@@ -65,7 +65,7 @@ else
 								@if (User.IsInRole("Super User"))
 								{
 									<form id="delete-form-@item.Id" method="post"
-											action="/@companyId/recyclebin/delete/@item.EntityType/@item.Id">
+											action="@Context.CompanyPathBase()/recyclebin/delete/@item.EntityType/@item.Id">
 										@Html.AntiForgeryToken()
 										<button type="button" class="btn btn-sm btn-outline-danger recycle-bin-confirm-btn ms-2"
 												  data-action="delete" data-entity="@item.EntityType" data-item="@item.DisplayName"

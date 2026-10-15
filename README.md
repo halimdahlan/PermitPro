@@ -103,8 +103,11 @@ PermitPro-1.2/
   - **Builder** (`/workflow/builder/{id}`) — two-column view: left = workflow info form with mini stat cards; right = visual step pipeline with inline Bootstrap collapse panels per step (General + Approvers tabs), approver picker modal
 
 ### Multi-Tenancy
-- Each company operates in an isolated namespace
-- Tenant route pattern: `/{company}/{controller}/{action}`
+- Each company has its own address: `https://{subdomain}.permitpro.app` (e.g. `iotm.permitpro.app`), set per company in Super Admin → Companies
+- `https://permitpro.app` asks for the company's address; Super Admin stays at `https://permitpro.app/admin`
+- Clean addresses (`iotm.permitpro.app/permits`); internally the route pattern is still `/{company}/{controller}/{action}`, with the company id added from the host
+- A signed-in user only sees their own company; each company's site has its own sign-in session
+- Setup, Cloudflare/IIS changes and the demo site: [docs/subdomain-tenancy-setup.md](docs/subdomain-tenancy-setup.md)
 - All data scoped to the tenant company
 - Company name and logo injected into every tenant view via `AppControllerBase`
 - `ICurrentUserService.GetCurrentCompanyId()` resolves the active company for any service call:
@@ -460,8 +463,8 @@ Every section was reworked for phones (< 576px): list grids show each row as a c
 
 1. Create a `SUPERUSER` role and assign it to an admin account directly in the database (or via seed).
 2. Navigate to `/admin/login` and sign in with that account.
-3. Create your first company from `/admin/companies`.
-4. Tenant users log in at `/account/login` and select their company from the dropdown.
+3. Create your first company from `/admin/companies`, with its subdomain (e.g. `acme`).
+4. Tenant users sign in at the company's own address: `https://acme.permitpro.app` (locally `http://acme.localhost:5144`, see [docs/subdomain-tenancy-setup.md](docs/subdomain-tenancy-setup.md) → Local development).
 
 ### Docker / MSSQL
 
@@ -563,10 +566,10 @@ dotnet ef database update --project Core --startup-project Web
 
 ### Current hosting: dedicated Windows server behind Cloudflare
 
-- **Server:** a dedicated Windows Server running IIS, with the app hosted in-process. IIS binds `http:80` and `https:443` for `permitpro.app`.
+- **Server:** a dedicated Windows Server running IIS, with the app hosted in-process. IIS binds `http:80` and `https:443` for `permitpro.app` and `*.permitpro.app` (company subdomains; see [docs/subdomain-tenancy-setup.md](docs/subdomain-tenancy-setup.md)).
 - **TLS:** a Cloudflare Origin Certificate on the server. Cloudflare's SSL/TLS mode must be Full or Full (strict) for this to work.
 - **DNS:** managed in Cloudflare and proxied. `permitpro.app` and `*.permitpro.app` resolve to the origin through Cloudflare.
-- **Redirect rule** (Cloudflare): any hostname other than `permitpro.app` gets a 301 redirect to `https://permitpro.app` plus the request path. See issue #4: it currently drops the query string.
+- **Redirect rule** (Cloudflare): before company subdomains, any hostname other than `permitpro.app` got a 301 redirect to `https://permitpro.app`. With company subdomains it must catch only `www.permitpro.app` (and preserve the query string). See [docs/subdomain-tenancy-setup.md](docs/subdomain-tenancy-setup.md) → step 6.
 - **Client IP:** every request arrives from a Cloudflare edge IP. The app restores the real client IP from `CF-Connecting-IP` (`Web/Services/CloudflareClientIp.cs`), which the per-IP login rate limiter depends on.
 - **Keep the app running (permit rules):** the Overdue and Auto-archive rules run inside the app every few minutes, so IIS must not stop it when the site is idle. In IIS Manager: the site's application pool → *Advanced Settings* → **Start Mode = AlwaysRunning** and **Idle Time-out (minutes) = 0**; the site → *Advanced Settings* → **Preload Enabled = True**. This needs the IIS *Application Initialization* feature (Server Manager → Web Server → Application Development). Periodic recycles are fine: the app restarts and the rules carry on.
 - **Outbound access the server needs:** HTTPS to `api.cloudflare.com` (refreshes Cloudflare's IP ranges at startup and every 24 hours), plus SMTP for email. PDF export needs no outbound access (QuestPDF, embedded fonts, local images).

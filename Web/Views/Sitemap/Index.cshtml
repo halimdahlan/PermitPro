@@ -302,7 +302,7 @@ async function initMap() {
 	// Load site + permit data
 	const companyId = document.getElementById('hidCompanyId').value;
 	try {
-		const resp = await fetch('/' + companyId + '/sites/map/locations');
+		const resp = await fetch(companyBase + '/sites/map/locations');
 		const data = await resp.json();
 		if (data && data.length) {
 			allSitesData = data;

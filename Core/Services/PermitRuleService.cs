@@ -21,7 +21,7 @@ namespace PermitPro.Core.Services;
 
 // Preset permit rules (End-date reminder, Overdue, Approval escalation, Auto-archive). RunAllAsync is
 // called every few minutes by PermitRulesBackgroundService; there is no HTTP request, so email links
-// come from App:BaseUrl and in-app notification links are relative.
+// go to the company's own site from the Tenancy settings and in-app notification links are relative.
 public class PermitRuleService : IPermitRuleService
 {
 	private static readonly PermitStatusEnum[] _closedStatuses =
@@ -38,6 +38,7 @@ public class PermitRuleService : IPermitRuleService
 	private readonly IWebHostEnvironment _env;
 	private readonly IConfiguration _configuration;
 	private readonly ILogger<PermitRuleService> _logger;
+	private readonly TenancySettings _tenancy;
 
 	public PermitRuleService(
 		ApplicationDbContext db,
@@ -45,8 +46,10 @@ public class PermitRuleService : IPermitRuleService
 		INotificationPushService pushService,
 		IWebHostEnvironment env,
 		IConfiguration configuration,
-		ILogger<PermitRuleService> logger)
+		ILogger<PermitRuleService> logger,
+		TenancySettings tenancy)
 	{
+		_tenancy = tenancy;
 		_db = db;
 		_messageService = messageService;
 		_pushService = pushService;
@@ -400,8 +403,10 @@ public class PermitRuleService : IPermitRuleService
 		: span.TotalHours < 48 ? $"{(int)span.TotalHours} {Plural((int)span.TotalHours, "hour", "hours")}"
 		: $"{(int)span.TotalDays} days";
 
-	private string BaseUrl() =>
-		(_configuration["App:BaseUrl"] ?? (_env.IsDevelopment() ? "https://localhost:7079" : "https://permitpro.app")).TrimEnd('/');
+	// The company's own site (Tenancy settings); App:BaseUrl for a company without a subdomain.
+	private string BaseUrl(string? subdomain) => subdomain != null
+		? _tenancy.CompanyBaseUrl(subdomain)
+		: (_configuration["App:BaseUrl"] ?? (_env.IsDevelopment() ? "https://localhost:7079" : "https://permitpro.app")).TrimEnd('/');
 
 
 	// ── End-date reminder ─────────────────────────────────────────────────────
@@ -809,15 +814,19 @@ public class PermitRuleService : IPermitRuleService
 		if (recipients.Count == 0)
 			return (0, sendEmails);
 
-		var companyName = await _db.Companies.AsNoTracking()
+		var company = await _db.Companies.AsNoTracking()
 			.Where(c => c.Id == companyId)
-			.Select(c => c.Description ?? c.Name)
+			.Select(c => new { Name = c.Description ?? c.Name, c.Subdomain })
 			.FirstOrDefaultAsync(ct);
+		var companyName = company?.Name;
 
 		var template = sendEmails
 			? Template.Parse(await File.ReadAllTextAsync(Path.Combine(_env.WebRootPath, "templates", "html", "permit-rule.html"), ct))
 			: null;
-		var baseUrl = BaseUrl();
+		var baseUrl = BaseUrl(company?.Subdomain);
+
+		// No company id in paths on the company's own site (iotm.permitpro.app/permits).
+		var pathBase = company?.Subdomain != null ? "" : $"/{companyId}";
 
 		foreach (var recipient in recipients)
 		{
@@ -834,7 +843,7 @@ public class PermitRuleService : IPermitRuleService
 					DateLabel = notice.DateLabel,
 					ExtraLabel = notice.ExtraLabel,
 					Footer = notice.Footer,
-					PermitsLink = $"{baseUrl}/{companyId}/permits",
+					PermitsLink = $"{baseUrl}{pathBase}/permits",
 					Permits = permits.Select(p => new
 					{
 						PermitNo = PermitNo(p.RunningNumber),
@@ -842,7 +851,8 @@ public class PermitRuleService : IPermitRuleService
 						Location = p.Location ?? string.Empty,
 						Date = GeneralHelper.GetDateInTimeZone(p.Date).ToString("dd MMM yyyy, hh:mm tt"),
 						Extra = notice.Extra(p),
-						Link = $"{baseUrl}/account/login?company={companyId}&entity=permits&id={p.Id}&origin=email",
+						// Not signed in: the login page sends them on to the permit.
+						Link = $"{baseUrl}{pathBase}/permits/edit/{p.Id}",
 					}),
 				});
 
@@ -862,7 +872,7 @@ public class PermitRuleService : IPermitRuleService
 				Title = notice.Title,
 				Message = message,
 				// Relative, so it works on whichever host the user is on.
-				Url = numbers.Count == 1 ? $"/{companyId}/permits/edit/{permits[0].Id}" : $"/{companyId}/permits",
+				Url = numbers.Count == 1 ? $"{pathBase}/permits/edit/{permits[0].Id}" : $"{pathBase}/permits",
 				NotificationUser = await _db.Users.FindAsync([recipient.UserId], ct),
 			});
 

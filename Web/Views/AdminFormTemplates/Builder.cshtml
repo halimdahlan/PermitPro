@@ -7,7 +7,7 @@
     Layout = isTenant ? "_Layout" : "_LayoutAdmin";
     var isCert = Model.TemplateType == FormTemplateTypeEnum.Certificate;
     var listUrl = isTenant
-        ? (isCert ? $"/{Model.CompanyId}/certificatetemplates" : $"/{Model.CompanyId}/formtemplates")
+        ? (isCert ? $"{Context.CompanyPathBase()}/certificatetemplates" : $"{Context.CompanyPathBase()}/formtemplates")
         : (isCert ? $"/admin/certificatetemplates?companyId={Model.CompanyId}" : $"/admin/formtemplates?companyId={Model.CompanyId}");
     ViewData["Title"] = Model.IsEdit ? "Edit Template" : "New Template";
 
@@ -578,7 +578,7 @@ const TEMPLATE_TYPE = @((int)Model.TemplateType);
 // Tenant-facing controllers live under /{company}/formtemplates/save;
 // Super Admin controllers live under /admin/formtemplates/save.
 const IS_TENANT    = @Html.Raw(ViewContext.RouteData.Values["company"] != null ? "true" : "false");
-const SAVE_URL     = IS_TENANT ? `/${COMPANY_ID}/formtemplates/save` : '/admin/formtemplates/save';
+const SAVE_URL     = IS_TENANT ? `${companyBase}/formtemplates/save` : '/admin/formtemplates/save';
 let TOKEN          = '';
 
 const controlLibrary = @Html.Raw(controlLibraryJson);
@@ -1125,7 +1125,7 @@ async function saveTemplate() {
         if (!TEMPLATE_ID && data.templateId) {
             TEMPLATE_ID = data.templateId;
             const isCert = TEMPLATE_TYPE === 1;
-            const base = IS_TENANT ? `/${COMPANY_ID}/${isCert ? 'certificatetemplates' : 'formtemplates'}` : `/admin/${isCert ? 'certificatetemplates' : 'formtemplates'}`;
+            const base = IS_TENANT ? `${companyBase}/${isCert ? 'certificatetemplates' : 'formtemplates'}` : `/admin/${isCert ? 'certificatetemplates' : 'formtemplates'}`;
             history.replaceState(null, '', `${base}/${data.templateId}/edit`);
         }
     } catch (err) {

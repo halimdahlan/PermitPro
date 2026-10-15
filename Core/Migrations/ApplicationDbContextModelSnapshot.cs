@@ -566,6 +566,10 @@ namespace PermitPro.Core.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Subdomain")
+                        .HasMaxLength(63)
+                        .HasColumnType("nvarchar(63)");
+
                     b.Property<Guid?>("UpdatedBy")
                         .HasColumnType("uniqueidentifier");
 
@@ -573,6 +577,10 @@ namespace PermitPro.Core.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Subdomain")
+                        .IsUnique()
+                        .HasFilter("[Subdomain] IS NOT NULL");
 
                     b.ToTable("Companies");
                 });

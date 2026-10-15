@@ -20,7 +20,7 @@
 			</div>
 		</div>
 
-		<a asp-controller="users" asp-action="index">
+		<a href="@Context.CompanyPathBase()/users">
 			<span class="mx-3"><i class="fa-solid fa-arrow-left me-3"></i> Back</span>
 		</a>
 	</div>
@@ -101,7 +101,7 @@ else
 							</div>
 						</div>
 						<div class="mt-5 text-body-secondary d-flex align-items-center justify-content-between">
-							<a href="/@Model.CompanyID/@((Model.OriginFromContractors) ? "contractors" : "users")" role="button" class="btn btn-sm btn-outline-secondary">
+							<a href="@Context.CompanyPathBase()/@((Model.OriginFromContractors) ? "contractors" : "users")" role="button" class="btn btn-sm btn-outline-secondary">
 								<span class="mx-3"><i class="fa-solid fa-arrow-left me-2"></i>Cancel</span>
 							</a>
 							<button type="submit" class="btn btn-sm btn-primary"><span class="mx-3">Save Changes</span></button>
@@ -128,7 +128,7 @@ else
 				LocationPicker.create(
 					document.getElementById('locationPicker'),
 					document.getElementById('hidLocations'),
-					'/@Model.CompanyID/sites/tree');
+					'@Context.CompanyPathBase()/sites/tree');
 
 				if (isContractor) {
 					const selectElement = document.getElementById('UserRole');

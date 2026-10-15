@@ -21,7 +21,7 @@
 			button.disabled = true;
 			error.textContent = '';
 			try {
-				const response = await fetch('/@Model.CompanyId/rules/unarchive/@Model.PermitId', {
+				const response = await fetch('@Context.CompanyPathBase()/rules/unarchive/@Model.PermitId', {
 					method: 'POST',
 					headers: { 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '' },
 				});

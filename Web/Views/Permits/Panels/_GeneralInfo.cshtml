@@ -13,7 +13,7 @@
 		}
 		<div class="form-group mb-3">
 			<label class="form-label">Location</label>
-			<div id="ddtLocation" data-control="tree" data-url="/@Model.CompanyId/sites/tree" data-placeholder="(select location)"></div>
+			<div id="ddtLocation" data-control="tree" data-url="@Context.CompanyPathBase()/sites/tree" data-placeholder="(select location)"></div>
 		</div>
 		<div class="mb-3">
 			<label class="form-label">Description of work</label>

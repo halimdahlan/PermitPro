@@ -8,8 +8,8 @@
 @{
 	// Child locations are listed per parent; the root list uses /sites/grid.
 	var gridUrl = string.IsNullOrEmpty(Model.ParentId)
-		? $"/{Model.CompanyId}/sites/grid"
-		: $"/{Model.CompanyId}/sites/grid/{Model.ParentId}";
+		? $"{Context.CompanyPathBase()}/sites/grid"
+		: $"{Context.CompanyPathBase()}/sites/grid/{Model.ParentId}";
 }
 
 <div class="data-table">
@@ -23,9 +23,9 @@
 					</li>
 				</ol>
 			</nav>
-			<a href="/@Model.CompanyId/sites/@Model.ParentId/new" class="btn btn-sm btn-primary ms-auto"><span class="mx-3"><i class="fa-sharp fa-solid fa-plus me-2"></i> New location</span></a>
+			<a href="@Context.CompanyPathBase()/sites/@Model.ParentId/new" class="btn btn-sm btn-primary ms-auto"><span class="mx-3"><i class="fa-sharp fa-solid fa-plus me-2"></i> New location</span></a>
 		} else {
-			<a href="/@Model.CompanyId/sites/@Guid.Empty/new" class="btn btn-sm btn-primary ms-auto"><span class="mx-3"><i class="fa-sharp fa-solid fa-plus me-2"></i> New location</span></a>
+			<a href="@Context.CompanyPathBase()/sites/@Guid.Empty/new" class="btn btn-sm btn-primary ms-auto"><span class="mx-3"><i class="fa-sharp fa-solid fa-plus me-2"></i> New location</span></a>
 		}
 	</div>
 
@@ -61,11 +61,11 @@
 			<div>
 				@if (Model.SiteParent.ParentId != Guid.Empty)
 				{
-					<a href="/@Model.CompanyId/sites/@Model.SiteParent.ParentId"><i class="fa-sharp fa-solid fa-chevrons-left me-2"></i> Back to parent site</a>
+					<a href="@Context.CompanyPathBase()/sites/@Model.SiteParent.ParentId"><i class="fa-sharp fa-solid fa-chevrons-left me-2"></i> Back to parent site</a>
 				}
 				else
 				{
-					<a href="/@Model.CompanyId/sites"><i class="fa-sharp fa-solid fa-chevrons-left me-2"></i> Back to parent site</a>
+					<a href="@Context.CompanyPathBase()/sites"><i class="fa-sharp fa-solid fa-chevrons-left me-2"></i> Back to parent site</a>
 				}
 			</div>
 		</div>
@@ -96,7 +96,7 @@
 						// Opens the child locations of this location.
 						data: 'Name',
 						render: (data, type, row) => type === 'display'
-							? `<a href="/@Model.CompanyId/sites/${row.Id}">${DataGrid.escapeHtml(data)}</a>`
+							? `<a href="@Context.CompanyPathBase()/sites/${row.Id}">${DataGrid.escapeHtml(data)}</a>`
 							: data,
 					},
 					{ data: 'Description', render: DataGrid.renderText },
@@ -116,7 +116,7 @@
 
 				var xhr = $.ajax({
 					method: 'DELETE',
-					url: `/@Model.CompanyId/sites/${id}`,
+					url: `@Context.CompanyPathBase()/sites/${id}`,
 					headers: { 'RequestVerificationToken': DataGrid.antiForgeryToken() },
 				});
 

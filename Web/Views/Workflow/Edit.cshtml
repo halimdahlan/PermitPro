@@ -159,7 +159,7 @@
 </div>
 
 <div class="d-flex flex-row align-items-center justify-content-between mt-3">
-	<a asp-controller="workflow" asp-action="index">
+	<a href="@Context.CompanyPathBase()/workflow">
 		<i class="fa-sharp fa-solid fa-chevrons-left me-2"></i> Back
 	</a>
 </div>
@@ -296,7 +296,7 @@
 
 					const xhr = $.ajax({
 						method: 'PUT',
-						url: '/@companyId/workflow/workflows/@Model?.WorkflowId/edit',
+						url: '@Context.CompanyPathBase()/workflow/workflows/@Model?.WorkflowId/edit',
 						data: formData,
 						contentType: false,
 						processData: false,
@@ -368,7 +368,7 @@
 
 					const xhr = $.ajax({
 						method: 'POST',
-						url: '/@companyId/workflow/workflows/@Model?.WorkflowId/steps',
+						url: '@Context.CompanyPathBase()/workflow/workflows/@Model?.WorkflowId/steps',
 						data: formData,
 						contentType: false,
 						processData: false,
@@ -429,7 +429,7 @@
 						$('.loading').show();
 
 						const post = $.ajax({
-							url: '/@companyId/workflow/workflows/steps',
+							url: '@Context.CompanyPathBase()/workflow/workflows/steps',
 							method: 'PUT',
 							data: formData,
 							contentType: false,
@@ -479,7 +479,7 @@
 
 				const xhr = $.ajax({
 					method: 'PUT',
-					url: '/@companyId/workflow/steps/' + workflowStepId + '/approvers',
+					url: '@Context.CompanyPathBase()/workflow/steps/' + workflowStepId + '/approvers',
 					data: formData,
 					contentType: false,
 					processData: false,
@@ -519,7 +519,7 @@
 							paging: false,
 							ordering: false,
 							ajax: {
-								url: '/@companyId/workflow/workflows/@Model?.WorkflowId/steps',
+								url: '@Context.CompanyPathBase()/workflow/workflows/@Model?.WorkflowId/steps',
 								// Position of each custom step (not Draft/Completed), used for the up/down arrows.
 								dataSrc: (json) => {
 									const custom = json.data.filter(s => !s.isFirst && !s.isLast);
@@ -628,7 +628,7 @@
 			$('#dlgUsers').on('show.bs.modal', (e) => {
 				if (tblUsers == null) {
 					tblUsers = $('#tblUsers').DataTable({
-						ajax: '/@companyId/users/workflowusers/all',
+						ajax: '@Context.CompanyPathBase()/users/workflowusers/all',
 						// Column widths come from workflow.css (narrower on phones), not DataTables' measured pixel widths.
 						autoWidth: false,
 						pageLength: 5,
@@ -705,7 +705,7 @@
 
 			const xhr = $.ajax({
 				method: 'PUT',
-				url: '/@companyId/workflow/workflows/' + elem.data('workflow') + '/steps/' + elem.data('id') + '/move',
+				url: '@Context.CompanyPathBase()/workflow/workflows/' + elem.data('workflow') + '/steps/' + elem.data('id') + '/move',
 				data: JSON.stringify(postData),
 				contentType: 'application/json; charset=utf-8',
 				dataType: 'json',
@@ -742,7 +742,7 @@
 
 			const xhr = $.ajax({
 				method: 'GET',
-				url: '/@companyId/workflow/steps/' + e,
+				url: '@Context.CompanyPathBase()/workflow/steps/' + e,
 			});
 
 			$('.loading').show();
@@ -776,7 +776,7 @@
 
 			const xhr = $.ajax({
 				method: 'DELETE',
-				url: '/@companyId/workflow/workflows/@Model?.WorkflowId/steps/' + e,
+				url: '@Context.CompanyPathBase()/workflow/workflows/@Model?.WorkflowId/steps/' + e,
 			});
 
 			xhr.done((response, status) => {
@@ -837,7 +837,7 @@
 					const workflowStepId = $('#editStepId').val();
 					const xhr = $.ajax({
 						method: 'DELETE',
-						url: '/@companyId/workflow/steps/' + workflowStepId + '/approvers/' + e,
+						url: '@Context.CompanyPathBase()/workflow/steps/' + workflowStepId + '/approvers/' + e,
 					});
 				}
 			});

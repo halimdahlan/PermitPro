@@ -8,7 +8,7 @@
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
 	<nav aria-label="breadcrumb">
 		<ol class="breadcrumb">
-			<li class="breadcrumb-item"><a asp-asp-controller="workflow" asp-action="index">Workflow</a></li>
+			<li class="breadcrumb-item"><a asp-href="@Context.CompanyPathBase()/workflow">Workflow</a></li>
 			<li class="breadcrumb-item active" aria-current="page">Span</li>
 		</ol>
 	</nav>
@@ -42,7 +42,7 @@
 
 	<div class="d-flex flex-row align-items-center justify-content-between mt-5">
 		<div>
-			<a asp-controller="workflow" asp-action="index"><i class="fa-sharp fa-solid fa-chevrons-left me-2"></i> Back</a>
+			<a href="@Context.CompanyPathBase()/workflow"><i class="fa-sharp fa-solid fa-chevrons-left me-2"></i> Back</a>
 		</div>
 		<button type="button" class="btn btn-primary"><span class="mx-3">Submit</span></button>
 	</div>

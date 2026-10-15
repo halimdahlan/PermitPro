@@ -21,7 +21,7 @@
 		<div class="alert alert-@Model.AlertBgColor" role="alert">
 			<div class="d-flex flex-row align-items-center">
 				<div>
-					<a class="me-3 text-dark" href="/@Model.CompanyId/permits"><i class="fa-sharp fa-regular fa-chevron-left fa-xl"></i></a>
+					<a class="me-3 text-dark" href="@Context.CompanyPathBase()/permits"><i class="fa-sharp fa-regular fa-chevron-left fa-xl"></i></a>
 				</div>
 				<h5 class="mb-0">@Model.PermitNo</h5>
 				<div class="w-100 text-end">
@@ -67,7 +67,7 @@
 
 			<div class="d-md-flex flex-row align-items-center justify-content-between mt-5 d-none mb-5">
 				<div>
-					<a asp-controller="permits" asp-action="index"><i class="fa-sharp fa-solid fa-chevrons-left me-2"></i> Back</a>
+					<a href="@Context.CompanyPathBase()/permits"><i class="fa-sharp fa-solid fa-chevrons-left me-2"></i> Back</a>
 				</div>
 				<div>
 					@if (Model.PermitStatus == PermitPro.Core.Enums.PermitStatusEnum.Draft)
@@ -228,7 +228,7 @@
 				</button>
 			</div>
 		}
-		<a asp-controller="permits" asp-action="index" class="permit-mobile-back"><i class="fa-sharp fa-solid fa-chevrons-left me-2"></i> Back</a>
+		<a href="@Context.CompanyPathBase()/permits" class="permit-mobile-back"><i class="fa-sharp fa-solid fa-chevrons-left me-2"></i> Back</a>
 	</div>
 </div>
 
@@ -995,13 +995,13 @@
 				$('.loading').show();
 
 				const xhr = $.ajax({
-					url: '/@Model.CompanyId/permits/' + permitId,
+					url: '@Context.CompanyPathBase()/permits/' + permitId,
 					method: 'DELETE',
 				});
 
 				xhr.done((response, status) => {
 					if (response.data == 'OK') {
-						document.location.href = '/@Model.CompanyId/permits';
+						document.location.href = '@Context.CompanyPathBase()/permits';
 					}
 				});
 
@@ -1031,7 +1031,7 @@
 
 				const xhr = $.ajax({
 					method: 'POST',
-					url: '/@Model.CompanyId/permits/permit/status',
+					url: '@Context.CompanyPathBase()/permits/permit/status',
 					data: frmData,
 					contentType: false,
 					processData: false,
@@ -1039,7 +1039,7 @@
 				});
 
 				xhr.done((response, status) => {
-					document.location.href = '/@Model.CompanyId/permits/index';
+					document.location.href = '@Context.CompanyPathBase()/permits/index';
 				});
 
 				xhr.fail((response, status) => {
@@ -1059,7 +1059,7 @@
 				frm.append('Id', '@Model.PermitId');
 
 				var ajaxPost = $.ajax({
-					url: '/@Model.CompanyId/permits/permit/export/pdf',
+					url: '@Context.CompanyPathBase()/permits/permit/export/pdf',
 					method: 'POST',
 					data: frm,
 					contentType: false,
@@ -1098,7 +1098,7 @@
 
 				const xhr = $.ajax({
 					method: 'PUT',
-					url: '/@Model.CompanyId/permits/closed',
+					url: '@Context.CompanyPathBase()/permits/closed',
 					data: formData,
 					contentType: false,
 					processData: false,
@@ -1107,7 +1107,7 @@
 
 				xhr.done((response) => {
 					if (response.result) {
-						document.location.href = '/@Model.CompanyId/permits';
+						document.location.href = '@Context.CompanyPathBase()/permits';
 					}
 				});
 
@@ -2691,7 +2691,7 @@
 					$('.loading').show();
 
 					var ajaxPost = $.ajax({
-						url: '/@Model.CompanyId/permits/@Model.PermitId.ToString().ToLower()/suspend',
+						url: '@Context.CompanyPathBase()/permits/@Model.PermitId.ToString().ToLower()/suspend',
 						method: 'POST',
 						data: formData,
 						contentType: false,
@@ -2704,7 +2704,7 @@
 
 					ajaxPost.done((response, status) => {
 						if (response.status == 'OK') {
-							document.location.href = '/@Model.CompanyId/permits';
+							document.location.href = '@Context.CompanyPathBase()/permits';
 						}
 						
 						$('.loading').hide();
@@ -3231,7 +3231,7 @@
 			if (empty)   empty.classList.add('d-none');
 
 			try {
-				const res  = await fetch(`/${COMPANY_ID_FILES}/permits/permit/${PERMIT_ID_FILES}/files`);
+				const res  = await fetch(`${companyBase}/permits/permit/${PERMIT_ID_FILES}/files`);
 				const json = await res.json();
 				renderAttachments(Array.isArray(json) ? json : []);
 			} catch {
@@ -3304,7 +3304,7 @@
 			const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
 			const fd = new FormData();
 			fd.append('FileId', id);
-			const res = await fetch(`/${COMPANY_ID_FILES}/permits/attachments/remove`, {
+			const res = await fetch(`${companyBase}/permits/attachments/remove`, {
 				method: 'POST',
 				headers: { 'RequestVerificationToken': token },
 				body: fd,
@@ -3366,7 +3366,7 @@
 				appendUploadingRow(tmpId, file.name);
 
 				try {
-					const res = await fetch(`/${COMPANY_ID_FILES}/permits/${PERMIT_ID_FILES}/attachments/upload`, {
+					const res = await fetch(`${companyBase}/permits/${PERMIT_ID_FILES}/attachments/upload`, {
 						method: 'POST',
 						headers: { 'RequestVerificationToken': token },
 						body: fd,

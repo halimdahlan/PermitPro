@@ -7,22 +7,22 @@
 	ViewData["Title"] = "Permit Form & Certificate Templates";
 
 	var baseListUrl = isTenant
-		 ? $"/{Model.CompanyId}/formtemplates"
+		 ? $"{Context.CompanyPathBase()}/formtemplates"
 		 : $"/admin/formtemplates?companyId={Model.CompanyId}";
 
 	var filterAll = baseListUrl;
-	var filterPermit = isTenant ? $"/{Model.CompanyId}/formtemplates?type=permit" :
+	var filterPermit = isTenant ? $"{Context.CompanyPathBase()}/formtemplates?type=permit" :
 $"/admin/formtemplates?companyId={Model.CompanyId}&type=permit";
-	var filterCert = isTenant ? $"/{Model.CompanyId}/formtemplates?type=certificate" :
+	var filterCert = isTenant ? $"{Context.CompanyPathBase()}/formtemplates?type=certificate" :
 $"/admin/formtemplates?companyId={Model.CompanyId}&type=certificate";
 
-	var newPermitUrl = isTenant ? $"/{Model.CompanyId}/formtemplates/new" :
+	var newPermitUrl = isTenant ? $"{Context.CompanyPathBase()}/formtemplates/new" :
 $"/admin/formtemplates/new?companyId={Model.CompanyId}";
-	var newCertUrl = isTenant ? $"/{Model.CompanyId}/certificatetemplates/new" :
+	var newCertUrl = isTenant ? $"{Context.CompanyPathBase()}/certificatetemplates/new" :
 $"/admin/certificatetemplates/new?companyId={Model.CompanyId}";
 
-	var editBase = isTenant ? $"/{Model.CompanyId}/formtemplates" : "/admin/formtemplates";
-	var certEditBase = isTenant ? $"/{Model.CompanyId}/certificatetemplates" : "/admin/certificatetemplates";
+	var editBase = isTenant ? $"{Context.CompanyPathBase()}/formtemplates" : "/admin/formtemplates";
+	var certEditBase = isTenant ? $"{Context.CompanyPathBase()}/certificatetemplates" : "/admin/certificatetemplates";
 
 	string ActiveTab(FormTemplateTypeEnum? f) => Model.TypeFilter == f ? "active" : "";
 }

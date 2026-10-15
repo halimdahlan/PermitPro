@@ -7,8 +7,8 @@
 	ViewData["Title"] = "Form Controls";
 	var controlTypes = Enum.GetValues<FormControlTypeEnum>();
 	// Base URL for form actions: tenant uses /{company}/formcontrols, admin uses /admin/formcontrols?companyId=
-	var baseUrl = isTenant ? $"/{Model.CompanyId}/formcontrols" : $"/admin/formcontrols";
-	var resetUrl = isTenant ? $"/{Model.CompanyId}/formcontrols" : $"/admin/formcontrols?companyId={Model.CompanyId}";
+	var baseUrl = isTenant ? $"{Context.CompanyPathBase()}/formcontrols" : $"/admin/formcontrols";
+	var resetUrl = isTenant ? $"{Context.CompanyPathBase()}/formcontrols" : $"/admin/formcontrols?companyId={Model.CompanyId}";
 	// companyId hidden field is only needed for admin routes
 }
 

@@ -31,7 +31,7 @@
 @if (_signInManager.IsSignedIn(User))
 {
 	<!-- Notifications -->
-	<a asp-controller="notifications" asp-action="index" class="topbar-icon-btn no-loading" title="Notifications"
+	<a href="@Context.CompanyPathBase()/notifications" class="topbar-icon-btn no-loading" title="Notifications"
 		style="position:relative;">
 		<i class="fa-solid fa-bell fa-sm"></i>
 		<span id="bellBadge" style="display:none;position:absolute;top:2px;right:2px;min-width:16px;height:16px;
@@ -69,7 +69,7 @@
 				<hr class="dropdown-divider my-1">
 			</li>
 			<li>
-				<a href="/@companyId/account/profile" class="dropdown-item no-loading d-flex align-items-center gap-2" style="font-size:.82rem;">
+				<a href="@Context.CompanyPathBase()/account/profile" class="dropdown-item no-loading d-flex align-items-center gap-2" style="font-size:.82rem;">
 					<i class="fa-solid fa-user fa-fw" style="color:var(--pp-muted);"></i> Profile
 				</a>
 			</li>

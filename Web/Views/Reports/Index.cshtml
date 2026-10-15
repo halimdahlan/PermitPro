@@ -280,7 +280,7 @@
 			const slice = _overduePermits.slice((page - 1) * OVERDUE_PAGE_SIZE, page * OVERDUE_PAGE_SIZE);
 			const rows = slice.map(p => `
 				<tr>
-					<td><a href="/${companyId}/permits/edit/${encodeURIComponent(p.id)}">${esc(p.permitNo)}</a></td>
+					<td><a href="${companyBase}/permits/edit/${encodeURIComponent(p.id)}">${esc(p.permitNo)}</a></td>
 					<td>${esc(p.holderName)}</td>
 					<td>${esc(p.location)}</td>
 					<td class="text-danger">${esc(p.endDate)}</td>
@@ -378,7 +378,7 @@
 
 		const loadChartData = (params) => {
 			$.ajax({
-				url: `/${companyId}/reports/getchartdata`,
+				url: `${companyBase}/reports/getchartdata`,
 				data: params,
 				method: 'GET',
 				success: (data) => {
@@ -623,7 +623,7 @@
 				// weekend rule capped every range at a single Mon–Fri week.
 			});
 
-			fetch(`/${companyId}/sites/tree`, { headers: { 'Accept': 'application/json' } })
+			fetch(`${companyBase}/sites/tree`, { headers: { 'Accept': 'application/json' } })
 				.then(r => { if (!r.ok) throw new Error(r.statusText); return r.json(); })
 				.then(options => {
 					locationTree = new Treeselect({
@@ -645,7 +645,7 @@
 
 
 			// ── All Permits grid ─────────────────────────────────
-			tbl = DataGrid.create('#tblReport', '@Url.Action("GetReportGrid", "Reports", new { company = Model.CompanyId })', {
+			tbl = DataGrid.create('#tblReport', '@Context.CompanyPathBase()/reports/getreportgrid', {
 				pageLength: 25,
 				lengthMenu: [25, 50, 100, 250],
 				layout: {
@@ -685,7 +685,7 @@
 						data: 'PermitNo',
 						className: 'text-nowrap',
 						render: (data, type, row) => type === 'display'
-							? `<a href="/${companyId}/permits/edit/${row.Id}">${DataGrid.escapeHtml(data)}</a>`
+							? `<a href="${companyBase}/permits/edit/${row.Id}">${DataGrid.escapeHtml(data)}</a>`
 							: data,
 					},
 					{ data: 'PermitStatus', render: DataGrid.renderText },

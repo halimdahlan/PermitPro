@@ -14,7 +14,7 @@
 		@* ── Status bar ───────────────────────────────────────────────────── *@
 		<div class="alert alert-secondary mb-3" role="alert">
 			<div class="d-flex flex-row align-items-center">
-				<a class="me-3 text-dark" href="/@companyId/permits">
+				<a class="me-3 text-dark" href="@Context.CompanyPathBase()/permits">
 					<i class="fa-sharp fa-regular fa-chevron-left fa-xl"></i>
 				</a>
 				<h5 class="mb-0 w-100">New Permit</h5>
@@ -82,7 +82,7 @@
 
 			@* ── Actions ──────────────────────────────────────────────────── *@
 			<div class="d-flex gap-2 justify-content-end mb-4">
-				<a href="/@companyId/permits" class="btn btn-outline-secondary btn-sm align-content-center">
+				<a href="@Context.CompanyPathBase()/permits" class="btn btn-outline-secondary btn-sm align-content-center">
 					<i class="fa-solid fa-xmark me-1"></i> Cancel
 				</a>
 				<button type="button" class="btn btn-outline-primary btn-sm" onclick="submitPermit('draft')">
@@ -106,7 +106,7 @@
 		const LAYOUT = @Html.Raw(layoutJson);
 		const FIELDS = {};
 		const READONLY = false;
-		const SAVE_URL = '/@companyId/permits/form';
+		const SAVE_URL = '@Context.CompanyPathBase()/permits/form';
 		const METHOD = 'POST';
 	</script>
 	<partial name="~/Views/Permits/Partials/_NewFormScript.cshtml" />

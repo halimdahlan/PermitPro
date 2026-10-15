@@ -9,7 +9,7 @@
 	<div class="d-flex flex-row justify-content-between align-items-center mb-5">
 		<nav aria-label="breadcrumb">
 			<ol class="breadcrumb">
-				<li class="breadcrumb-item"><a asp-asp-controller="sites" asp-action="index">IOTM</a></li>
+				<li class="breadcrumb-item"><a asp-href="@Context.CompanyPathBase()/sites">IOTM</a></li>
 				<li class="breadcrumb-item active" aria-current="page">Carroll, Smitham and Carroll</li>
 			</ol>
 		</nav>
@@ -31,7 +31,7 @@
 
 <div class="d-flex flex-row align-items-center justify-content-between mt-3">
 	<div>
-		<a asp-controller="sites" asp-action="index"><i class="fa-sharp fa-solid fa-chevrons-left me-2"></i> Back</a>
+		<a href="@Context.CompanyPathBase()/sites"><i class="fa-sharp fa-solid fa-chevrons-left me-2"></i> Back</a>
 	</div>
 </div>
 
@@ -128,7 +128,7 @@
 						data: 'id',
 						render: function (data, type, row) {
 							var icons = '<div class="d-flex flex-row action-icons">';
-							icons += '<a href="/@companyId/sites/edit" class="no-loading text-secondary"><i class="fa-solid fa-money-check-pen fa-lg"></i></a>';
+							icons += '<a href="@Context.CompanyPathBase()/sites/edit" class="no-loading text-secondary"><i class="fa-solid fa-money-check-pen fa-lg"></i></a>';
 							icons += '<a href="#" class="no-loading text-danger"><i class="fa-solid fa-trash-xmark fa-lg"></i></a>';
 							icons += '<a href="#" class="no-loading text-secondary"><i class="fa-solid fa-gear fa-lg"></i></a>';
 							icons += '</div>';

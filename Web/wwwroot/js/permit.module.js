@@ -338,7 +338,7 @@
 			const xhr = $.ajax({
 				method: requestMethod,
 				type: requestMethod,
-				url: '/' + _companyId + '/permits',
+				url: companyBase + '/permits',
 				data: formData,
 				contentType: false,
 				processData: false,
@@ -347,7 +347,7 @@
 
 			xhr.done((response, status) => {
 				if (response.data == 'OK') {
-					document.location.href = '/' + _companyId + '/permits';
+					document.location.href = companyBase + '/permits';
 				}
 			});
 
@@ -376,7 +376,7 @@
 			const xhr = $.ajax({
 				method: requestMethod,
 				type: requestMethod,
-				url: '/' + _companyId + '/permits/certs',
+				url: companyBase + '/permits/certs',
 				data: formData,
 				contentType: false,
 				processData: false,
@@ -385,7 +385,7 @@
 
 			xhr.done((response, status) => {
 				if (response.data == 'OK') {
-					//document.location.href = '/' + _companyId + '/permits';
+					//document.location.href = companyBase + '/permits';
 					console.log('OK');
 				}
 			});

@@ -145,7 +145,7 @@
 			}
 
 			$.ajax({
-				url: '/' + COMPANY + '/notifications/read',
+				url: companyBase + '/notifications/read',
 				method: 'PUT',
 				contentType: 'application/json',
 				data: JSON.stringify({ ids: [id] }),
@@ -164,7 +164,7 @@
 
 		function dismissOne(id) {
 			$.ajax({
-				url: '/' + COMPANY + '/notifications/dismiss/' + id,
+				url: companyBase + '/notifications/dismiss/' + id,
 				method: 'DELETE',
 			}).done(() => {
 				const item = document.getElementById('notif-' + id);
@@ -177,7 +177,7 @@
 
 		$('#btnMarkAllRead').click(function () {
 			$.ajax({
-				url: '/' + COMPANY + '/notifications/read/all',
+				url: companyBase + '/notifications/read/all',
 				method: 'PUT',
 				contentType: 'application/json',
 			}).done(() => {
@@ -195,7 +195,7 @@
 		$('#btnDismissAll').click(function () {
 			if (!confirm('Clear all notifications? This cannot be undone.')) return;
 			$.ajax({
-				url: '/' + COMPANY + '/notifications/dismiss/all',
+				url: companyBase + '/notifications/dismiss/all',
 				method: 'DELETE',
 			}).done(() => {
 				document.querySelectorAll('.notif-item').forEach(el => el.remove());

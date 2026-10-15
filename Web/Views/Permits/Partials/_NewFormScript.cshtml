@@ -195,7 +195,6 @@ function initDropzone() {
 // ── Immediate upload (edit mode — permit already exists) ──────────────────
 async function uploadFilesNow(newFiles, maxFiles, maxBytes, accept) {
     const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
-    const companyId = location.pathname.split('/')[1];
 
     for (const file of newFiles) {
         if (!validateFile(file, maxBytes, accept)) continue;
@@ -208,7 +207,7 @@ async function uploadFilesNow(newFiles, maxFiles, maxBytes, accept) {
         appendUploadingRow(tmpId, file.name);
 
         try {
-            const res = await fetch(`/${companyId}/permits/${PERMIT_ID}/attachments/upload`, {
+            const res = await fetch(`${companyBase}/permits/${PERMIT_ID}/attachments/upload`, {
                 method: 'POST',
                 headers: { 'RequestVerificationToken': token },
                 body: fd,
@@ -618,18 +617,17 @@ async function submitPermit(submissionType) {
         if (!res.ok) throw new Error(await res.text());
 
         const data      = await res.json();
-        const companyId = location.pathname.split('/')[1];
 
         if (submissionType === 'draft') {
             const id = data.permitId;
             if (METHOD === 'POST' && id) {
-                window.location.href = `/${companyId}/permits/edit/form/${id}`;
+                window.location.href = `${companyBase}/permits/edit/form/${id}`;
             } else {
                 restoreBtns();
                 showToast('Draft saved successfully.', 'success');
             }
         } else {
-            window.location.href = `/${companyId}/permits`;
+            window.location.href = `${companyBase}/permits`;
         }
     } catch (err) {
         restoreBtns();

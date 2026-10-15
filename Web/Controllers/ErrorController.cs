@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
 using PermitPro.App.Models;
+using PermitPro.App.Services;
+using PermitPro.Core.Helpers;
 
 using System.Diagnostics;
 
@@ -36,6 +38,20 @@ public class ErrorController : Controller
             StatusCode = code,
             Message = message,
             RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
+        });
+    }
+
+    // Any page on a host whose subdomain isn't an active company (TenantResolutionMiddleware sends them here).
+    [Route("company-not-found")]
+    public IActionResult CompanyNotFound([FromServices] TenancySettings tenancy)
+    {
+        Response.StatusCode = StatusCodes.Status404NotFound;
+
+        return View("Error", new ErrorViewModel
+        {
+            StatusCode = StatusCodes.Status404NotFound,
+            Message = $"There's no company at {Request.Host.Host}. Check the address, or find your company's sign-in page.",
+            HomeUrl = $"{Request.ApexBaseUrl(tenancy)}/account/login",
         });
     }
 }

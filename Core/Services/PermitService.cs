@@ -221,8 +221,8 @@ public class PermitService : IPermitService
 					foreach (var approver in workflowStep.Approvers)
 					{
 						var approverName = $"{approver.FirstName} {approver.LastName}";
-						var approvalLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host.Value}/account/login?company={company}&entity=permits&id={permitId}&origin=email";
-						var notifLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host.Value}/{company}/permits/edit/{permitId}";
+						var approvalLink = PermitLink(company, permitId);
+						var notifLink = approvalLink;
 
 						var templateData = new
 						{
@@ -439,8 +439,8 @@ public class PermitService : IPermitService
 					foreach (var approver in workflowStep.Approvers)
 					{
 						var approverName = $"{approver.FirstName} {approver.LastName}";
-						var approvalLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host.Value}/account/login?company={companyId}&entity=permits&id={permitId}&origin=email";
-						var notifLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host.Value}/{companyId}/permits/edit/{permitId}";
+						var approvalLink = PermitLink(companyId, permitId);
+						var notifLink = approvalLink;
 
 						var templateData = new
 						{
@@ -676,7 +676,7 @@ public class PermitService : IPermitService
 					var permitNoNext = string.Format("PTW{0:000000}", permit.RunningNumber);
 					foreach (var nextApprover in nextApprovers)
 					{
-						var nextLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host.Value}/{permit.Company?.Id}/permits//edit/{permit.Id}";
+						var nextLink = PermitLink(permit.CompanyId.GetValueOrDefault(), permit.Id);
 
 						_dbContext.Notifications.Add(new Notification
 						{
@@ -721,7 +721,7 @@ public class PermitService : IPermitService
 				if (creator != null)
 				{
 					var approvedPermitNo = string.Format("PTW{0:000000}", permit.RunningNumber);
-					var approvedLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host.Value}/{permit.Company?.Id}/permits/edit/{permit.Id}";
+					var approvedLink = PermitLink(permit.CompanyId.GetValueOrDefault(), permit.Id);
 
 					_dbContext.Notifications.Add(new Notification
 					{
@@ -769,7 +769,7 @@ public class PermitService : IPermitService
 			if (rejCreator != null)
 			{
 				var rejPermitNo = string.Format("PTW{0:000000}", permit.RunningNumber);
-				var rejLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host.Value}/{permit.Company?.Id}/permits/edit/{permit.Id}";
+				var rejLink = PermitLink(permit.CompanyId.GetValueOrDefault(), permit.Id);
 
 				_dbContext.Notifications.Add(new Notification
 				{
@@ -1082,6 +1082,16 @@ public class PermitService : IPermitService
 		await _dbContext.SaveChangesAsync(ct);
 	}
 
+	// A permit on the site this request came in on: https://iotm.permitpro.app/permits/edit/{id} (no company id
+	// on the company's own host). Someone not signed in gets the login page, which sends them on to the permit.
+	private string PermitLink(Guid companyId, Guid permitId, bool absolute = true)
+	{
+		var context = _httpContextAccessor.HttpContext;
+		var path = $"{CompanyPaths.Base(context?.Items, companyId)}/permits/edit/{permitId}";
+
+		return absolute && context != null ? $"{context.Request.Scheme}://{context.Request.Host.Value}{path}" : path;
+	}
+
 	private async Task NotifyApproversAsync(Permit permit, Workflow workflow, WorkflowStep workflowStep, Guid companyId, bool isDraft, CancellationToken ct)
 	{
 		if (isDraft || workflowStep.Approvers.Count == 0) return;
@@ -1092,7 +1102,7 @@ public class PermitService : IPermitService
 
 		foreach (var approver in workflowStep.Approvers)
 		{
-			var approvalLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/{companyId}/permits/edit/{permit.Id}";
+			var approvalLink = PermitLink(companyId, permit.Id);
 			var renderedHtml = template.Render(new
 			{
 				RecipientName = $"{approver.FirstName} {approver.LastName}",
@@ -1118,7 +1128,7 @@ public class PermitService : IPermitService
 			{
 				Title = "Approval Required",
 				Message = $"You have a pending approval task for {permitNo}.",
-				Url = $"/{companyId}/permits/edit/{permit.Id}",
+				Url = PermitLink(companyId, permit.Id, absolute: false),
 				IsRead = false,
 				IsArchived = false,
 				NotificationUser = approver,

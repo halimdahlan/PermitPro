@@ -21,7 +21,7 @@ dotnet ef database update --project Core --startup-project Web
 dotnet ef migrations script --idempotent --project Core --startup-project Web --output publish-migrations.sql
 
 # Default URLs (Development)
-# HTTP:  http://localhost:5144
+# HTTP:  http://localhost:5144   (company address page; IOTM at http://iotm.localhost:5144)
 # HTTPS: https://localhost:7079
 ```
 
@@ -36,13 +36,20 @@ Two-project solution targeting .NET 10.0:
 
 ### Multi-Tenancy
 
-All tenant routes follow the pattern `/{company}/{controller}/{action}/{id?}` where `{company}` is a GUID. `AppControllerBase` extracts this from the route to scope all queries. Super Admin routes (`/admin/*`) have no company segment.
+Each company is served on its own host, `{Company.Subdomain}.permitpro.app` (e.g. `iotm.permitpro.app`), with no company id in the address (`iotm.permitpro.app/permits`). The apex `permitpro.app` has no company: it shows the "Enter your company's address" page (`Views/Account/CompanyAddress.cshtml`, `GET /account/find`) and Super Admin (`/admin/*`). Setup, Cloudflare/IIS steps and the demo site: `docs/subdomain-tenancy-setup.md`.
+
+- **Routes are unchanged:** `/{company}/{controller}/{action}/{id?}` with `{company}` a GUID; `AppControllerBase` reads it to scope queries. `TenantResolutionMiddleware` (`Web/Services/Tenancy.cs`, before `UseRouting`) finds the company from the host (`TenantDirectory`, cached; call `Invalidate()` after editing a company) and rewrites `/permits` to `/{id}/permits`. Paths that aren't company pages are left alone: `/account/login|logout|forgot|reset-password|find`, `/admin`, `/api`, `/error`, `/health`, `/_*`.
+- **No company id in addresses:** views build links with `@Context.CompanyPathBase()` (`""` on a company's host, `/{id}` otherwise), scripts with the `companyBase` global set in `_Layout` (`` `${companyBase}/permits` ``). Never write `/@companyId/...` or `/${companyId}/...` for a page URL. Controller redirects to `/{id}/...` (and the login `ReturnUrl`) are stripped by the middleware; an old `/{id}/...` page opened in the browser (`Sec-Fetch-Mode: navigate`) redirects to the clean URL, while script requests to `/{id}/...` still work. `/api/data/{company}/...` keeps the id (not a page). Core services use `CompanyPaths.Base(HttpContext.Items, companyId)`.
+- **Access:** `TenantAccessMiddleware` (after `UseAuthentication`) only lets a signed-in user see their own company (Super Admins exempt); another company's id on a company's host is a 404. Login on a company's host refuses other companies' users ("Invalid login attempt").
+- **Old links:** `permitpro.app/{id}/...` redirects to the company's host; `/account/login?company={id}&entity=permits&id={permit}` opens that permit after sign-in.
+- **Config `Tenancy`:** `RootDomain` (`permitpro.app`; `localhost` in Development), `Scheme`/`Port` (links built without a request), `HostAliases` (full host → company subdomain, e.g. `demo.permitpro.app` → `iotm` for the demo site; an alias host keeps `/admin`). Unknown/inactive subdomain → `/error/company-not-found`. Reserved subdomains in `Core/Helpers/CompanySubdomain.cs` (`demo`, `www`, `admin`, `cf-bounce`…).
+- **Local dev:** `http://localhost:5144` (address page) and `http://iotm.localhost:5144` (http profile; the dev HTTPS certificate only covers `localhost`). The git-ignored `appsettings.Development.json` needs `"AllowedHosts": "localhost;*.localhost"` and `"Tenancy": { "RootDomain": "localhost", "Scheme": "http", "Port": 5144 }`.
 
 ### Key Abstractions
 
 - **`AppControllerBase`** — All tenant controllers inherit from this. Sets `CompanyID` from route, populates `ViewData` with company name/logo (cached 15 min). A non-GUID company segment returns 404; `Guid.Empty` (the site root `/`) redirects to `/account/login`. It must **never sign out**: any missing single-segment URL (e.g. `/android-chrome-192x192.png`) falls through to `{company}/landing/index`, and signing out there kicked users out right after login (Android Chrome fetches manifest icons on page load).
-- **Auth cookie** — `SameSite=Lax` (not Strict, which made users appear logged out when opening links from email/WhatsApp; not None, which would expose the many POST actions lacking `[ValidateAntiForgeryToken]` to CSRF). Web manifest at `wwwroot/img/icons/site.webmanifest` — icon `src` paths must point at `/img/icons/…`.
-- **`ICurrentUserService`** — Resolves the acting user's company ID. Normal users get their `UserCompany.Id`; super admins resolve from the `{company}` route value.
+- **Auth cookie** — host-only (no `Domain`), so each company's site has its own session. `SameSite=Lax` (not Strict, which made users appear logged out when opening links from email/WhatsApp; not None, which would expose the many POST actions lacking `[ValidateAntiForgeryToken]` to CSRF). Web manifest at `wwwroot/img/icons/site.webmanifest` — icon `src` paths must point at `/img/icons/…`.
+- **`ICurrentUserService`** — Resolves the acting user's company ID. Normal users get their `UserCompany.Id`; super admins resolve from the `{company}` route value (set from the host by the tenant middleware).
 - **`ISoftDeletable`** — All core entities support soft-delete. Hard deletes are never performed by the application.
 - **`IAuditableEntity`** — Auto-stamped (`CreatedWhen`/`CreatedBy`/`UpdatedWhen`/`UpdatedBy`) via `UpdateAuditableEntitiesInterceptor` on `SaveChanges`.
 
@@ -78,7 +85,7 @@ Outgoing email uses MailKit with SMTP settings from `AppSettings` category `emai
 
 `MessageService` BCCs every email to `workflow@permitpro.app`, so password-reset emails must not be sent through it.
 
-Links in emails (password reset, workflow approvals) are built from the incoming request: `{Request.Scheme}://{Request.Host}`. Don't use the `application_domain` setting for links: its seed default is `uat.permitpro.app`. Building links from the request is only safe because `AllowedHosts` in `appsettings.json` is restricted to `permitpro.app;*.permitpro.app;localhost`. Never set it back to `*`, because a forged `Host` header would then put a valid reset token in a link to an attacker's site (password-reset poisoning). Requests with any other host get 400, including requests by bare IP address, so use `localhost`, not `127.0.0.1`, locally.
+Links in emails are built from the incoming request: `{Request.Scheme}://{Request.Host}` (workflow emails, via `PermitService.PermitLink`: the company's host, no company id), except password-reset links, which go to the user's own company host (same scheme/port). Don't use the `application_domain` setting for links: its seed default is `uat.permitpro.app`. Building links from the request is only safe because `AllowedHosts` in `appsettings.json` is restricted to `permitpro.app;*.permitpro.app;localhost`. Never set it back to `*`, because a forged `Host` header would then put a valid reset token in a link to an attacker's site (password-reset poisoning). Requests with any other host get 400, including requests by bare IP address, so use `localhost`, not `127.0.0.1`, locally.
 
 ### PDF Generation
 
@@ -158,7 +165,7 @@ Per-company preset rules, managed by Super Users at **Admin → Rules** (`/{comp
 - **Emails off by default** — `PermitRules:SendEmails` (`appsettings.json`, `false`): until the user turns it on, rules send in-app notifications only (the Rules page says so). Don't switch it on without the user's say-so.
 - **History** — `/{company}/rules/history`: every run that did something, from `PERMIT_RULE` audit log entries (company set, rule + permit list in `SerializedData`). Runs with nothing to do only update `PermitRule.LastRunWhen`/`LastRunSummary`.
 - **Runner** — `Web/Services/PermitRulesBackgroundService` (hosted service, no job framework) calls `IPermitRuleService.RunAllAsync` every `PermitRules:IntervalMinutes` (default 5, first run 1 minute after start). A SQL Server app lock (`sp_getapplock`, `PermitPro.PermitRules`) stops two app instances running rules at once during an app pool recycle. It needs IIS to keep the app running: app pool **Start Mode = AlwaysRunning**, **Idle Time-out = 0**, site **Preload Enabled = True** (README → Deployment).
-- No HTTP request in the runner: `ICurrentUserService.GetCurrentUser()` returns null without one, email links use `App:BaseUrl` (unset by default: `https://localhost:7079` in Development, `https://permitpro.app` otherwise), and in-app notification links are relative.
+- No HTTP request in the runner: `ICurrentUserService.GetCurrentUser()` returns null without one, email links go to the company's own site (`TenancySettings.CompanyBaseUrl`; `App:BaseUrl` + `/{id}` only for a company without a subdomain), and in-app notification links are relative.
 
 ### Background Jobs
 
@@ -171,6 +178,6 @@ No background job framework: Hangfire was removed on 2026-10-13 (it was never co
 - JSON serialization uses `System.Text.Json` everywhere except the old-system PDF reader (`PermitFormReader`, Newtonsoft).
 - The `Html/` folder contains static HTML prototypes — not part of the compiled app.
 - The `SqlScripts/` folder holds ad-hoc SQL scripts for manual DB operations.
-- Hosting: a dedicated Windows Server (IIS, in-process) behind Cloudflare: proxied DNS, a Cloudflare Origin Certificate, and a redirect rule sending non-apex hostnames to `permitpro.app`. SmarterASP.NET and AWS EC2 are no longer used; README keeps their old deployment sections for reference.
+- Hosting: a dedicated Windows Server (IIS, in-process) behind Cloudflare: proxied DNS, a Cloudflare Origin Certificate, and a redirect rule sending non-apex hostnames to `permitpro.app` (to become `www`-only when company subdomains go live; IIS then also binds `*.permitpro.app`: `docs/subdomain-tenancy-setup.md`). SmarterASP.NET and AWS EC2 are no longer used; README keeps their old deployment sections for reference.
 - Deployment: **no automated deployment at the moment.** `.github/workflows/deploy-on-merge.yml` was removed on 2026-08-01, so merging a PR to `master` does **not** deploy — the user deploys manually (self-contained win-x64 publish, see the publish command above). Never tell the user a merge will put a change live.
 - App version: `Web/App.csproj` has `<Version>1.0.0</Version>`, shown on the About/Settings pages. CI used to override it with `-p:Version=1.0.<run_number>`; with manual deploys every build reports 1.0.0 unless `-p:Version=…` is passed to `dotnet publish`.

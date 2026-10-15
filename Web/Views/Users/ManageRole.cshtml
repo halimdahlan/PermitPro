@@ -9,7 +9,7 @@
 
 <div class="row g-3">
 	<div class="d-flex flex-column col-12 col-lg-6">
-		<form method="post" action="/@companyId/users/roles/@((Model.IsEdit) ? $"{Model.Id}/edit" : "new")">
+		<form method="post" action="@Context.CompanyPathBase()/users/roles/@((Model.IsEdit) ? $"{Model.Id}/edit" : "new")">
 			@Html.AntiForgeryToken()
 			<div class="card shadow-sm h-100">
 				<div class="card-body">
@@ -72,7 +72,7 @@
 						</div>
 					</div>
 					<div class="mt-4 d-flex align-items-center justify-content-between">
-						<a href="/@companyId/users/roles" role="button" class="btn btn-sm btn-outline-secondary">
+						<a href="@Context.CompanyPathBase()/users/roles" role="button" class="btn btn-sm btn-outline-secondary">
 							<span class="mx-3"><i class="fa-solid fa-arrow-left me-2"></i> Cancel</span>
 						</a>
 						<button type="submit" class="btn btn-sm btn-primary">
