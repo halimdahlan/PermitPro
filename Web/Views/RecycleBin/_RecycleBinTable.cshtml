@@ -7,6 +7,8 @@
 	var col1 = columns.Length > 0 ? columns[0] : "Name";
 	var col2 = columns.Length > 1 ? columns[1] : "Detail";
 	var col3 = columns.Length > 2 ? columns[2] : "Company";
+	var canDelete = User.IsInRole("Super User");
+	var companyCount = items.Select(i => i.CompanyId).Distinct().Count();
 }
 
 @if (!items.Any())
@@ -18,67 +20,110 @@
 }
 else
 {
-	@* Phones: each record as a card (datagrid.css, .table-cards-wrap). *@
-	<div class="table-responsive table-cards-wrap">
-		<table class="table table-striped table-hover align-middle dt-cards">
-			<thead class="table-light">
-				<tr>
-					<th>@col1</th>
-					<th>@col2</th>
-					<th>@col3</th>
-					<th>Deleted by</th>
-					<th>Deleted on</th>
-					<th class="text-end">Action</th>
-				</tr>
-			</thead>
-			<tbody>
-				@foreach (var item in items)
+	@* Bulk actions: the ticked ids go as one comma-separated field to RecycleBinController.RestoreSelected / DeleteSelected. *@
+	<div class="recycle-bin-bulk" data-entity="@entityType" data-total="@items.Count" data-companies="@companyCount">
+		<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+			@* Phones show rows as cards without the header row, so select-all is repeated here. *@
+			<div class="form-check mb-0 d-sm-none">
+				<input class="form-check-input rb-check-all" type="checkbox" id="rb-all-@entityType" />
+				<label class="form-check-label" for="rb-all-@entityType">Select all</label>
+			</div>
+			<span class="text-secondary small rb-selected-count">None selected</span>
+			<div class="d-flex flex-wrap gap-2 ms-auto">
+				<button type="button" class="btn btn-sm btn-outline-success rb-bulk-btn" data-action="restore" data-scope="selected" disabled>
+					<i class="fa-solid fa-rotate-left me-1"></i> Restore selected
+				</button>
+				@if (canDelete)
 				{
+					<button type="button" class="btn btn-sm btn-outline-danger rb-bulk-btn" data-action="delete" data-scope="selected" disabled>
+						<i class="fa-solid fa-trash-can me-1"></i> Delete selected
+					</button>
+					<button type="button" class="btn btn-sm btn-danger rb-bulk-btn" data-action="delete" data-scope="all">
+						<i class="fa-solid fa-trash-can me-1"></i> Delete all (@items.Count)
+					</button>
+				}
+			</div>
+		</div>
+
+		<form class="rb-bulk-form d-none" data-action="restore" method="post" action="/@companyId/recyclebin/restore/@entityType">
+			@Html.AntiForgeryToken()
+			<input type="hidden" name="ids" />
+		</form>
+		@if (canDelete)
+		{
+			<form class="rb-bulk-form d-none" data-action="delete" method="post" action="/@companyId/recyclebin/delete/@entityType">
+				@Html.AntiForgeryToken()
+				<input type="hidden" name="ids" />
+			</form>
+		}
+
+		@* Phones: each record as a card (datagrid.css, .table-cards-wrap). *@
+		<div class="table-responsive table-cards-wrap">
+			<table class="table table-striped table-hover align-middle dt-cards">
+				<thead class="table-light">
 					<tr>
-						<td><strong>@item.DisplayName</strong></td>
-						<td class="text-secondary" data-label="@col2">@item.Detail</td>
-						<td data-label="@col3">@item.CompanyName</td>
-						<td data-label="Deleted by">@(string.IsNullOrEmpty(item.DeletedByName) ? "—" : item.DeletedByName)</td>
-						<td data-label="Deleted on">
-							@if (item.DeletedWhen.HasValue)
-							{
-								<span title="@item.DeletedWhen.Value.ToString("f")">
-									@item.DeletedWhen.Value.ToString("dd MMM yyyy hh:mm tt")
-								</span>
-							}
-							else
-							{
-								<span class="text-secondary">—</span>
-							}
-						</td>
-						<td class="text-end dt-card-actions" data-label="">
-							<div class="d-flex justify-content-end gap-2">
-								<form id="restore-form-@item.Id" method="post"
-										action="/@companyId/recyclebin/restore/@item.EntityType/@item.Id">
-									@Html.AntiForgeryToken()
-									<button type="button" class="btn btn-sm btn-outline-success recycle-bin-confirm-btn"
-											  data-action="restore" data-entity="@item.EntityType" data-item="@item.DisplayName"
-											  data-form-id="restore-form-@item.Id">
-										<i class="fa-solid fa-rotate-left me-1"></i> Restore
-									</button>
-								</form>
-								@if (User.IsInRole("Super User"))
+						<th>
+							<input class="form-check-input rb-check-all me-2" type="checkbox" aria-label="Select all" />@col1
+						</th>
+						<th>@col2</th>
+						<th>@col3</th>
+						<th>Deleted by</th>
+						<th>Deleted on</th>
+						<th class="text-end">Action</th>
+					</tr>
+				</thead>
+				<tbody>
+					@foreach (var item in items)
+					{
+						<tr>
+							<td>
+								<input class="form-check-input rb-check-row me-2" type="checkbox" value="@item.Id" aria-label="Select @item.DisplayName" />
+								<strong>@item.DisplayName</strong>
+							</td>
+							<td class="text-secondary" data-label="@col2">@item.Detail</td>
+							<td data-label="@col3">@item.CompanyName</td>
+							<td data-label="Deleted by">@(string.IsNullOrEmpty(item.DeletedByName) ? "—" : item.DeletedByName)</td>
+							<td data-label="Deleted on">
+								@if (item.DeletedWhen.HasValue)
 								{
-									<form id="delete-form-@item.Id" method="post"
-											action="/@companyId/recyclebin/delete/@item.EntityType/@item.Id">
+									<span title="@item.DeletedWhen.Value.ToString("f")">
+										@item.DeletedWhen.Value.ToString("dd MMM yyyy hh:mm tt")
+									</span>
+								}
+								else
+								{
+									<span class="text-secondary">—</span>
+								}
+							</td>
+							<td class="text-end dt-card-actions" data-label="">
+								<div class="d-flex justify-content-end gap-2">
+									<form id="restore-form-@item.Id" method="post"
+											action="/@companyId/recyclebin/restore/@item.EntityType/@item.Id">
 										@Html.AntiForgeryToken()
-										<button type="button" class="btn btn-sm btn-outline-danger recycle-bin-confirm-btn ms-2"
-												  data-action="delete" data-entity="@item.EntityType" data-item="@item.DisplayName"
-												  data-form-id="delete-form-@item.Id">
-											<i class="fa-solid fa-trash-can me-1"></i> Delete
+										<button type="button" class="btn btn-sm btn-outline-success recycle-bin-confirm-btn"
+												  data-action="restore" data-entity="@item.EntityType" data-item="@item.DisplayName"
+												  data-form-id="restore-form-@item.Id">
+											<i class="fa-solid fa-rotate-left me-1"></i> Restore
 										</button>
 									</form>
-								}
-							</div>
-						</td>
-					</tr>
-				}
-			</tbody>
-		</table>
+									@if (canDelete)
+									{
+										<form id="delete-form-@item.Id" method="post"
+												action="/@companyId/recyclebin/delete/@item.EntityType/@item.Id">
+											@Html.AntiForgeryToken()
+											<button type="button" class="btn btn-sm btn-outline-danger recycle-bin-confirm-btn ms-2"
+													  data-action="delete" data-entity="@item.EntityType" data-item="@item.DisplayName"
+													  data-form-id="delete-form-@item.Id">
+												<i class="fa-solid fa-trash-can me-1"></i> Delete
+											</button>
+										</form>
+									}
+								</div>
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
 	</div>
 }
