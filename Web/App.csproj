@@ -9,7 +9,7 @@
 		<PackageScribanIncludeSource>true</PackageScribanIncludeSource>
 		<AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
 	  <UserSecretsId>d5985dcf-6a4c-4788-b35d-e75e087e391d</UserSecretsId>
-  <Version>1.2.0</Version>
+  <Version>1.2.1</Version>
   </PropertyGroup>
 
 	<ItemGroup>
