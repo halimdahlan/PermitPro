@@ -1,6 +1,6 @@
 ---
 name: project-status
-description: "Where the work stands (2026-10-14): everything merged and deployed through #28 (permit rules); open items and how to resume on another machine"
+description: "Where the work stands (2026-10-17): master deployed through #33 (Recycle Bin bulk actions, Locations permit count); company subdomains in progress on feature/subdomain-tenancy; open items and how to resume on another machine"
 metadata:
   type: project
 ---
@@ -13,7 +13,7 @@ Snapshot as of **2026-10-11**, written when the user moved to a different comput
 
 ## State
 
-- `master` = everything; all work is merged **and deployed** (the user deploys manually) and was tested by the user. No feature branches open, no uncommitted work.
+- `master` is merged **and deployed** through #33 (the user deploys manually; confirmed 2026-10-17) and was tested by the user. One feature branch is open: `feature/subdomain-tenancy` (company subdomains, not merged; its own copy of this note has the details and next steps).
 - Recent PRs (all merged and live):
   - #12 Telerik/Kendo removed (DataTables 2, Tom Select, Flatpickr, Treeselect, native controls)
   - #13 Old-system permit PDF: Puppeteer → QuestPDF (`LegacyPermitPdfService`), data-bug fixes; both PDFs use embedded Roboto and the company's uploaded logo; new-system PDF dates fixed
@@ -27,6 +27,9 @@ Snapshot as of **2026-10-11**, written when the user moved to a different comput
   - #26 (2026-10-14) Permit list description length is the app setting `general / permit_list_description_words` (default 20 when missing); `SqlScripts/AddPermitListDescriptionWordsSetting.sql` adds the global row.
   - #27 (2026-10-14) Hangfire removed (never configured); no job framework.
   - #28 (2026-10-14) Permit rules (Admin → Rules, CLAUDE.md → "Permit Rules"): End-date reminder, Overdue, Approval escalation, Auto-archive (+ Unarchive, Rules → History). Hosted service every 5 min; IIS app pool set to AlwaysRunning / idle time-out 0 on production. Emails off (`PermitRules:SendEmails = false`); rules switched off on production until the user turns them on. Migration `AddPermitRules` also copied old permits' start/end dates from the JSON into the columns.
+  - #31 (2026-10-16) Recycle Bin bulk actions: row checkboxes + select all, Restore selected / Delete selected / Delete all per tab; a record still referenced stays in the bin and is listed with the reason; actions only touch soft-deleted records in the user's scope.
+  - #32 (2026-10-17) Recycle Bin restore/delete run in the background and redraw the page in place, staying on the current tab (every tab is redrawn: a restore can bring back records on other tabs).
+  - #33 (2026-10-17) Locations table: "Num. of Permits" column (own count, plus the total incl. sub-locations or "no sub-location" on a second line). Drafts and archived permits counted, deleted ones not.
 - GitHub issues #2–#7 (security review items) were deleted on 2026-10-12 at the user's request ("addressed outside this project"). The code they described was unchanged at the time: dashboard chart `[ResponseCache]` before auth, ~59 POST actions without antiforgery, auth cookie not `SecurePolicy.Always`, 301 redirect for email links in `PermitsController.Edit`.
 
 ## Open / possible next work
