@@ -24,6 +24,15 @@ public class SitesGridViewModel
 	[Display(Name = "CONTACT EMAIL")]
 	public string ContactEmail { get; set; }
 
+	/// <summary>Permits assigned directly to this location.</summary>
+	[Display(Name = "NUM. OF PERMITS")]
+	public int PermitCount { get; set; }
+
+	/// <summary>Permits at this location and every location under it.</summary>
+	public int PermitCountWithSubLocations { get; set; }
+
+	public bool HasSubLocations { get; set; }
+
 	[Display(Name = "IS ACTIVE?")]
 	public bool IsActive { get; set; }
 
