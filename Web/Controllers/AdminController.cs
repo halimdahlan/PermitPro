@@ -21,7 +21,6 @@ using PermitPro.Core.Interfaces;
 
 using System.Reflection;
 using System.Security.Claims;
-using System.Text.RegularExpressions;
 
 namespace PermitPro.App.Controllers;
 
@@ -655,8 +654,11 @@ public class AdminController : Controller
             .OrderByDescending(s => s.Count)
             .ToList();
 
-        var connectionString = _configuration.GetConnectionString(_env.EnvironmentName) ?? string.Empty;
-        var maskedConnectionString = Regex.Replace(connectionString, @"(Password\s*=\s*)([^;]*)", "$1****", RegexOptions.IgnoreCase);
+        // Same key Program.cs uses; the builder also catches the "Pwd=" spelling of the password.
+        var csBuilder = new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(_configuration.GetConnectionString("MSSQL") ?? string.Empty);
+        if (!string.IsNullOrEmpty(csBuilder.Password))
+            csBuilder.Password = "****";
+        var maskedConnectionString = csBuilder.ConnectionString;
 
         decimal? dbSizeMb = null;
         try
