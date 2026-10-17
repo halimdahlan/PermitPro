@@ -192,48 +192,36 @@
 
 @section Scripts {
 	<script>
-		// Persist active tab across restores via hash (the controller redirects back with #tab-...).
+		// Restore / delete are posted in the background and the Recycle Bin is redrawn in place, on the tab in use
+		// (a restore can bring back records listed on other tabs too, e.g. a location's permits, so every tab is redrawn).
+		// The controller also redirects back with #tab-..., which the hash handling below picks up on a full page load.
 		// bootstrap.bundle loads after this section, hence DOMContentLoaded.
+		const container = document.querySelector('.recycle-bin-container');
+
 		const tabHash = location.hash || '#tab-permits';
 		const trigger = document.querySelector(`[data-bs-target="${tabHash}"]`);
 		if (trigger) document.addEventListener('DOMContentLoaded', () => bootstrap.Tab.getOrCreateInstance(trigger).show());
 
-		document.querySelectorAll('[data-bs-toggle="tab"]').forEach(btn => {
-			btn.addEventListener('shown.bs.tab', e => {
-				history.replaceState(null, '', e.target.dataset.bsTarget);
-			});
-		});
+		// Bootstrap's tab events bubble, so this also covers the tabs redrawn after an action.
+		document.addEventListener('shown.bs.tab', e => history.replaceState(null, '', e.target.dataset.bsTarget));
 
 		const confirmModalEl = document.getElementById('recycleBinConfirmModal');
-		const confirmModal = $(confirmModalEl); //new bootstrap.Modal(confirmModalEl);
 		const confirmMessage = document.getElementById('recycleBinConfirmMessage');
 		const confirmSubmit = document.getElementById('recycleBinConfirmSubmit');
 		let pendingForm = null;
 
-		document.querySelectorAll('.recycle-bin-confirm-btn').forEach(button => {
-			button.addEventListener('click', () => {
-				const action = button.dataset.action;
-				const entity = button.dataset.entity;
-				const item = button.dataset.item;
-				const formId = button.dataset.formId;
-				pendingForm = document.getElementById(formId);
+		const openConfirm = (action, message) => {
+			confirmModalEl.querySelector('.modal-title').textContent = action === 'delete'
+				? 'Confirm permanent delete'
+				: 'Confirm restore';
+			confirmMessage.textContent = message;
+			confirmSubmit.classList.toggle('btn-outline-danger', action === 'delete');
+			confirmSubmit.classList.toggle('btn-outline-primary', action !== 'delete');
+			confirmSubmit.textContent = action === 'delete' ? 'Delete' : 'Restore';
+			confirmSubmit.disabled = false;
 
-				confirmModalEl.querySelector('.modal-title').textContent = action === 'delete'
-					? 'Confirm permanent delete'
-					: 'Confirm restore';
-
-				confirmMessage.textContent = action === 'delete'
-					? `Permanently delete this ${entity} "${item}"? This cannot be undone.`
-					: `Restore ${entity} "${item}"?`;
-
-				confirmSubmit.classList.toggle('btn-outline-danger', action === 'delete');
-				confirmSubmit.classList.toggle('btn-outline-primary', action !== 'delete');
-				confirmSubmit.textContent = action === 'delete' ? 'Delete' : 'Restore';
-
-				//confirmModal.show();
-				$('#recycleBinConfirmModal').modal('show');
-			});
-		});
+			$('#recycleBinConfirmModal').modal('show');
+		};
 
 		// Bulk actions: tick rows (or select all), then restore / permanently delete them; "Delete all" takes every row of the tab.
 		const entityWords = {
@@ -246,69 +234,133 @@
 			return n === 1 ? `1 ${one}` : `${n} ${many}`;
 		};
 
-		document.querySelectorAll('.recycle-bin-bulk').forEach(bulk => {
-			const entity = bulk.dataset.entity;
-			const rows = [...bulk.querySelectorAll('.rb-check-row')];
-			const allBoxes = [...bulk.querySelectorAll('.rb-check-all')];
-			const selectedIds = () => rows.filter(cb => cb.checked).map(cb => cb.value);
+		const rowsOf = bulk => [...bulk.querySelectorAll('.rb-check-row')];
+		const selectedIds = bulk => rowsOf(bulk).filter(cb => cb.checked).map(cb => cb.value);
 
-			const refresh = () => {
-				const n = selectedIds().length;
-				allBoxes.forEach(cb => {
-					cb.checked = n > 0 && n === rows.length;
-					cb.indeterminate = n > 0 && n < rows.length;
-				});
-				bulk.querySelector('.rb-selected-count').textContent = n === 0 ? 'None selected' : `${countOf(entity, n)} selected`;
-				bulk.querySelectorAll('.rb-bulk-btn[data-scope="selected"]').forEach(btn => btn.disabled = n === 0);
-			};
+		const refreshBulk = bulk => {
+			const total = rowsOf(bulk).length;
+			const n = selectedIds(bulk).length;
+			bulk.querySelectorAll('.rb-check-all').forEach(cb => {
+				cb.checked = n > 0 && n === total;
+				cb.indeterminate = n > 0 && n < total;
+			});
+			bulk.querySelector('.rb-selected-count').textContent = n === 0 ? 'None selected' : `${countOf(bulk.dataset.entity, n)} selected`;
+			bulk.querySelectorAll('.rb-bulk-btn[data-scope="selected"]').forEach(btn => btn.disabled = n === 0);
+		};
 
-			allBoxes.forEach(all => all.addEventListener('change', () => {
-				rows.forEach(cb => cb.checked = all.checked);
-				refresh();
-			}));
-			rows.forEach(cb => cb.addEventListener('change', refresh));
-
-			bulk.querySelectorAll('.rb-bulk-btn').forEach(btn => btn.addEventListener('click', () => {
-				const action = btn.dataset.action;
-				const all = btn.dataset.scope === 'all';
-				const ids = all ? rows.map(cb => cb.value) : selectedIds();
-				if (ids.length === 0) return;
-
-				pendingForm = bulk.querySelector(`.rb-bulk-form[data-action="${action}"]`);
-				pendingForm.querySelector('input[name="ids"]').value = ids.join(',');
-
-				const what = countOf(entity, ids.length);
-				const companies = Number(bulk.dataset.companies);
-				let message;
-				if (action === 'restore') {
-					message = `Restore ${what}?`;
-				} else if (all) {
-					message = `Permanently delete all ${what} in this tab? This cannot be undone.`
-						+ (companies > 1 ? ` They belong to ${companies} companies.` : '');
-				} else {
-					message = `Permanently delete ${what}? This cannot be undone.`;
-				}
-
-				confirmModalEl.querySelector('.modal-title').textContent = action === 'delete'
-					? 'Confirm permanent delete'
-					: 'Confirm restore';
-				confirmMessage.textContent = message;
-				confirmSubmit.classList.toggle('btn-outline-danger', action === 'delete');
-				confirmSubmit.classList.toggle('btn-outline-primary', action !== 'delete');
-				confirmSubmit.textContent = action === 'delete' ? 'Delete' : 'Restore';
-
-				$('#recycleBinConfirmModal').modal('show');
-			}));
-
-			refresh();
+		// Handlers are delegated to the container, so they keep working after it is redrawn.
+		container.addEventListener('change', e => {
+			const bulk = e.target.closest('.recycle-bin-bulk');
+			if (!bulk) return;
+			if (e.target.classList.contains('rb-check-all'))
+				rowsOf(bulk).forEach(cb => cb.checked = e.target.checked);
+			refreshBulk(bulk);
 		});
 
-		confirmSubmit.addEventListener('click', () => {
-			if (pendingForm) {
-				// A bulk delete can take a while; stop a second click from posting it again.
-				confirmSubmit.disabled = true;
-				confirmSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Working…';
-				pendingForm.submit();
+		container.addEventListener('click', e => {
+			// One record's Restore / Delete button.
+			const button = e.target.closest('.recycle-bin-confirm-btn');
+			if (button) {
+				const { action, entity, item, formId } = button.dataset;
+				pendingForm = document.getElementById(formId);
+				openConfirm(action, action === 'delete'
+					? `Permanently delete this ${entity} "${item}"? This cannot be undone.`
+					: `Restore ${entity} "${item}"?`);
+				return;
+			}
+
+			const btn = e.target.closest('.rb-bulk-btn');
+			if (!btn) return;
+			const bulk = btn.closest('.recycle-bin-bulk');
+			const entity = bulk.dataset.entity;
+			const action = btn.dataset.action;
+			const all = btn.dataset.scope === 'all';
+			const ids = all ? rowsOf(bulk).map(cb => cb.value) : selectedIds(bulk);
+			if (ids.length === 0) return;
+
+			pendingForm = bulk.querySelector(`.rb-bulk-form[data-action="${action}"]`);
+			pendingForm.querySelector('input[name="ids"]').value = ids.join(',');
+
+			const what = countOf(entity, ids.length);
+			const companies = Number(bulk.dataset.companies);
+			let message;
+			if (action === 'restore') {
+				message = `Restore ${what}?`;
+			} else if (all) {
+				message = `Permanently delete all ${what} in this tab? This cannot be undone.`
+					+ (companies > 1 ? ` They belong to ${companies} companies.` : '');
+			} else {
+				message = `Permanently delete ${what}? This cannot be undone.`;
+			}
+			openConfirm(action, message);
+		});
+
+		container.querySelectorAll('.recycle-bin-bulk').forEach(refreshBulk);
+
+		// Opens the tab whose pane is `target` (e.g. "#tab-users") in freshly loaded markup, before it is shown.
+		const selectTab = (root, target) => {
+			if (!target || !root.querySelector(`#recycleTabs [data-bs-target="${target}"]`)) return;
+			root.querySelectorAll('#recycleTabs .nav-link').forEach(b => {
+				const on = b.dataset.bsTarget === target;
+				b.classList.toggle('active', on);
+				b.setAttribute('aria-selected', on);
+			});
+			root.querySelectorAll('#recycleTabContent > .tab-pane').forEach(p => {
+				const on = `#${p.id}` === target;
+				p.classList.toggle('show', on);
+				p.classList.toggle('active', on);
+			});
+		};
+
+		const showError = text => {
+			const alert = document.createElement('div');
+			alert.className = 'alert alert-danger alert-dismissible fade show';
+			alert.setAttribute('role', 'alert');
+			alert.innerHTML = '<i class="fa-solid fa-circle-exclamation me-2"></i> <span></span>'
+				+ '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+			alert.querySelector('span').textContent = text;
+			container.prepend(alert);
+			alert.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+		};
+
+		confirmSubmit.addEventListener('click', async () => {
+			if (!pendingForm) return;
+			const form = pendingForm;
+
+			// A bulk delete can take a while; stop a second click from posting it again.
+			confirmSubmit.disabled = true;
+			confirmSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Working…';
+
+			try {
+				// fetch follows the controller's redirect back to the Recycle Bin, so the response is the updated
+				// page, with the success / error message in it.
+				const response = await fetch(form.action, { method: 'POST', body: new FormData(form) });
+				if (!response.ok) {
+					showError(response.status === 404
+						? 'That record is no longer in the Recycle Bin. Reload the page to see the latest list.'
+						: `The action couldn't be completed (error ${response.status}). Reload the page and try again.`);
+					return;
+				}
+
+				const page = new DOMParser().parseFromString(await response.text(), 'text/html');
+				const fresh = page.querySelector('.recycle-bin-container');
+				if (!fresh) {
+					// Not the Recycle Bin, e.g. the sign-in page after the session ran out: show that page.
+					location.href = response.url;
+					return;
+				}
+
+				const activeTab = container.querySelector('#recycleTabs .nav-link.active')?.dataset.bsTarget;
+				container.querySelectorAll('#recycleTabs .nav-link').forEach(b => bootstrap.Tab.getInstance(b)?.dispose());
+				selectTab(fresh, activeTab);
+				container.replaceChildren(...fresh.childNodes);
+				container.querySelectorAll('.recycle-bin-bulk').forEach(refreshBulk);
+				container.querySelector('.alert')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+			} catch {
+				showError("The action couldn't be completed: the server didn't respond. Check your connection and try again.");
+			} finally {
+				pendingForm = null;
+				$('#recycleBinConfirmModal').modal('hide');
 			}
 		});
 	</script>
