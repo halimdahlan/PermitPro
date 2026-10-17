@@ -174,4 +174,23 @@ No background job framework: Hangfire was removed on 2026-10-13 (it was never co
 - Hosting: a dedicated Windows Server (IIS, in-process) behind Cloudflare: proxied DNS, a Cloudflare Origin Certificate, and a redirect rule sending non-apex hostnames to `permitpro.app`. SmarterASP.NET and AWS EC2 are no longer used; README keeps their old deployment sections for reference.
 - Deployment: **no automated deployment at the moment.** `.github/workflows/deploy-on-merge.yml` was removed on 2026-08-01, so merging a PR to `master` does **not** deploy — the user deploys manually (self-contained win-x64 publish, see the publish command above). Never tell the user a merge will put a change live.
 - App version: `Web/App.csproj` has `<Version>1.2.0</Version>`, shown on the About/Settings pages. CI used to override it with `-p:Version=1.0.<run_number>`; with manual deploys every build reports the csproj version unless `-p:Version=…` is passed to `dotnet publish`.
-- Releases: Git tags `vX.Y.Z` + GitHub Releases (first one: `v1.2.0`, 2026-10-17). For a new release, bump `<Version>` in a PR first, then tag the merge commit on `master` so builds from the tag report the right version.
+- Releases: Git tags `vX.Y.Z` + GitHub Releases — see Releases below.
+
+## Releases
+
+Semantic versioning, tags `vX.Y.Z`, one GitHub Release per tag. First release: `v1.2.0` (2026-10-17). Releases are cut when the user decides to deploy, not per PR.
+
+**Which number** — from the biggest change since the last tag:
+- **Patch** (1.2.0 → 1.2.1): only bug fixes, security/package updates, small tweaks.
+- **Minor** (1.2.x → 1.3.0, patch resets): any new feature or visible enhancement. A normal EF migration is minor.
+- **Major** (→ 2.0.0): a big break, e.g. a redesign, a migration that needs manual data work on the server, ending old-system permits.
+
+**Normal flow**
+1. Day-to-day work: `fix/…` / `feature/…` branches, PRs into `master`. Feature PRs don't touch `<Version>`, so `master` may hold unreleased changes.
+2. To release: a PR `chore/release-X.Y.Z` that only sets `<Version>` in `Web/App.csproj`.
+3. After it merges: annotated tag on the merge commit (`git tag -a vX.Y.Z <sha> -m "PermitPro vX.Y.Z"`, push it), then `gh release create vX.Y.Z --verify-tag --latest` with notes grouped Features / Fixes / Security / Maintenance, PR numbers in brackets (`--generate-notes` lists PRs since the last tag as a starting point). If the release contains a migration, say so in the notes (production needs the idempotent SQL script).
+4. The user publishes from the tag (`git checkout vX.Y.Z`, then the publish command above). The About page should show the tag's version.
+
+**Hotfix while `master` has unreleased work** — branch from the tag (`git checkout -b hotfix/X.Y.Z+1 vX.Y.Z`), fix, set `<Version>`, tag and release from that branch, then merge it back into `master` so the fix isn't lost (the next normal release is then the next minor). Only when `master` can't be released as it is.
+
+Never move, delete or reuse a published tag; if a release is wrong, ship the next patch.
