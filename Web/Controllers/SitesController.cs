@@ -173,6 +173,29 @@ public class SitesController : AppControllerBase
 			})
 			.ToListAsync();
 
+		// Permits per location (deleted permits excluded by the query filter, archived ones counted),
+		// and the company's location tree, to add up each row's sub-locations.
+		var permitCounts = await _dbContext.Permits
+			.AsNoTracking()
+			.Where(p => p.Site != null && p.Site.SiteCompany.Id == company)
+			.GroupBy(p => p.Site.Id)
+			.Select(g => new { SiteId = g.Key, Count = g.Count() })
+			.ToDictionaryAsync(g => g.SiteId, g => g.Count);
+
+		var childrenOf = (await _dbContext.Sites
+			.AsNoTracking()
+			.Where(e => e.SiteCompany.Id == company)
+			.Select(e => new { e.Id, e.ParentId })
+			.ToListAsync())
+			.ToLookup(e => e.ParentId, e => e.Id);
+
+		int TotalWithSubLocations(Guid siteId, HashSet<Guid> seen)
+		{
+			if (!seen.Add(siteId))
+				return 0;   // guards against a bad ParentId loop
+			return permitCounts.GetValueOrDefault(siteId) + childrenOf[siteId].Sum(child => TotalWithSubLocations(child, seen));
+		}
+
 		var sites = rows.Select(e => new SitesGridViewModel
 		{
 			Id = e.Id,
@@ -180,6 +203,9 @@ public class SitesController : AppControllerBase
 			Description = e.Description,
 			ContactName = e.ContactName,
 			ContactEmail = e.ContactEmail,
+			PermitCount = permitCounts.GetValueOrDefault(e.Id),
+			PermitCountWithSubLocations = TotalWithSubLocations(e.Id, []),
+			HasSubLocations = childrenOf[e.Id].Any(),
 			IsActive = e.IsActive,
 			ParentId = e.ParentId,
 			SiteType = e.SiteType,

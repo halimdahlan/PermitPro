@@ -46,6 +46,7 @@
 						<th>Description</th>
 						<th>Contact Name</th>
 						<th>Contact Email</th>
+						<th class="text-center">Num. of Permits</th>
 						<th class="text-center">Is Active?</th>
 						<th class="text-center">Action</th>
 					</tr>
@@ -102,6 +103,17 @@
 					{ data: 'Description', render: DataGrid.renderText },
 					{ data: 'ContactName', render: DataGrid.renderText },
 					{ data: 'ContactEmail', render: DataGrid.renderText },
+					{
+						// Permits at this location, with the total including its sub-locations on a second line
+						// ("no sub-location" when it has none, so every row is the same height).
+						data: 'PermitCount',
+						className: 'text-center',
+						render: (data, type, row) => type === 'display'
+							? `${data}<div class="text-secondary small text-nowrap">${row.HasSubLocations
+								? `${row.PermitCountWithSubLocations} incl. sub-locations`
+								: 'no sub-location'}</div>`
+							: data,
+					},
 					{ data: 'IsActive', className: 'text-center', render: DataGrid.renderActive },
 					DataGrid.htmlColumn('ActionIcons', { className: 'text-center text-nowrap' }),
 				],
