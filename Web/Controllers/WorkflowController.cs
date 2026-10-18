@@ -76,6 +76,9 @@ public class WorkflowController : AppControllerBase
 			})
 			.FirstOrDefaultAsync(cancellationToken);
 
+		if (workflow == null)
+			return NotFound();
+
 		return View(workflow);
 	}
 
