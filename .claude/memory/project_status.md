@@ -1,11 +1,11 @@
 ---
 name: project-status
-description: "Where the work stands (2026-10-18): v1.2.1 released and deployed (master through #39); releases are now tagged; company subdomains in progress on feature/subdomain-tenancy; open items and how to resume on another machine"
+description: "Where the work stands (2026-10-19): v1.2.2 released and deployed (master through #43); releases are tagged; company subdomains in progress on feature/subdomain-tenancy; open items and how to resume on another machine"
 metadata:
   type: project
 ---
 
-First written **2026-10-11**, when the user moved to a different computer; updated after each deploy (latest 2026-10-18). `git log` is authoritative for committed work; this note only records what git doesn't: what's live, what's open, and what was agreed.
+First written **2026-10-11**, when the user moved to a different computer; updated after each deploy (latest 2026-10-19). `git log` is authoritative for committed work; this note only records what git doesn't: what's live, what's open, and what was agreed.
 
 **Why:** The user works across machines; Claude's per-machine memory (`~/.claude/projects/...`) does not travel, so this repo copy is the hand-off.
 
@@ -13,7 +13,7 @@ First written **2026-10-11**, when the user moved to a different computer; updat
 
 ## State
 
-- `master` is merged **and deployed** through #39 as release **v1.2.1** (the user deploys manually from the tag; confirmed 2026-10-18). Releases are tagged since 2026-10-17: `v1.2.0` (everything through #36) and `v1.2.1`; process in CLAUDE.md → "Releases". One feature branch is open: `feature/subdomain-tenancy` (company subdomains, not merged; its own copy of this note has the details and next steps).
+- `master` is merged **and deployed** through #43 as release **v1.2.2** (the user deploys manually from the tag; confirmed 2026-10-19). Releases are tagged since 2026-10-17: `v1.2.0` (everything through #36), `v1.2.1` (through #39) and `v1.2.2`; process in CLAUDE.md → "Releases". One feature branch is open: `feature/subdomain-tenancy` (company subdomains, not merged; its own copy of this note has the details and next steps).
 - Recent PRs (all merged and live):
   - #12 Telerik/Kendo removed (DataTables 2, Tom Select, Flatpickr, Treeselect, native controls)
   - #13 Old-system permit PDF: Puppeteer → QuestPDF (`LegacyPermitPdfService`), data-bug fixes; both PDFs use embedded Roboto and the company's uploaded logo; new-system PDF dates fixed
@@ -33,6 +33,7 @@ First written **2026-10-11**, when the user moved to a different computer; updat
   - #35 (2026-10-17) NuGet vulnerability warnings (NU1902/NU1903) cleared: Microsoft packages 10.0.12 → 10.0.13, and a direct `System.Security.Cryptography.Pkcs` 10.0.13 reference in Core (MimeKit only asks for 10.0.0). Publish needs an SDK with the 10.0.13 runtime.
   - #36, #37, #39 (2026-10-17) Versioning: `<Version>` 1.2.0 then 1.2.1; CLAUDE.md "Releases" section (semver, release PR → annotated tag → GitHub Release, hotfix branch from a tag). Released as v1.2.0 and v1.2.1.
   - #38 (2026-10-17) Admin → About shows the connection string again (it read `GetConnectionString(EnvironmentName)` instead of `"MSSQL"`, so it was always empty); password masked with `SqlConnectionStringBuilder`, which also catches `Pwd=`. In v1.2.1.
+  - #42, #43 (2026-10-19) Login pages (tenant and Super Admin) show the running version via `AppVersion.Current` (`Web/Services/AppVersion.cs`, from the assembly) instead of a hard-coded `v1.2`; Workflow edit returns 404 for an unknown workflow (was a 500 on a null model), which cleared the only build warning (CS8602). Released as v1.2.2.
 - The project folder was renamed from `PermitPro-1.2` to `PermitPro` (by 2026-10-18). Claude Code keeps per-machine sessions and memory per folder path, so on another machine with the old path the history stays under the old name; the user's old sessions and per-machine memory were copied across on this machine.
 - GitHub issues #2–#7 (security review items) were deleted on 2026-10-12 at the user's request ("addressed outside this project"). The code they described was unchanged at the time: dashboard chart `[ResponseCache]` before auth, ~59 POST actions without antiforgery, auth cookie not `SecurePolicy.Always`, 301 redirect for email links in `PermitsController.Edit`.
 
@@ -48,6 +49,7 @@ First written **2026-10-11**, when the user moved to a different computer; updat
 8. **Dev DB state (2026-10-14):** migrations applied through `AddPermitRules`. Global `new_permit_form_cutover_date` = `2026-10-13`, but IOTM has its own empty override row (not using global), so IOTM is back on the old permit form and the Templates menu is hidden for it. 892 IOTM permits are archived (the user ran Auto-archive at 90 days on 2026-10-13); all four rules are off.
 9. **Production:** IIS app pool AlwaysRunning, idle time-out 0, and the site's **Preload Enabled = True** are all set (confirmed by the user 2026-10-14). Production has no `dotnet ef`: migrate with an idempotent script generated on the dev machine (`dotnet ef migrations script --idempotent --project Core --startup-project Web --output publish-migrations.sql`, run in SSMS, or sqlcmd with `-I`).
 10. `ScheduledTaskController` (`api/ScheduledTask/*`): anonymous GET endpoints; the suspended-permit auto-resume check is inverted (resumes within `suspended_autoresume_days` instead of after) and ignores the company in the URL. Candidate for a permit rule.
+11. **Workflow edit isn't tenant-scoped** (found 2026-10-19, not fixed): `WorkflowController.Edit` looks the workflow up by id only, without `CompanyID`, so a user who knows another company's workflow id can probably open it from their own company's URL. Check the other workflow actions (steps, save) too; fix on its own `fix/…` branch when the user asks.
 
 ## Future enhancements (KIV)
 
