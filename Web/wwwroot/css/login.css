@@ -110,10 +110,8 @@ html, body {
 }
 
 .login-logo img {
-    width: 64px;
-    height: 64px;
-    border-radius: 16px;
-    object-fit: cover;
+    width: 110px;
+    height: auto;
     display: block;
     margin: 0 auto 12px;
 }
