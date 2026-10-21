@@ -179,7 +179,7 @@
 					{
 						data: 'SubmittedBy',
 						render: (data, type, row) => type === 'display'
-							? `<div>${DataGrid.escapeHtml(data)}</div><div class="text-secondary submitted-on">on ${moment(row.DateSubmitted).format('DD MMM, YYYY')}</div>`
+							? `<div>${DataGrid.escapeHtml(data)}</div><div class="text-secondary submitted-on">on ${moment(row.DateSubmitted).format('DD MMM, YYYY [at] hh:mm A')}</div>`
 							: data,
 					},
 					DataGrid.htmlColumn(null, {
