@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PermitPro Mobile - UI mockups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f4f6fa;--card:#fff;--border:#e3e7ee;--text:#1b2433;--muted:#6b778c;--brand:#1d5fd1;--brand-d:#0f3f93;--tint:#e8f0fd;
+--amber:#f59e0b;--amber-t:#fff4de;--red:#d92d20;--red-t:#fde8e6;--green:#12945a;--green-t:#e1f5ec;--blue-t:#e8f0fd}
+*{box-sizing:border-box;margin:0}
+body{font-family:Poppins,"Segoe UI",system-ui,sans-serif;background:#cfd6e2;color:var(--text);padding:28px;display:flex;gap:28px;flex-wrap:nowrap;width:max-content}
+body.single{padding:0;background:transparent;width:auto}
+.col{display:flex;flex-direction:column;align-items:center;gap:12px}
+.cap{font-weight:700;font-size:15px;color:#27324a}
+.cap small{display:block;font-weight:400;color:#56627a;font-size:12px;text-align:center;max-width:340px;margin-top:2px}
+.phone{width:390px;height:820px;background:var(--bg);border-radius:38px;border:9px solid #10151f;position:relative;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 14px 34px rgba(16,21,31,.28)}
+.status{height:30px;display:flex;justify-content:space-between;align-items:center;padding:6px 22px 0;font-size:12px;font-weight:600}
+.topbar{padding:10px 18px 6px;display:flex;justify-content:space-between;align-items:center}
+.topbar h1{font-size:21px}
+.sub{color:var(--muted);font-size:12.5px}
+.scroll{flex:1;overflow:hidden;padding:6px 16px 10px}
+.nav{height:66px;background:var(--card);border-top:1px solid var(--border);display:flex;justify-content:space-around;align-items:center;padding-bottom:6px}
+.nav div{display:flex;flex-direction:column;align-items:center;font-size:11px;color:var(--muted);gap:2px;position:relative}
+.nav div.on{color:var(--brand);font-weight:700}
+.nav i{font-style:normal;font-size:20px}
+.badge{position:absolute;top:-4px;right:-10px;background:var(--red);color:#fff;border-radius:9px;font-size:10px;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-weight:700}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:12px}
+.hero{background:linear-gradient(135deg,#f59e0b,#e07b00);color:#fff;border:0;display:flex;justify-content:space-between;align-items:center}
+.hero b{font-size:34px;line-height:1}
+.hero small{opacity:.92;font-size:12.5px}
+.btn{border-radius:12px;padding:13px;text-align:center;font-weight:700;font-size:15px}
+.btn.p{background:var(--brand);color:#fff}.btn.o{border:2px solid var(--red);color:var(--red);background:var(--card)}
+.btn.g{background:var(--green);color:#fff}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px}
+.stat b{font-size:24px;display:block}.stat span{font-size:12px;color:var(--muted)}
+.chip{display:inline-block;border-radius:999px;padding:3px 10px;font-size:11.5px;font-weight:600;margin-right:4px}
+.chip.a{background:var(--amber-t);color:#8a5600}.chip.r{background:var(--red-t);color:#a1190f}.chip.g{background:var(--green-t);color:#0b6b41}.chip.b{background:var(--blue-t);color:var(--brand-d)}.chip.n{background:#eceff4;color:#46526a}
+.chips{display:flex;gap:6px;margin:4px 0 12px;overflow:hidden}
+.chips .chip{border:1px solid var(--border);background:var(--card);padding:6px 13px;font-size:12.5px;margin:0;white-space:nowrap}
+.chips .chip.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+.pcard{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:13px 14px;margin-bottom:11px;position:relative}
+.pcard.late{border-left:5px solid var(--red)}
+.pcard h3{font-size:15px;margin:5px 0 2px}.pcard .row{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--muted);margin-top:6px}
+.wait{font-weight:700;color:#a1190f}
+.input{border:1.5px solid var(--border);border-radius:12px;padding:14px;background:var(--card);margin-bottom:12px;font-size:15px;color:var(--muted)}
+.seg{display:flex;background:#e6eaf1;border-radius:12px;padding:4px;margin:10px 0 16px}
+.seg div{flex:1;text-align:center;padding:10px;border-radius:9px;font-weight:600;font-size:14px;color:var(--muted)}
+.seg div.on{background:var(--card);color:var(--brand);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.otp{display:flex;gap:8px;justify-content:center;margin:14px 0}
+.otp div{width:46px;height:56px;border:1.5px solid var(--border);border-radius:12px;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700}
+.otp div.f{border-color:var(--brand);box-shadow:0 0 0 3px #1d5fd133}
+.logo{width:76px;height:76px;border-radius:20px;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:800;margin:26px auto 10px}
+.stepper{display:flex;align-items:center;margin:10px 0 4px}
+.stepper .d{width:22px;height:22px;border-radius:50%;background:var(--green);color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;font-weight:700}
+.stepper .d.cur{background:var(--amber);box-shadow:0 0 0 4px #f59e0b33}.stepper .d.todo{background:#d5dbe6;color:#6b778c}
+.stepper .l{flex:1;height:3px;background:var(--green)}.stepper .l.todo{background:#d5dbe6}
+.check{font-size:13px;padding:4px 0;display:flex;gap:8px}
+.tabs{display:flex;border-bottom:1px solid var(--border);margin:2px -16px 12px;padding:0 10px}
+.tabs div{padding:10px 12px;font-size:13.5px;color:var(--muted);font-weight:600}
+.tabs div.on{color:var(--brand);border-bottom:3px solid var(--brand)}
+.actionbar{display:flex;gap:10px;padding:10px 16px 16px;background:var(--card);border-top:1px solid var(--border)}
+.actionbar .btn{flex:1}
+.cert{min-width:112px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:11px;font-size:12.5px}
+.cert b{display:block;font-size:14px;margin:3px 0}
+.certs{display:flex;gap:10px;overflow:hidden;margin-bottom:12px}
+.fld{padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.fld span{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
+.bar{height:8px;border-radius:5px;background:#e3e7ee;overflow:hidden;margin:7px 0 3px}.bar i{display:block;height:100%;width:38%;background:var(--brand);margin-left:10%;border-radius:5px}
+.scrim{position:absolute;inset:0;background:rgba(10,15,25,.5)}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--card);border-radius:24px 24px 0 0;padding:14px 18px 22px}
+.sheet .grab{width:44px;height:5px;background:#cfd6e2;border-radius:3px;margin:0 auto 14px}
+.map{height:90px;border-radius:12px;background:repeating-linear-gradient(45deg,#dfe8da,#dfe8da 12px,#d3e0cd 12px,#d3e0cd 24px);position:relative;margin-top:8px}
+.map:after{content:"\1F4CD";position:absolute;left:46%;top:24px;font-size:26px}
+.tl{border-left:3px solid #d5dbe6;margin-left:8px;padding-left:14px}
+.tl div{position:relative;padding-bottom:12px;font-size:13px}.tl div:before{content:"";position:absolute;left:-22px;top:3px;width:11px;height:11px;border-radius:50%;background:var(--green)}
+.tl div.cur:before{background:var(--amber);box-shadow:0 0 0 4px #f59e0b33}.tl small{color:var(--muted);display:block}
+.swipe{position:absolute;inset:0;border-radius:16px;display:flex;align-items:center;padding:0 18px;color:#fff;font-weight:700;background:var(--green)}
+.warn{background:var(--amber-t);border:1px solid #f7d79a;border-radius:14px;padding:11px 13px;margin-bottom:12px}
+.warn .t{font-size:12px;font-weight:700;color:#8a5600;margin-bottom:3px}
+</style></head>
+<body>
+
+<!-- 1 LOGIN -->
+<div class="col" data-s="1"><div class="phone">
+ <div class="status"><span>9:41</span><span>5G ▮▮▮</span></div>
+ <div class="scroll" style="padding:0 22px">
+  <div class="logo">P</div>
+  <div style="text-align:center;font-size:22px;font-weight:800">PermitPro</div>
+  <div class="sub" style="text-align:center">Sign in to review and approve permits</div>
+  <div class="seg"><div>Username</div><div class="on">Mobile</div></div>
+  <div class="sub" style="margin-bottom:6px">Mobile number</div>
+  <div class="input" style="color:var(--text)">🇲🇾 +60 &nbsp;12-345 6789</div>
+  <div class="sub" style="margin-bottom:6px">Send code by</div>
+  <div class="seg" style="margin-top:0"><div class="on">SMS</div><div>WhatsApp</div></div>
+  <div class="sub" style="text-align:center;margin-top:8px">Enter the 6-digit code sent to +60 12-345 6789</div>
+  <div class="otp"><div>4</div><div>8</div><div>2</div><div class="f">9</div><div></div><div></div></div>
+  <div class="sub" style="text-align:center;margin-bottom:16px">Resend code in 0:24</div>
+  <div class="btn p">Verify and sign in</div>
+  <div class="sub" style="text-align:center;margin-top:18px">🔒 Enable fingerprint unlock after sign in</div>
+ </div>
+</div><div class="cap">1 · Login<small>Username or mobile OTP, with SMS / WhatsApp channel choice</small></div></div>
+
+<!-- 2 HOME -->
+<div class="col" data-s="2"><div class="phone">
+ <div class="status"><span>9:41</span><span>5G ▮▮▮</span></div>
+ <div class="topbar"><div><div class="sub">Good morning, Ahmad</div><h1>Home</h1></div><div class="chip b" style="margin:0">PI · Site A</div></div>
+ <div class="scroll">
+  <div class="card hero"><div><small>Waiting for you</small><br><b>5</b><br><small>Oldest waiting 2 days</small></div><div style="font-size:42px">›</div></div>
+  <div class="grid">
+   <div class="stat"><b>12</b><span>Active today</span></div>
+   <div class="stat"><b style="color:#a1190f">3</b><span>Expiring in 24h</span></div>
+   <div class="stat"><b style="color:#a1190f">1</b><span>Overdue</span></div>
+   <div class="stat"><b style="color:var(--green)">18</b><span>Approved by me this week</span></div>
+  </div>
+  <div class="card"><b style="font-size:14px">Permits by status</b>
+   <div class="bar" style="height:14px;display:flex"><i style="width:40%;margin:0;background:var(--green);border-radius:0"></i><i style="width:22%;margin:0;background:var(--amber);border-radius:0"></i><i style="width:25%;margin:0;background:var(--brand);border-radius:0"></i><i style="width:13%;margin:0;background:#9aa6bb;border-radius:0"></i></div>
+   <div style="margin-top:6px"><span class="chip g">Approved 40%</span><span class="chip a">Pending 22%</span><span class="chip b">Active 25%</span><span class="chip n">Closed 13%</span></div></div>
+  <div class="card"><b style="font-size:14px">Recent activity</b>
+   <div class="check" style="margin-top:6px">✅ <div>PTW-1038 approved by you<br><span class="sub">Today 08:42</span></div></div>
+   <div class="check">🕒 <div>PTW-1042 submitted, Hot work<br><span class="sub">Today 07:15</span></div></div></div>
+ </div>
+ <div class="nav"><div class="on"><i>🏠</i>Home</div><div><i>✅</i>Approvals<span class="badge">5</span></div><div><i>🔔</i>Alerts</div><div><i>👤</i>Me</div></div>
+</div><div class="cap">2 · Home / Dashboard<small>"Waiting for you" is the main call to action</small></div></div>
+
+<!-- 3 APPROVALS -->
+<div class="col" data-s="3"><div class="phone">
+ <div class="status"><span>9:41</span><span>5G ▮▮▮</span></div>
+ <div class="topbar"><h1>Approvals</h1><span style="font-size:20px">🔍</span></div>
+ <div class="scroll">
+  <div class="chips"><span class="chip on">All 5</span><span class="chip">Urgent 2</span><span class="chip">Today</span><span class="chip">Hot work</span></div>
+  <div class="pcard late"><span class="chip r">Overdue wait</span><span class="chip n">Hot work</span>
+   <h3>PTW-1031 · Welding at pump house</h3><div class="sub">Siti Aminah · Block C, Level 2</div>
+   <div class="row"><span>Today 08:00 – 17:00</span><span class="wait">Waiting 2d 3h</span></div></div>
+  <div style="position:relative;margin-bottom:11px;height:112px"><div class="swipe">✔ Approve</div>
+   <div class="pcard" style="position:absolute;inset:0;margin:0;transform:translateX(82px)"><span class="chip a">Urgent</span><span class="chip n">Confined space</span>
+   <h3>PTW-1042 · Tank cleaning</h3><div class="sub">Rahman Ali · Tank farm 3</div>
+   <div class="row"><span>Tomorrow 07:00 – 15:00</span><span class="wait">Waiting 5h</span></div></div></div>
+  <div class="pcard"><span class="chip n">Work at height</span>
+   <h3>PTW-1044 · Roof panel replacement</h3><div class="sub">Lim Wei · Warehouse 2</div>
+   <div class="row"><span>Fri 09:00 – 16:00</span><span>Waiting 2h</span></div></div>
+  <div class="pcard"><span class="chip n">Electrical</span>
+   <h3>PTW-1045 · Switchgear inspection</h3><div class="sub">Farid Hassan · Substation 1</div>
+   <div class="row"><span>Fri 10:00 – 12:00</span><span>Waiting 40m</span></div></div>
+ </div>
+ <div class="nav"><div><i>🏠</i>Home</div><div class="on"><i>✅</i>Approvals<span class="badge">5</span></div><div><i>🔔</i>Alerts</div><div><i>👤</i>Me</div></div>
+</div><div class="cap">3 · Approvals inbox<small>Cards sorted by waiting time. Swipe right to approve, left to reject (shown mid-swipe)</small></div></div>
+
+<!-- 4 DETAIL OVERVIEW -->
+<div class="col" data-s="4"><div class="phone">
+ <div class="status"><span>9:41</span><span>5G ▮▮▮</span></div>
+ <div class="topbar" style="padding-bottom:0"><span style="font-size:22px">‹</span><b>PTW-1042</b><span style="font-size:20px">⋮</span></div>
+ <div class="scroll" style="padding-top:0">
+  <div style="margin:6px 0 2px"><span class="chip a">Pending · your approval</span><span class="chip n">Confined space</span></div>
+  <div class="stepper"><div class="d">✓</div><div class="l"></div><div class="d cur">2</div><div class="l todo"></div><div class="d todo">3</div><div class="l todo"></div><div class="d todo">4</div></div>
+  <div class="sub" style="margin-bottom:10px">Step 2 of 4 · You are here (PI)</div>
+  <div class="warn"><div class="t">NEEDS YOUR ATTENTION</div>
+   <div class="check" style="padding:2px 0">✅ Confined space certificate attached</div>
+   <div class="check" style="padding:2px 0">❌ Gas test record missing</div>
+   <div class="check" style="padding:2px 0">⚠️ Ends after 18:00 (extended hours)</div></div>
+  <div class="tabs"><div class="on">Overview</div><div>Certificates <span class="chip r" style="margin:0 0 0 2px">1</span></div><div>Files</div><div>History</div></div>
+  <h3 style="font-size:17px;margin-bottom:6px">Tank cleaning</h3>
+  <div class="fld"><span>Requested by</span>Rahman Ali · Contractor ABC</div>
+  <div class="fld"><span>Location</span>Tank farm 3 › Tank T-03</div>
+  <div class="map"></div>
+  <div class="fld"><span>Work window</span>Tomorrow 07:00 → 19:00 · 12h</div>
+  <div class="bar"><i></i></div><div class="sub">Starts in 15h · runs 12h</div>
+ </div>
+ <div class="actionbar"><div class="btn o">Reject</div><div class="btn g">Approve</div></div>
+</div><div class="cap">4 · Permit detail · Overview<small>Step tracker, rule-based attention checklist, sticky Approve / Reject</small></div></div>
+
+<!-- 5 CERTIFICATES -->
+<div class="col" data-s="5"><div class="phone">
+ <div class="status"><span>9:41</span><span>5G ▮▮▮</span></div>
+ <div class="topbar" style="padding-bottom:0"><span style="font-size:22px">‹</span><b>PTW-1042</b><span style="font-size:20px">⋮</span></div>
+ <div class="scroll" style="padding-top:0">
+  <div class="tabs" style="margin-top:6px"><div>Overview</div><div class="on">Certificates <span class="chip r" style="margin:0 0 0 2px">1</span></div><div>Files</div><div>History</div></div>
+  <div style="margin-bottom:8px"><span class="chip g">2 of 3 complete</span><span class="chip r">1 incomplete</span></div>
+  <div class="certs">
+   <div class="cert" style="border-color:var(--brand);background:var(--tint)"><span class="chip g">Complete</span><b>Confined Space</b><span class="sub">12 fields</span></div>
+   <div class="cert"><span class="chip g">Complete</span><b>Hot Work</b><span class="sub">9 fields</span></div>
+   <div class="cert"><span class="chip r">Missing data</span><b>Gas Test</b><span class="sub">0 of 6</span></div>
+  </div>
+  <div class="card" style="padding:12px 14px">
+   <b style="font-size:15px">Confined Space Entry</b><span class="sub" style="float:right">1 / 3 ‹ ›</span>
+   <div class="fld" style="margin-top:6px"><span>Space description</span>Tank T-03, internal, 4m × 6m</div>
+   <div class="fld"><span>Hazards identified</span>Toxic gas · Low oxygen · Engulfment</div>
+   <div class="fld"><span>Oxygen level (%)</span>20.9 &nbsp;<span class="chip g" style="display:inline-block">Within range</span></div>
+   <div class="fld"><span>Attendant</span>Hamid Yusof · Rescue plan attached ✔</div>
+   <div class="fld" style="border:0"><span>Isolation</span>Valves V-12, V-13 locked and tagged ✔</div>
+  </div>
+  <div class="btn" style="background:var(--tint);color:var(--brand-d)">📄 View official PDF</div>
+ </div>
+ <div class="actionbar"><div class="btn o">Reject</div><div class="btn g">Approve</div></div>
+</div><div class="cap">5 · Certificates viewer<small>Swipeable cards with completeness status; fields grouped like the form; one tap to the official PDF</small></div></div>
+
+<!-- 6 CONFIRM SHEET -->
+<div class="col" data-s="6"><div class="phone">
+ <div class="status"><span>9:41</span><span>5G ▮▮▮</span></div>
+ <div class="topbar" style="padding-bottom:0"><span style="font-size:22px">‹</span><b>PTW-1042</b><span style="font-size:20px">⋮</span></div>
+ <div class="scroll" style="padding-top:0"><div class="card"><span class="chip a">Pending · your approval</span><h3 style="margin-top:8px">Tank cleaning</h3><div class="sub">Rahman Ali · Tank farm 3</div></div>
+  <div class="card"><div class="sub">History</div><div class="tl" style="margin-top:10px"><div>Submitted<small>Rahman Ali · 07:15</small></div><div class="cur">Pending PI review<small>Waiting for you</small></div></div></div></div>
+ <div class="scrim"></div>
+ <div class="sheet">
+  <div class="grab"></div>
+  <b style="font-size:18px">Reject permit?</b>
+  <div class="sub" style="margin:4px 0 12px">PTW-1042 · Tank cleaning · Rahman Ali</div>
+  <div class="chips"><span class="chip on">Missing gas test</span><span class="chip">Incomplete info</span><span class="chip">Other</span></div>
+  <div class="input" style="min-height:70px">Gas test record required before entry…</div>
+  <div style="display:flex;gap:10px"><div class="btn" style="flex:1;border:2px solid var(--border)">Cancel</div><div class="btn" style="flex:1.4;background:var(--red);color:#fff">Reject permit</div></div>
+  <div class="sub" style="text-align:center;margin-top:10px">The requester is notified immediately</div>
+ </div>
+</div><div class="cap">6 · Confirmation sheet<small>Deliberate decisions: permit shown, reason required for reject, no accidental swipes</small></div></div>
+
+<script>
+const q=new URLSearchParams(location.search).get('s');
+if(q){document.body.classList.add('single');
+ document.querySelectorAll('.col').forEach(c=>{if(c.dataset.s!==q)c.remove();else{c.style.gap=0;c.querySelector('.cap').remove();c.querySelector('.phone').style.boxShadow='none'}});
+ document.body.style.padding='0';}
+</script>
+</body></html>
