@@ -108,4 +108,14 @@ app.MapHub<NotificationHub>("/{company}/notificationHub");
 app.MapRazorPages();
 app.MapHealthChecks("/health");
 
+// Adds the email template settings (Settings > Email Templates) if they're missing; never overwrites edits.
+try
+{
+	await PermitPro.Core.Services.EmailTemplateSeed.EnsureDefaultsAsync(app.Services);
+}
+catch (Exception ex)
+{
+	app.Logger.LogWarning(ex, "Could not add the default email template settings; the built-in templates are used.");
+}
+
 app.Run();

@@ -26,6 +26,7 @@ public static class CommonExtensions
 		services.AddScoped<IPermitPdfService, Services.LegacyPermitPdf.LegacyPermitPdfService>();
 		services.AddScoped<IUserService, UserService>();
 		services.AddScoped<IMessageService, MessageService>();
+		services.AddScoped<IEmailTemplateService, EmailTemplateService>();
 		services.AddScoped<ILogService, LogService>();
 		services.AddScoped<IAppSettingsService, AppSettingsService>();
 		services.AddScoped<IFormControlService, FormControlService>();

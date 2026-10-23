@@ -20,7 +20,7 @@ A multi-tenant, enterprise web application for managing **Permit-to-Work (PTW)**
 | **Date Picker** | Flatpickr (CDN, new-system forms) |
 | **Excel Export** | ClosedXML 0.105.1 |
 | **Email** | MailKit 4.18.1 + MimeKit 4.18.1 |
-| **Templating** | Scriban.Signed 7.5.0 (email templates) |
+| **Templating** | Built-in `EmailTemplate` renderer (email templates; no package) |
 | **JSON** | System.Text.Json (primary); Newtonsoft.Json 13.0.4 (old-system PDF reader only) |
 | **API Docs** | Swashbuckle / Swagger (referenced, not configured) |
 

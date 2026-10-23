@@ -173,6 +173,7 @@ else
 							<option value="email">email</option>
 							<option value="boolean">boolean</option>
 							<option value="date">date</option>
+								<option value="html">html (long text)</option>
 						</select>
 					</div>
 					<div class="col-md-6 mb-3 d-flex align-items-end">
@@ -252,6 +253,7 @@ else
 	<script src="~/js/setting-value.js" asp-append-version="true"></script>
 <script>
 	const companyId = '@companyId';
+	SettingValue.previewUrl = `/${companyId}/settings/previewemail`;
 	const antiForgeryToken = $('input[name="__RequestVerificationToken"]').val();
 
 	$(() => {
@@ -307,8 +309,8 @@ else
 			const valueDisplay = s.IsEncrypted
 				? '<span class="text-muted fst-italic">encrypted</span>'
 				: ((s.IsUsingGlobal || isInherited)
-					? `<span class="text-muted fst-italic">${escapeHtml((isInherited ? s.Value : s.GlobalValue) || '(not set)')}</span>`
-					: (s.Value ? escapeHtml(s.Value) : '<span class="text-muted">—</span>'));
+					? `<span class="text-muted fst-italic">${escapeHtml(SettingValue.preview(isInherited ? s.Value : s.GlobalValue) || '(not set)')}</span>`
+					: (s.Value ? escapeHtml(SettingValue.preview(s.Value)) : '<span class="text-muted">—</span>'));
 			const encoded = encodeURIComponent(JSON.stringify(s));
 			const deleteBtn = isInherited
 				? ''
@@ -461,7 +463,7 @@ else
 		$('#stgDataType').val(s.DataType);
 		$('#stgIsEncrypted').prop('checked', s.IsEncrypted);
 		$('#stgValue').val(s.IsEncrypted ? '' : (s.Value || ''));
-		SettingValue.setType(s.DataType);
+		SettingValue.setType(s.DataType, s.IsEncrypted ? '' : (s.Value || ''));
 		$('#stgSortOrder').val(s.SortOrder);
 
 		$('#stgUseGlobalWrapper').toggle(!!s.HasGlobalOverrideAvailable);
@@ -478,6 +480,7 @@ else
 	const onUseGlobalChange = () => {
 		const useGlobal = $('#stgIsUsingGlobal').prop('checked');
 		$('#stgValue').prop('disabled', useGlobal);
+		SettingValue.refresh();
 
 		if (useGlobal) {
 			const globalValue = $('#stgIsUsingGlobal').data('globalValue');

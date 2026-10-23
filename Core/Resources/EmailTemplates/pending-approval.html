@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="light" />
+<title>Approval required: {{permit_no}}</title>
+<!--
+  PermitPro "pending approval" email. Edit it in Settings > Email Templates; this is the built-in default.
+  A placeholder is a name in double curly braces: it prints the value, HTML-encoded (nothing if empty).
+  A block starting with "#if name" and ending with "/if" (each in double curly braces) is kept only when that value is not empty.
+  A block starting with "#each steps" and ending with "/each" repeats for every workflow step (fields: number, name, status, color).
+  Values: recipient_name, company_name, permit_no, permit_title, location, start_date, end_date,
+    submitted_by, date_submitted, workflow_name, current_step, step_number, step_total, next_step,
+    other_approvers, approval_link, steps
+  Layout uses tables and inline styles on purpose: that is what Outlook, Gmail and phone mail apps render reliably.
+-->
+</head>
+<body style="margin:0;padding:0;background-color:#eef2f7;">
+
+<!-- Preview text shown next to the subject in the inbox -->
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#eef2f7;font-size:1px;line-height:1px;">
+	Permit {{permit_no}} submitted by {{submitted_by}} is waiting for your approval.
+</div>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#eef2f7;">
+<tr>
+<td align="center" style="padding:24px 12px;">
+
+	<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background-color:#ffffff;border-radius:8px;overflow:hidden;font-family:Segoe UI,Helvetica,Arial,sans-serif;color:#1f2d3d;">
+
+		<!-- Banner -->
+		<tr>
+			<td bgcolor="#14365d" style="background-color:#14365d;background-image:linear-gradient(135deg,#14365d 0%,#1f6fd1 100%);padding:28px 32px 24px 32px;">
+				<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+					<tr>
+						<td style="font-size:26px;font-weight:700;letter-spacing:3px;color:#ffffff;font-family:Segoe UI,Helvetica,Arial,sans-serif;">PERMITPRO</td>
+						<td align="right" style="font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#bcd4f5;font-family:Segoe UI,Helvetica,Arial,sans-serif;">Permit-to-Work</td>
+					</tr>
+					<tr>
+						<td colspan="2" style="padding-top:18px;font-size:22px;line-height:28px;font-weight:600;color:#ffffff;font-family:Segoe UI,Helvetica,Arial,sans-serif;">Approval required</td>
+					</tr>
+					<tr>
+						<td colspan="2" style="padding-top:4px;font-size:14px;color:#d6e4fa;font-family:Segoe UI,Helvetica,Arial,sans-serif;">Permit {{permit_no}} is waiting for your decision{{#if company_name}} &middot; {{company_name}}{{/if}}</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+		<tr><td height="4" style="height:4px;line-height:4px;font-size:4px;background-color:#f5a623;">&nbsp;</td></tr>
+
+		<!-- Greeting -->
+		<tr>
+			<td style="padding:28px 32px 8px 32px;font-size:15px;line-height:23px;">
+				<p style="margin:0 0 12px 0;">Dear {{recipient_name}},</p>
+				<p style="margin:0;">A permit has been submitted for approval and it is now at the <strong>{{current_step}}</strong> step of the <strong>{{workflow_name}}</strong> workflow. Please review it and approve or reject it.</p>
+			</td>
+		</tr>
+
+		<!-- Button -->
+		<tr>
+			<td align="center" style="padding:20px 32px 8px 32px;">
+				<table role="presentation" cellpadding="0" cellspacing="0" border="0">
+					<tr>
+						<td align="center" bgcolor="#1f6fd1" style="background-color:#1f6fd1;border-radius:6px;">
+							<a href="{{approval_link}}" target="_blank" style="display:inline-block;padding:13px 34px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;font-family:Segoe UI,Helvetica,Arial,sans-serif;">Review permit {{permit_no}}</a>
+						</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+
+		<!-- Permit details -->
+		<tr>
+			<td style="padding:24px 32px 0 32px;">
+				<div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#6b7c93;padding-bottom:8px;border-bottom:2px solid #e3e9f1;">Permit details</div>
+				<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:14px;line-height:20px;">
+					<tr>
+						<td width="38%" style="padding:10px 0;color:#6b7c93;border-bottom:1px solid #eef2f7;">Permit no</td>
+						<td style="padding:10px 0;font-weight:600;border-bottom:1px solid #eef2f7;">{{permit_no}}</td>
+					</tr>
+					{{#if permit_title}}
+					<tr>
+						<td style="padding:10px 0;color:#6b7c93;border-bottom:1px solid #eef2f7;vertical-align:top;">Description</td>
+						<td style="padding:10px 0;border-bottom:1px solid #eef2f7;">{{permit_title}}</td>
+					</tr>
+					{{/if}}
+					{{#if location}}
+					<tr>
+						<td style="padding:10px 0;color:#6b7c93;border-bottom:1px solid #eef2f7;">Location</td>
+						<td style="padding:10px 0;border-bottom:1px solid #eef2f7;">{{location}}</td>
+					</tr>
+					{{/if}}
+					{{#if start_date}}
+					<tr>
+						<td style="padding:10px 0;color:#6b7c93;border-bottom:1px solid #eef2f7;">Work period</td>
+						<td style="padding:10px 0;border-bottom:1px solid #eef2f7;">{{start_date}}{{#if end_date}} &ndash; {{end_date}}{{/if}}</td>
+					</tr>
+					{{/if}}
+					<tr>
+						<td style="padding:10px 0;color:#6b7c93;border-bottom:1px solid #eef2f7;">Submitted by</td>
+						<td style="padding:10px 0;border-bottom:1px solid #eef2f7;">{{submitted_by}}</td>
+					</tr>
+					<tr>
+						<td style="padding:10px 0;color:#6b7c93;">Date submitted</td>
+						<td style="padding:10px 0;">{{date_submitted}}</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+
+		<!-- Approval process -->
+		<tr>
+			<td style="padding:24px 32px 0 32px;">
+				<div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#6b7c93;padding-bottom:8px;border-bottom:2px solid #e3e9f1;">Approval process</div>
+				<p style="margin:12px 0 8px 0;font-size:14px;line-height:21px;">
+					<strong>{{workflow_name}}</strong> &mdash; step {{step_number}} of {{step_total}}.
+					Next step after yours: <strong>{{next_step}}</strong>.
+				</p>
+				<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:14px;">
+					{{#each steps}}
+					<tr>
+						<td width="34" style="padding:6px 0;vertical-align:middle;">
+							<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+								<td width="24" height="24" align="center" bgcolor="{{color}}" style="width:24px;height:24px;background-color:{{color}};border-radius:12px;color:#ffffff;font-size:12px;font-weight:700;line-height:24px;">{{number}}</td>
+							</tr></table>
+						</td>
+						<td style="padding:6px 0;vertical-align:middle;">{{name}}</td>
+						<td align="right" style="padding:6px 0;vertical-align:middle;font-size:12px;font-weight:600;color:{{color}};">{{status}}</td>
+					</tr>
+					{{/each}}
+				</table>
+				{{#if other_approvers}}
+				<p style="margin:12px 0 0 0;font-size:13px;line-height:19px;color:#6b7c93;">Also asked to approve at this step: {{other_approvers}}.</p>
+				{{/if}}
+			</td>
+		</tr>
+
+		<!-- Fallback link + sign-off -->
+		<tr>
+			<td style="padding:24px 32px 28px 32px;font-size:13px;line-height:20px;color:#6b7c93;">
+				<p style="margin:0 0 12px 0;">If the button does not work, copy this link into your browser:<br />
+					<a href="{{approval_link}}" target="_blank" style="color:#1f6fd1;word-break:break-all;">{{approval_link}}</a></p>
+				<p style="margin:0;color:#1f2d3d;">Workflow Team<br />PermitPro{{#if company_name}} &middot; {{company_name}}{{/if}}</p>
+			</td>
+		</tr>
+
+		<!-- Footer -->
+		<tr>
+			<td bgcolor="#f6f8fb" style="background-color:#f6f8fb;padding:16px 32px;font-size:12px;line-height:18px;color:#8896a8;border-top:1px solid #e3e9f1;">
+				This is an automated message from PermitPro. Please do not reply to this email.
+			</td>
+		</tr>
+
+	</table>
+
+</td>
+</tr>
+</table>
+
+</body>
+</html>

@@ -34,7 +34,6 @@
 		<PackageReference Include="MimeKit" Version="4.18.1" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 		<PackageReference Include="QuestPDF" Version="2026.9.1" />
-		<PackageReference Include="Scriban.Signed" Version="7.5.0" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
 		<PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="10.2.3" />
 		<PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="10.2.3" />
@@ -48,6 +47,8 @@
 		     QuestPDF doesn't use system fonts, so the font ships inside the assembly. -->
 		<EmbeddedResource Include="Resources\Fonts\Roboto-Regular.ttf" LogicalName="Fonts.Roboto-Regular.ttf" />
 		<EmbeddedResource Include="Resources\Fonts\Roboto-Bold.ttf" LogicalName="Fonts.Roboto-Bold.ttf" />
+		<!-- Built-in email templates: the default for the Email Templates app settings (EmailTemplateDefaults). -->
+		<EmbeddedResource Include="Resources\EmailTemplates\pending-approval.html" LogicalName="EmailTemplates.pending-approval.html" />
 	</ItemGroup>
 
 	<ItemGroup>

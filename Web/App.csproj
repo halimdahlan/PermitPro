@@ -6,7 +6,6 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<AssemblyName>PermitPro.$(MSBuildProjectName)</AssemblyName>
 		<RootNamespace>PermitPro.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
-		<PackageScribanIncludeSource>true</PackageScribanIncludeSource>
 		<AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
 	  <UserSecretsId>d5985dcf-6a4c-4788-b35d-e75e087e391d</UserSecretsId>
   <Version>1.3.0</Version>
@@ -34,7 +33,6 @@
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="10.0.13" />
-		<PackageReference Include="Scriban.Signed" Version="7.5.0" />
 	</ItemGroup>
 
 	<ItemGroup>
