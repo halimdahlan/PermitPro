@@ -12,7 +12,6 @@ using PermitPro.Core.Interfaces;
 using PermitPro.Core.Models;
 using PermitPro.Core.Models.PermitRules;
 
-using Scriban;
 
 using System.Net.Mail;
 using System.Text.Json;
@@ -815,7 +814,7 @@ public class PermitRuleService : IPermitRuleService
 			.FirstOrDefaultAsync(ct);
 
 		var template = sendEmails
-			? Template.Parse(await File.ReadAllTextAsync(Path.Combine(_env.WebRootPath, "templates", "html", "permit-rule.html"), ct))
+			? await File.ReadAllTextAsync(Path.Combine(_env.WebRootPath, "templates", "html", "permit-rule.html"), ct)
 			: null;
 		var baseUrl = BaseUrl();
 
@@ -826,24 +825,24 @@ public class PermitRuleService : IPermitRuleService
 
 			if (template != null)
 			{
-				var body = template.Render(new
+				var body = EmailTemplate.Render(template, new Dictionary<string, object?>
 				{
-					RecipientName = recipient.Name,
-					CompanyName = companyName,
-					Intro = notice.Intro(permits.Count),
-					DateLabel = notice.DateLabel,
-					ExtraLabel = notice.ExtraLabel,
-					Footer = notice.Footer,
-					PermitsLink = $"{baseUrl}/{companyId}/permits",
-					Permits = permits.Select(p => new
+					["recipient_name"] = recipient.Name,
+					["company_name"] = companyName,
+					["intro"] = notice.Intro(permits.Count),
+					["date_label"] = notice.DateLabel,
+					["extra_label"] = notice.ExtraLabel,
+					["footer"] = notice.Footer,
+					["permits_link"] = $"{baseUrl}/{companyId}/permits",
+					["permits"] = permits.Select(p => (IReadOnlyDictionary<string, object?>)new Dictionary<string, object?>
 					{
-						PermitNo = PermitNo(p.RunningNumber),
-						Description = p.Description ?? string.Empty,
-						Location = p.Location ?? string.Empty,
-						Date = GeneralHelper.GetDateInTimeZone(p.Date).ToString("dd MMM yyyy, hh:mm tt"),
-						Extra = notice.Extra(p),
-						Link = $"{baseUrl}/account/login?company={companyId}&entity=permits&id={p.Id}&origin=email",
-					}),
+						["permit_no"] = PermitNo(p.RunningNumber),
+						["description"] = p.Description ?? string.Empty,
+						["location"] = p.Location ?? string.Empty,
+						["date"] = GeneralHelper.GetDateInTimeZone(p.Date).ToString("dd MMM yyyy, hh:mm tt"),
+						["extra"] = notice.Extra(p),
+						["link"] = $"{baseUrl}/account/login?company={companyId}&entity=permits&id={p.Id}&origin=email",
+					}).ToList(),
 				});
 
 				var subject = permits.Count == 1 ? notice.SingleSubject(numbers[0]) : notice.ManySubject(permits.Count);

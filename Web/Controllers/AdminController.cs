@@ -32,6 +32,7 @@ public class AdminController : Controller
     private readonly ILogService _logService;
     private readonly IWebHostEnvironment _env;
     private readonly IAppSettingsService _appSettings;
+    private readonly IEmailTemplateService _emailTemplates;
     private readonly IMemoryCache _cache;
     private readonly IConfiguration _configuration;
     private readonly HealthCheckService _healthCheckService;
@@ -46,6 +47,7 @@ public class AdminController : Controller
         ILogService logService,
         IWebHostEnvironment env,
         IAppSettingsService appSettings,
+        IEmailTemplateService emailTemplates,
         IMemoryCache cache,
         IConfiguration configuration,
         HealthCheckService healthCheckService)
@@ -56,6 +58,7 @@ public class AdminController : Controller
         _logService = logService;
         _env = env;
         _appSettings = appSettings;
+        _emailTemplates = emailTemplates;
         _cache = cache;
         _configuration = configuration;
         _healthCheckService = healthCheckService;
@@ -544,6 +547,24 @@ public class AdminController : Controller
         if (!IsSuperUser()) return Forbid();
         await _appSettings.DeleteCategoryAsync(catId);
         return Ok();
+    }
+
+    // Same as SettingsController.PreviewEmail, for the Global / Company settings pages.
+    [Authorize]
+    [HttpPost("/admin/settings/preview-email")]
+    public IActionResult PreviewEmail([FromBody] AjaxEmailPreviewModel model)
+    {
+        if (!IsSuperUser()) return Forbid();
+
+        try
+        {
+            var html = _emailTemplates.Preview(model?.Key, model?.Html);
+            return html == null ? BadRequest(new { error = "This setting is not an email template." }) : Ok(new { html });
+        }
+        catch (FormatException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
     }
 
     [Authorize]

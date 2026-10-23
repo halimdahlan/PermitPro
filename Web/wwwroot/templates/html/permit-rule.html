@@ -15,13 +15,13 @@
 	<table cellpadding="0" cellspacing="0">
 		<tr>
 			<td>
-				Dear {{ recipient_name | html.escape }},
+				Dear {{recipient_name}},
 			</td>
 		</tr>
 		<tr><td>&nbsp;</td></tr>
 		<tr>
 			<td>
-				{{ intro | html.escape }}
+				{{intro}}
 			</td>
 		</tr>
 		<tr><td>&nbsp;</td></tr>
@@ -32,40 +32,40 @@
 						<th align="left" style="border:1px solid #d1dbe8;">Permit no</th>
 						<th align="left" style="border:1px solid #d1dbe8;">Description</th>
 						<th align="left" style="border:1px solid #d1dbe8;">Location</th>
-						<th align="left" style="border:1px solid #d1dbe8;">{{ date_label | html.escape }}</th>
-						<th align="left" style="border:1px solid #d1dbe8;">{{ extra_label | html.escape }}</th>
+						<th align="left" style="border:1px solid #d1dbe8;">{{date_label}}</th>
+						<th align="left" style="border:1px solid #d1dbe8;">{{extra_label}}</th>
 					</tr>
-					{{ for p in permits }}
+					{{#each permits}}
 					<tr>
-						<td style="border:1px solid #d1dbe8;white-space:nowrap;"><a href="{{ p.link }}" target="_blank">{{ p.permit_no }}</a></td>
-						<td style="border:1px solid #d1dbe8;">{{ p.description | html.escape }}</td>
-						<td style="border:1px solid #d1dbe8;">{{ p.location | html.escape }}</td>
-						<td style="border:1px solid #d1dbe8;white-space:nowrap;">{{ p.date }}</td>
-						<td style="border:1px solid #d1dbe8;white-space:nowrap;">{{ p.extra | html.escape }}</td>
+						<td style="border:1px solid #d1dbe8;white-space:nowrap;"><a href="{{link}}" target="_blank">{{permit_no}}</a></td>
+						<td style="border:1px solid #d1dbe8;">{{description}}</td>
+						<td style="border:1px solid #d1dbe8;">{{location}}</td>
+						<td style="border:1px solid #d1dbe8;white-space:nowrap;">{{date}}</td>
+						<td style="border:1px solid #d1dbe8;white-space:nowrap;">{{extra}}</td>
 					</tr>
-					{{ end }}
+					{{/each}}
 				</table>
 			</td>
 		</tr>
 		<tr><td>&nbsp;</td></tr>
 		<tr>
 			<td>
-				Click <a href="{{ permits_link }}" target="_blank">here</a> to open the permit list.
+				Click <a href="{{permits_link}}" target="_blank">here</a> to open the permit list.
 			</td>
 		</tr>
-		{{ if footer }}
+		{{#if footer}}
 		<tr><td>&nbsp;</td></tr>
 		<tr>
 			<td style="color:#6b7c93;font-size:13px;">
-				{{ footer | html.escape }}
+				{{footer}}
 			</td>
 		</tr>
-		{{ end }}
+		{{/if}}
 		<tr><td>&nbsp;</td></tr>
 		<tr>
 			<td>
 				Workflow Team<br />
-				PermitPRO{{ if company_name }} &middot; {{ company_name | html.escape }}{{ end }}
+				PermitPRO{{#if company_name}} &middot; {{company_name}}{{/if}}
 			</td>
 		</tr>
 	</table>

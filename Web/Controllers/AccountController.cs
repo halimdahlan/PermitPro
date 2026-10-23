@@ -17,7 +17,6 @@ using PermitPro.Core.Entities;
 using PermitPro.Core.Helpers;
 using PermitPro.Core.Interfaces;
 
-using Scriban;
 
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
@@ -266,20 +265,19 @@ public class AccountController : Controller
 
 		// Get email template
 		var htmlTemplate = System.IO.File.ReadAllText(Path.Combine(_webHostEnvironment.WebRootPath, "templates", "html", "reset-password.html"));
-		var template = Template.Parse(htmlTemplate);
 
 		// Link back to whichever host this request came in on (production, UAT or localhost), like the
 		// workflow email links in PermitService. Safe only because AllowedHosts (appsettings.json) restricts
 		// the Host header to our own domains — otherwise a forged Host would put the reset token in a link
 		// to an attacker's site (password-reset poisoning).
-		var templateData = new
+		var templateData = new Dictionary<string, object>
 		{
-			RecipientName = $"{user.FirstName} {user.LastName}",
-			ResetLink = $"{Request.Scheme}://{Request.Host}/account/reset-password?token={Base64UrlEncoder.Encode(token)}&id={WebUtility.UrlEncode(user.Id)}",
-			ExpiryMinutes = (int)tokenLifespan.TotalMinutes,
+			["recipient_name"] = $"{user.FirstName} {user.LastName}",
+			["reset_link"] = $"{Request.Scheme}://{Request.Host}/account/reset-password?token={Base64UrlEncoder.Encode(token)}&id={WebUtility.UrlEncode(user.Id)}",
+			["expiry_minutes"] = (int)tokenLifespan.TotalMinutes,
 		};
 
-		var renderedHtml = template.Render(templateData);
+		var renderedHtml = PermitPro.Core.Helpers.EmailTemplate.Render(htmlTemplate, templateData);
 
 		var bodyBuilder = new BodyBuilder();
 		bodyBuilder.HtmlBody = renderedHtml;

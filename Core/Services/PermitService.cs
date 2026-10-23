@@ -14,7 +14,6 @@ using PermitPro.Core.Helpers;
 using PermitPro.Core.Interfaces;
 using PermitPro.Core.Models;
 
-using Scriban;
 
 namespace PermitPro.Core.Services;
 
@@ -24,6 +23,7 @@ public class PermitService : IPermitService
 	private readonly PTWSettings _ptwSettings;
 	private readonly IWebHostEnvironment _webHostEnvironment;
 	private readonly IMessageService _messageService;
+	private readonly IEmailTemplateService _emailTemplates;
 	private readonly IHttpContextAccessor _httpContextAccessor;
 	private readonly ICurrentUserService _currentUserService;
 	private readonly ILogService _logService;
@@ -36,6 +36,7 @@ public class PermitService : IPermitService
 		, PTWSettings ptwSettings
 		, IWebHostEnvironment webHostEnvironment
 		, IMessageService messageService
+		, IEmailTemplateService emailTemplates
 		, IHttpContextAccessor httpContextAccessor
 		, ICurrentUserService currentUserService
 		, ILogService logService
@@ -47,6 +48,7 @@ public class PermitService : IPermitService
 		_ptwSettings = ptwSettings;
 		_webHostEnvironment = webHostEnvironment;
 		_messageService = messageService;
+		_emailTemplates = emailTemplates;
 		_httpContextAccessor = httpContextAccessor;
 		_currentUserService = currentUserService;
 		_logService = logService;
@@ -212,35 +214,15 @@ public class PermitService : IPermitService
 
 				if (!isDraft && workflowStep.Approvers.Count > 0)
 				{
-					// Get email template
-					var htmlTemplate = File.ReadAllText(Path.Combine(_webHostEnvironment.WebRootPath, "templates", "html", "wf-pending-approval.html"));
-					var template = Template.Parse(htmlTemplate);
-
 					// Generate email + internal notification for each approver
 					var permitNoCreate = string.Format("PTW{0:000000}", permit.RunningNumber);
+					var emailModel = await BuildApprovalEmailModelAsync(permit, workflow, workflowStep);
 					foreach (var approver in workflowStep.Approvers)
 					{
-						var approverName = $"{approver.FirstName} {approver.LastName}";
 						var approvalLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host.Value}/account/login?company={company}&entity=permits&id={permitId}&origin=email";
 						var notifLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host.Value}/{company}/permits/edit/{permitId}";
 
-						var templateData = new
-						{
-							RecipientName = approverName,
-							WorkflowName = workflow.Name,
-							PermitNo = permitNoCreate,
-							DateSubmitted = GeneralHelper.GetDateInTimeZone(permit.CreatedWhen).ToString("dd/MM/yyyy hh:mm tt"),
-							ApprovalLink = approvalLink,
-						};
-
-						var renderedHtml = template.Render(templateData);
-						await _messageService.SendEmailAsync(new EmailInfo
-						{
-							Name = approverName,
-							Email = approver.Email,
-							Subject = $"Pending approval task for {permitNoCreate}",
-							Body = renderedHtml
-						});
+						await SendApprovalEmailAsync(emailModel, workflowStep, approver, company, approvalLink);
 
 						_dbContext.Notifications.Add(new Notification
 						{
@@ -430,40 +412,15 @@ public class PermitService : IPermitService
 
 				if (!isDraft && workflowStep.Approvers.Count > 0)
 				{
-					// Get email template
-					var htmlTemplate = File.ReadAllText(Path.Combine(_webHostEnvironment.WebRootPath, "templates", "html", "wf-pending-approval.html"));
-					var template = Template.Parse(htmlTemplate);
-
 					// Generate email + internal notification for each approver
 					var permitNoUpdate = string.Format("PTW{0:000000}", permit.RunningNumber);
+					var emailModel = await BuildApprovalEmailModelAsync(permit, workflow, workflowStep);
 					foreach (var approver in workflowStep.Approvers)
 					{
-						var approverName = $"{approver.FirstName} {approver.LastName}";
 						var approvalLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host.Value}/account/login?company={companyId}&entity=permits&id={permitId}&origin=email";
 						var notifLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host.Value}/{companyId}/permits/edit/{permitId}";
 
-						var templateData = new
-						{
-							RecipientName = approverName,
-							WorkflowName = workflow.Name,
-							PermitNo = permitNoUpdate,
-							DateSubmitted = GeneralHelper.GetDateInTimeZone(permit.CreatedWhen).ToString("dd/MM/yyyy hh:mm tt"),
-							ApprovalLink = approvalLink,
-						};
-
-						var renderedHtml = template.Render(templateData);
-
-						try
-						{
-							await _messageService.SendEmailAsync(new EmailInfo
-							{
-								Name = approverName,
-								Email = approver.Email,
-								Subject = $"Pending approval task for {permitNoUpdate}",
-								Body = renderedHtml
-							}, companyId);
-						}
-						catch {}
+						await SendApprovalEmailAsync(emailModel, workflowStep, approver, companyId, approvalLink);
 
 						_dbContext.Notifications.Add(new Notification
 						{
@@ -1082,37 +1039,109 @@ public class PermitService : IPermitService
 		await _dbContext.SaveChangesAsync(ct);
 	}
 
+	// Values every approver's email shares (the template is in the "email_templates" app settings).
+	// Dates are printed in Asia/Kuala_Lumpur, like the rest of the app.
+	private async Task<Dictionary<string, object>> BuildApprovalEmailModelAsync(Permit permit, Workflow workflow, WorkflowStep currentStep, CancellationToken ct = default)
+	{
+		static string Format(DateTime? utc) => utc.HasValue ? GeneralHelper.GetDateInTimeZone(utc.Value).ToString("dd MMM yyyy, hh:mm tt") : null;
+		static string FormatDate(DateTime? utc) => utc.HasValue ? GeneralHelper.GetDateInTimeZone(utc.Value).ToString("dd MMM yyyy") : null;
+
+		var info = await _dbContext.Permits.AsNoTracking()
+			.Where(p => p.Id == permit.Id)
+			.Select(p => new
+			{
+				Location = p.Site != null ? p.Site.Name : null,
+				Company = p.Company != null ? (p.Company.Description ?? p.Company.Name) : null,
+			})
+			.FirstOrDefaultAsync(ct);
+
+		var createdBy = permit.CreatedBy?.ToString().ToLower();
+		var submittedBy = createdBy == null ? null : await _dbContext.Users.AsNoTracking()
+			.Where(u => u.Id.ToLower() == createdBy)
+			.Select(u => u.FirstName + " " + u.LastName)
+			.FirstOrDefaultAsync(ct);
+
+		// The approval steps only; "Draft" and "Completed" are bookkeeping steps.
+		var steps = await _dbContext.WorkflowSteps.AsNoTracking()
+			.Where(s => s.WorkflowStepWorkflow != null && s.WorkflowStepWorkflow.Id == workflow.Id && s.Name != "Draft" && s.Name != "Completed")
+			.OrderBy(s => s.StepOrder)
+			.Select(s => new { s.Id, s.Name })
+			.ToListAsync(ct);
+
+		var current = Math.Max(0, steps.FindIndex(s => s.Id == currentStep.Id));
+
+		var stepRows = steps.Select((s, i) => (IReadOnlyDictionary<string, object>)new Dictionary<string, object>
+		{
+			["number"] = (i + 1).ToString(),
+			["name"] = s.Name,
+			["status"] = i < current ? "Completed" : i == current ? "Awaiting approval" : "Upcoming",
+			["color"] = i < current ? "#2e9e5b" : i == current ? "#d97706" : "#8896a8",
+		}).ToList();
+
+		return new Dictionary<string, object>
+		{
+			["company_name"] = info?.Company,
+			["permit_no"] = $"PTW{permit.RunningNumber:000000}",
+			["permit_title"] = permit.Description ?? permit.Title,
+			["location"] = info?.Location,
+			["start_date"] = FormatDate(permit.StartDateTime),
+			// Same day: show the one date only.
+			["end_date"] = FormatDate(permit.EndDateTime) == FormatDate(permit.StartDateTime) ? null : FormatDate(permit.EndDateTime),
+			["submitted_by"] = submittedBy ?? "Unknown",
+			["date_submitted"] = Format(permit.CreatedWhen),
+			["workflow_name"] = workflow.Name,
+			["current_step"] = currentStep.Name,
+			["step_number"] = (current + 1).ToString(),
+			["step_total"] = Math.Max(steps.Count, 1).ToString(),
+			["next_step"] = current + 1 < steps.Count ? steps[current + 1].Name : "None (your approval completes the process)",
+			["steps"] = stepRows,
+		};
+	}
+
+	// Renders the "pending approval" template for one approver and emails it. A failure is logged, never thrown:
+	// the permit must save even when the mail server is down or the template is broken.
+	private async Task SendApprovalEmailAsync(Dictionary<string, object> shared, WorkflowStep step, UserInfo approver, Guid companyId, string approvalLink, CancellationToken ct = default)
+	{
+		try
+		{
+			var approverName = $"{approver.FirstName} {approver.LastName}";
+			var others = step.Approvers.Where(a => a.Id != approver.Id).Select(a => $"{a.FirstName} {a.LastName}").ToList();
+
+			var model = new Dictionary<string, object>(shared)
+			{
+				["recipient_name"] = approverName,
+				["approval_link"] = approvalLink,
+				["other_approvers"] = string.Join(", ", others),
+			};
+
+			var email = await _emailTemplates.RenderAsync(companyId, EmailTemplateNames.PendingApproval, model, ct);
+
+			await _messageService.SendEmailAsync(new EmailInfo
+			{
+				Name = approverName,
+				Email = approver.Email,
+				Subject = email.Subject,
+				Body = email.Body,
+			}, companyId);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogError(ex, "Could not send the pending-approval email to {Approver}.", approver.Email);
+		}
+	}
+
 	private async Task NotifyApproversAsync(Permit permit, Workflow workflow, WorkflowStep workflowStep, Guid companyId, bool isDraft, CancellationToken ct)
 	{
 		if (isDraft || workflowStep.Approvers.Count == 0) return;
 
-		var htmlTemplate = File.ReadAllText(Path.Combine(_webHostEnvironment.WebRootPath, "templates", "html", "wf-pending-approval.html"));
-		var template = Template.Parse(htmlTemplate);
 		var permitNo = $"PTW{permit.RunningNumber:000000}";
+		var emailModel = await BuildApprovalEmailModelAsync(permit, workflow, workflowStep, ct);
 
 		foreach (var approver in workflowStep.Approvers)
 		{
 			var approvalLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/{companyId}/permits/edit/{permit.Id}";
-			var renderedHtml = template.Render(new
-			{
-				RecipientName = $"{approver.FirstName} {approver.LastName}",
-				WorkflowName = workflow.Name,
-				PermitNo = permitNo,
-				DateSubmitted = GeneralHelper.GetDateInTimeZone(permit.CreatedWhen).ToString("dd/MM/yyyy hh:mm tt"),
-				ApprovalLink = approvalLink,
-			});
 
-			try
-			{
-				await _messageService.SendEmailAsync(new EmailInfo
-				{
-					Name = $"{approver.FirstName} {approver.LastName}",
-					Email = approver.Email,
-					Subject = $"Pending approval task for {permitNo}",
-					Body = renderedHtml,
-				}, companyId);
-			}
-			catch { }
+			await SendApprovalEmailAsync(emailModel, workflowStep, approver, companyId, approvalLink, ct);
 
 			_dbContext.Notifications.Add(new Notification
 			{

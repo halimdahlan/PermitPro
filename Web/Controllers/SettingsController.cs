@@ -26,6 +26,7 @@ public class SettingsController : AppControllerBase
 	private readonly IAppSettingsService _appSettings;
 	private readonly IConfiguration _configuration;
 	private readonly IWebHostEnvironment _env;
+	private readonly IEmailTemplateService _emailTemplates;
 
 	public SettingsController(
 		ApplicationDbContext dbContext
@@ -35,8 +36,10 @@ public class SettingsController : AppControllerBase
 		, IAppSettingsService appSettings
 		, IConfiguration configuration
 		, IWebHostEnvironment env
+		, IEmailTemplateService emailTemplates
 	) : base(dbContext, httpContextAccessor, signInManager, systemConfigurationService)
 	{
+		_emailTemplates = emailTemplates;
 		_dbContext = dbContext;
 		_appSettings = appSettings;
 		_configuration = configuration;
@@ -216,6 +219,22 @@ public class SettingsController : AppControllerBase
 	// -------------------------------------------------------------------------
 	// Settings
 	// -------------------------------------------------------------------------
+
+	// Renders an email template from the editor with sample data (nothing is saved or sent). JSON, not HTML,
+	// so the template text is never served as a page; the page shows it in a sandboxed iframe.
+	[HttpPost]
+	public IActionResult PreviewEmail([FromBody] AjaxEmailPreviewModel model)
+	{
+		try
+		{
+			var html = _emailTemplates.Preview(model?.Key, model?.Html);
+			return html == null ? BadRequest(new { error = "This setting is not an email template." }) : Ok(new { html });
+		}
+		catch (FormatException ex)
+		{
+			return BadRequest(new { error = ex.Message });
+		}
+	}
 
 	[HttpGet]
 	public async Task<JsonResult> GetSettings(Guid categoryId)
