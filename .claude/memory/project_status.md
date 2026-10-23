@@ -1,6 +1,6 @@
 ---
 name: project-status
-description: "Where the work stands (2026-10-23): v1.3.0 released and deployed (master through #48); releases are tagged; company subdomains in progress on feature/subdomain-tenancy; open items and how to resume on another machine"
+description: "Where the work stands (2026-10-24): v1.4.0 released and deployed (master through #52); releases are tagged; company subdomains in progress on feature/subdomain-tenancy; open items and how to resume on another machine"
 metadata:
   type: project
 ---
@@ -13,7 +13,7 @@ First written **2026-10-11**, when the user moved to a different computer; updat
 
 ## State
 
-- `master` is merged **and deployed** through #48 as release **v1.3.0** (the user deploys manually from the tag; confirmed 2026-10-23). Releases are tagged since 2026-10-17: `v1.2.0` (everything through #36), `v1.2.1` (through #39), `v1.2.2` (through #43) and `v1.3.0`; process in CLAUDE.md → "Releases". One feature branch is open: `feature/subdomain-tenancy` (company subdomains, not merged; its own copy of this note has the details and next steps).
+- `master` is merged **and deployed** through #52 as release **v1.4.0** (the user deploys manually from the tag; confirmed 2026-10-24). Releases are tagged since 2026-10-17: `v1.2.0` (everything through #36), `v1.2.1` (through #39), `v1.2.2` (through #43), `v1.3.0` (through #48) and `v1.4.0`; process in CLAUDE.md → "Releases". One feature branch is open: `feature/subdomain-tenancy` (company subdomains, not merged; its own copy of this note has the details and next steps).
 - Recent PRs (all merged and live):
   - #12 Telerik/Kendo removed (DataTables 2, Tom Select, Flatpickr, Treeselect, native controls)
   - #13 Old-system permit PDF: Puppeteer → QuestPDF (`LegacyPermitPdfService`), data-bug fixes; both PDFs use embedded Roboto and the company's uploaded logo; new-system PDF dates fixed
@@ -34,7 +34,8 @@ First written **2026-10-11**, when the user moved to a different computer; updat
   - #36, #37, #39 (2026-10-17) Versioning: `<Version>` 1.2.0 then 1.2.1; CLAUDE.md "Releases" section (semver, release PR → annotated tag → GitHub Release, hotfix branch from a tag). Released as v1.2.0 and v1.2.1.
   - #38 (2026-10-17) Admin → About shows the connection string again (it read `GetConnectionString(EnvironmentName)` instead of `"MSSQL"`, so it was always empty); password masked with `SqlConnectionStringBuilder`, which also catches `Pwd=`. In v1.2.1.
   - #42, #43 (2026-10-19) Login pages (tenant and Super Admin) show the running version via `AppVersion.Current` (`Web/Services/AppVersion.cs`, from the assembly) instead of a hard-coded `v1.2`; Workflow edit returns 404 for an unknown workflow (was a 500 on a null model), which cleared the only build warning (CS8602). Released as v1.2.2.
-  - #45, #47 (2026-10-21) Login pages (tenant and Super Admin) show the app logo (larger, no PERMITPRO text) instead of the icon; the Workflow History badge on the permit page is the same size as in the permits table; the permits table Submitted By column shows the time ("on 21 Oct, 2026 at 09:30 AM"). The login and badge fixes (#45) are tagged v1.2.3 (#46); the Submitted By time (#47) is in v1.3.0 (#48), the version deployed.
+  - #45, #47 (2026-10-21) Login pages (tenant and Super Admin) show the app logo (larger, no PERMITPRO text) instead of the icon; the Workflow History badge on the permit page is the same size as in the permits table; the permits table Submitted By column shows the time ("on 21 Oct, 2026 at 09:30 AM"). The login and badge fixes (#45) are tagged v1.2.3 (#46); the Submitted By time (#47) is in v1.3.0 (#48), the version deployed.
+  - #51 (2026-10-24) Pending-approval email redesigned and stored in Settings (category `email_templates`, keys `pending_approval_subject`/`pending_approval_body`; company overrides global; built-in default in `Core/Resources/EmailTemplates`; rows seeded at startup by `EmailTemplateSeed`, never overwritten); new `html` data type with a CodeMirror editor and sandboxed Preview (sample data) on the three Settings pages; Scriban removed, replaced by `Core/Helpers/EmailTemplate`, and the reset-password and permit-rule emails use it too (CLAUDE.md → "Email Templates"). #52 is the v1.4.0 version bump.
 - The project folder was renamed from `PermitPro-1.2` to `PermitPro` (by 2026-10-18). Claude Code keeps per-machine sessions and memory per folder path, so on another machine with the old path the history stays under the old name; the user's old sessions and per-machine memory were copied across on this machine.
 - GitHub issues #2–#7 (security review items) were deleted on 2026-10-12 at the user's request ("addressed outside this project"). The code they described was unchanged at the time: dashboard chart `[ResponseCache]` before auth, ~59 POST actions without antiforgery, auth cookie not `SecurePolicy.Always`, 301 redirect for email links in `PermitsController.Edit`.
 
