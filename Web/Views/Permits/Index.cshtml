@@ -9,7 +9,7 @@
 
 @* Wraps on phones: the New permit button first, then the filter and its links. *@
 <div class="d-flex flex-wrap align-items-center gap-3">
-	<div class="flex-grow-1 d-flex align-items-center gap-2 gap-sm-3 order-2 order-sm-1">
+	<div class="flex-grow-1 d-flex flex-wrap align-items-center gap-2 gap-sm-3 order-2 order-sm-1">
 		<label for="ddlFilter" class="text-nowrap">Filter by</label>
 		<div class="grid-filter">
 			<select id="ddlFilter" asp-items="Model.StatusOptions" autocomplete="off"></select>
@@ -163,8 +163,20 @@
 							? `<a href="/${companyId}/permits/edit/${row.Id}">${DataGrid.escapeHtml(data)}</a>`
 							: data,
 					},
-					{ data: 'Description', className: 'col-description', render: DataGrid.renderText },
-					{ data: 'Location', render: DataGrid.renderText },
+					{
+						data: 'Description',
+						className: 'col-description',
+						// Two lines at most on desktop (permits-index.css); the full text is the tooltip.
+						render: (data, type) => type === 'display'
+							? `<div class="clamp-2" title="${DataGrid.escapeHtml(data)}">${DataGrid.escapeHtml(data)}</div>`
+							: (data ?? ''),
+					},
+					{
+						data: 'Location',
+						render: (data, type) => type === 'display'
+							? `<div class="clamp-2" title="${DataGrid.escapeHtml(data)}">${DataGrid.escapeHtml(data)}</div>`
+							: (data ?? ''),
+					},
 					{ data: 'StartDate', className: 'dt-left text-nowrap', render: DataGrid.renderDate },
 					{ data: 'EndDate', className: 'dt-left text-nowrap', render: DataGrid.renderDate },
 					DataGrid.htmlColumn('Certificates', { className: 'text-center' }),
@@ -173,7 +185,9 @@
 						data: 'Status',
 						className: 'text-center',
 						render: (data, type, row) => type === 'display'
-							? row.StatusBadge + (row.IsArchived ? '<div><span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle mt-1" title="Archived">ARCHIVED</span></div>' : '')
+							? (row.IsArchived
+								? '<div class="status-stack"><div>' + row.StatusBadge + '</div><div><span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle" title="Archived">ARCHIVED</span></div></div>'
+								: row.StatusBadge)
 							: data,
 					},
 					{
@@ -190,6 +204,21 @@
 					}),
 				],
 			});
+
+			@if (User.IsInRole("Super User"))
+			{
+				@* Super Users: tick rows, then Delete selected (same soft delete as the row action). *@
+				<text>
+				DataGrid.bulkDelete(tbl, {
+					url: `/${companyId}/permits/bulk-delete`,
+					id: (row) => row.Id,
+					label: (row) => row.PermitNumber,
+					one: 'permit',
+					many: 'permits',
+					note: 'Their workflow history and attachments are removed too.',
+				});
+				</text>
+			}
 
 			ddlFilter = new TomSelect('#ddlFilter', {
 				allowEmptyOption: true,

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 using PermitPro.App.Controllers.Base;
+using PermitPro.App.Models.Ajax;
 using PermitPro.App.ViewModels;
 using PermitPro.Core.Data;
 using PermitPro.Core.Entities;
@@ -832,6 +833,38 @@ public class PermitsController : AppControllerBase
 				ex.Message
 			});
 		}
+	}
+
+	// Grid "Delete selected" (Super Users). Same delete as the row action (soft delete + history/attachments
+	// cleanup in PermitService.DeleteAsync); one permit failing doesn't stop the rest.
+	[Authorize(Roles = "Super User")]
+	[HttpPost("{company}/permits/bulk-delete")]
+	[ValidateAntiForgeryToken]
+	public async Task<IActionResult> BulkDeletePermits(Guid company, [FromBody] AjaxBulkDeleteRequest request, CancellationToken ct)
+	{
+		var result = new AjaxBulkDeleteResult();
+		var ids = (request?.Ids ?? new()).Select(i => Guid.TryParse(i, out var g) ? g : Guid.Empty).Where(g => g != Guid.Empty).Distinct().ToList();
+
+		var permits = await _dbContext.Permits.Where(p => ids.Contains(p.Id) && p.CompanyId == company).ToListAsync(ct);
+
+		foreach (var id in ids.Where(i => permits.All(p => p.Id != i)))
+			result.Fail(id.ToString(), "Permit", "Not found (it may already be deleted).");
+
+		foreach (var permit in permits)
+		{
+			try
+			{
+				await _permitService.DeleteAsync(permit);
+				result.Deleted++;
+			}
+			catch (Exception ex)
+			{
+				_dbContext.ChangeTracker.Clear();
+				result.Fail(permit.Id.ToString(), $"PTW{permit.RunningNumber:000000}", ex.Message);
+			}
+		}
+
+		return Ok(result);
 	}
 
 	#endregion

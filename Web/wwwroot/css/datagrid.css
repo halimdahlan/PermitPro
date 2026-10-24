@@ -228,6 +228,18 @@
 	}
 }
 
+/* ── Bulk delete (Super Users): DataGrid.bulkDelete adds .bulk-bar above the grid and a
+   .row-select checkbox in front of each row's first cell. ─────────────────────────── */
+.data-grid .row-select {
+	margin: 0 .6rem 0 0;
+	vertical-align: middle;
+	cursor: pointer;
+}
+
+.data-grid .bulk-bar .form-check-input {
+	cursor: pointer;
+}
+
 /* ── Phones (< 576px): each row as a card ──────────────────────────────────
    datagrid.js adds .dt-cards to the table and a data-label (the column title) to
    every cell. Server-rendered tables can opt in too: wrap them in .table-cards-wrap
