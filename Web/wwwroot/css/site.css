@@ -406,7 +406,12 @@ body, input, select, textarea, button {
 	box-shadow: 0 1px 4px rgba(0,0,0,.06);
 }
 
-.app-topbar-left {}
+/* min-width: 0 lets the title and the one-line page description shrink (with an ellipsis) instead of
+   wrapping and growing the bar, e.g. on phones. The full text is the description's tooltip. */
+.app-topbar-left {
+	min-width: 0;
+	flex: 1 1 auto;
+}
 
 .app-topbar-title {
 	font-size: .975rem;
@@ -414,6 +419,9 @@ body, input, select, textarea, button {
 	color: var(--pp-text);
 	margin: 0;
 	line-height: 1.2;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .app-topbar-breadcrumb {
@@ -423,6 +431,25 @@ body, input, select, textarea, button {
 	display: flex;
 	align-items: center;
 	gap: 4px;
+	min-width: 0;
+}
+
+.app-topbar-breadcrumb > span {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* Phones: room for two lines (the bar is 64px: title + two lines of this size fit). */
+@media (max-width: 575.98px) {
+	.app-topbar-breadcrumb > span {
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		white-space: normal;
+		line-height: 1.25;
+	}
 }
 
 .app-topbar-breadcrumb .sep {
@@ -437,6 +464,7 @@ body, input, select, textarea, button {
 	display: flex;
 	align-items: center;
 	gap: 6px;
+	flex-shrink: 0;
 }
 
 /* ── Topbar icon buttons ──────────────────────────────── */

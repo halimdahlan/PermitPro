@@ -6,7 +6,7 @@
 
 @{
 	ViewData["Title"] = "Rules";
-	ViewData["SubTitle"] = "Permit rules";
+	ViewData["SubTitle"] = "Automatic reminders, escalations and archiving";
 
 	var jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 	T Settings<T>(PermitRuleTypeEnum type) where T : new()

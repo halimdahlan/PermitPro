@@ -51,7 +51,7 @@ public class SettingsController : AppControllerBase
 	{
 		var categories = await _appSettings.GetCategoriesAsync(CompanyID);
 		ViewData["Title"] = "Settings";
-		ViewData["SubTitle"] = "Summary";
+		ViewData["SubTitle"] = "System and company settings by category";
 		return View(categories);
 	}
 
@@ -64,7 +64,7 @@ public class SettingsController : AppControllerBase
 	public async Task<IActionResult> About()
 	{
 		ViewData["Title"] = "About";
-		ViewData["SubTitle"] = "System Information";
+		ViewData["SubTitle"] = "Version, environment and system health";
 
 		var totalUsers = await _dbContext.Users.CountAsync(u => u.UserCompany.Id == CompanyID);
 		var activeUsers = await _dbContext.Users.CountAsync(u => u.UserCompany.Id == CompanyID && u.IsActive);
