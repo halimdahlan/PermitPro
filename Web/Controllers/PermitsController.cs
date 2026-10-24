@@ -845,13 +845,16 @@ public class PermitsController : AppControllerBase
 		var result = new AjaxBulkDeleteResult();
 		var ids = (request?.Ids ?? new()).Select(i => Guid.TryParse(i, out var g) ? g : Guid.Empty).Where(g => g != Guid.Empty).Distinct().ToList();
 
-		var permits = await _dbContext.Permits.Where(p => ids.Contains(p.Id) && p.CompanyId == company).ToListAsync(ct);
-
-		foreach (var id in ids.Where(i => permits.All(p => p.Id != i)))
-			result.Fail(id.ToString(), "Permit", "Not found (it may already be deleted).");
-
-		foreach (var permit in permits)
+		foreach (var id in ids)
 		{
+			// Loaded one at a time: after a failure the tracker is cleared, which would detach permits loaded up front.
+			var permit = await _dbContext.Permits.FirstOrDefaultAsync(p => p.Id == id && p.CompanyId == company, ct);
+			if (permit == null)
+			{
+				result.Fail(id.ToString(), "Permit", "Not found (it may already be deleted).");
+				continue;
+			}
+
 			try
 			{
 				await _permitService.DeleteAsync(permit);

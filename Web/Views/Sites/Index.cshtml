@@ -120,6 +120,21 @@
 			});
 
 
+			@if (User.IsInRole("Super User"))
+			{
+				@* Super Users: tick rows, then Delete selected (same soft delete as the row action). *@
+				<text>
+				DataGrid.bulkDelete(tbl, {
+					url: '/@Model.CompanyId/sites/bulk-delete',
+					id: (row) => row.Id,
+					label: (row) => row.Name,
+					one: 'location',
+					many: 'locations',
+					note: 'Permits at these locations are deleted too. A location that still has sub-locations is skipped.',
+				});
+				</text>
+			}
+
 			$('#btnDeleteItem').click(() => {
 				var id = $('#btnDeleteItem').data('itemId');
 

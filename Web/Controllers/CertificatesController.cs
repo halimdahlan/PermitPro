@@ -166,6 +166,43 @@ public class CertificatesController : AppControllerBase
 	}
 
 
+	// Certificates list "Delete selected" (Super Users): the same soft delete as Delete(), only for certificates that
+	// belong to this permit, and only when the permit belongs to this company.
+	[Authorize(Roles = "Super User")]
+	[HttpPost("{company}/permits/{permitId}/certificates/bulk-delete")]
+	[ValidateAntiForgeryToken]
+	public async Task<IActionResult> BulkDelete(Guid company, Guid permitId, [FromBody] PermitPro.App.Models.Ajax.AjaxBulkDeleteRequest request, CancellationToken ct)
+	{
+		if (!await _db.Permits.AnyAsync(p => p.Id == permitId && p.CompanyId == company, ct))
+			return NotFound();
+
+		var result = new PermitPro.App.Models.Ajax.AjaxBulkDeleteResult();
+		var onPermit = (await _certs.GetByPermitAsync(permitId, ct)).ToDictionary(c => c.Id);
+		var deletedBy = GetCurrentUserId() ?? Guid.Empty;
+
+		foreach (var raw in (request?.Ids ?? new()).Distinct())
+		{
+			if (!Guid.TryParse(raw, out var id) || !onPermit.TryGetValue(id, out var cert))
+			{
+				result.Fail(raw, "Certificate", "Not found (it may already be deleted).");
+				continue;
+			}
+
+			try
+			{
+				await _certs.DeleteAsync(id, deletedBy, ct);
+				result.Deleted++;
+			}
+			catch (Exception ex)
+			{
+				result.Fail(raw, cert.Name, ex.Message);
+			}
+		}
+
+		return Ok(result);
+	}
+
+
 	// ── Get certificate data (for AJAX) ──────────────────────────────────────
 
 	[HttpGet("{company}/permits/{permitId}/certificates/{id}/data")]

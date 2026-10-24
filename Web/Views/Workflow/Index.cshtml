@@ -129,6 +129,21 @@
 			});
 
 
+			@if (User.IsInRole("Super User"))
+			{
+				@* Super Users: tick rows, then Delete selected (same delete as the row action). *@
+				<text>
+				DataGrid.bulkDelete(tbl, {
+					url: `/${companyId}/workflow/workflows/bulk-delete`,
+					id: (row) => row.Id,
+					label: (row) => row.Name,
+					one: 'workflow',
+					many: 'workflows',
+					note: 'A workflow that permits use is skipped (deactivate it instead).',
+				});
+				</text>
+			}
+
 			new TomSelect('#ddlFilter', {
 				allowEmptyOption: true,
 				// Search box inside the dropdown, so the control keeps its height.

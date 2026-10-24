@@ -93,7 +93,7 @@ $"/admin/certificatetemplates/new?companyId={Model.CompanyId}";
 						var isCertRow = t.TemplateType == FormTemplateTypeEnum.Certificate;
 						var rowEditBase = isCertRow ? certEditBase : editBase;
 						var rowDeleteBase = isCertRow ? certEditBase : editBase;
-						<tr>
+						<tr data-bulk-id="@t.Id" data-bulk-label="@t.Name">
 							<td style="padding-left:1.25rem;">
 								<div class="fw-500">@t.Name</div>
 								@if (!string.IsNullOrEmpty(t.Description))
@@ -169,6 +169,25 @@ $"/admin/certificatetemplates/new?companyId={Model.CompanyId}";
 	}
 
 	@section Scripts {
+	@if (User.IsInRole("Super User") || User.IsInRole("SUPERUSER"))
+	{
+		<script src="~/js/datagrid.js" asp-append-version="true"></script>
+		<script>
+			// Super Users: tick rows, then Delete selected (same delete as the row action).
+			document.addEventListener('DOMContentLoaded', () => {
+				const table = document.querySelector('.table-cards-wrap table');
+				if (!table) return;
+				DataGrid.bulkDeleteTable(table, {
+					url: '@(isTenant ? $"/{Model.CompanyId}/formtemplates/bulk-delete" : $"/admin/formtemplates/bulk-delete?companyId={Model.CompanyId}")',
+					id: (tr) => tr.dataset.bulkId,
+					label: (tr) => tr.dataset.bulkLabel,
+					one: 'template',
+					many: 'templates',
+					note: 'A template that permits or certificates were made from is skipped. Deleted templates cannot be restored from the Recycle Bin.',
+				});
+			});
+		</script>
+	}
 		<script>
 			let bsDeleteModal = null;
 			document.addEventListener('DOMContentLoaded', () => {

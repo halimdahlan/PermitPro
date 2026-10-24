@@ -106,6 +106,21 @@
 				],
 			});
 
+			@if (User.IsInRole("Super User"))
+			{
+				@* Super Users: tick rows, then Delete selected (same soft delete as the row action). *@
+				<text>
+				DataGrid.bulkDelete(tbl, {
+					url: '/@Model.CompanyId/users/bulk-delete',
+					id: (row) => row.Id,
+					label: (row) => row.Name,
+					one: 'user',
+					many: 'users',
+					note: 'A user who has permits, your own account and Super User accounts are skipped.',
+				});
+				</text>
+			}
+
 			new TomSelect('#ddlFilter', {
 				allowEmptyOption: true,
 				maxOptions: null,

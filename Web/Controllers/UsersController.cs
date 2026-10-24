@@ -1053,6 +1053,115 @@ public class UsersController : AppControllerBase
 	}
 
 
+	// Grid "Delete selected" (Super Users). Same soft delete as the row action (UserService.DeleteAsync), plus the
+	// rules the row icon enforces in the browser only: a user with permits stays (deactivate instead). Also skipped:
+	// your own account and Super User accounts. Records are loaded one at a time so a failure can't detach the rest.
+	[Authorize(Roles = "Super User")]
+	[HttpPost("{company}/users/bulk-delete")]
+	[ValidateAntiForgeryToken]
+	public async Task<IActionResult> BulkDeleteUsers(Guid company, [FromBody] AjaxBulkDeleteRequest request, CancellationToken ct)
+	{
+		var result = new AjaxBulkDeleteResult();
+		var me = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+		foreach (var id in (request?.Ids ?? new()).Where(i => !string.IsNullOrWhiteSpace(i)).Distinct(StringComparer.OrdinalIgnoreCase))
+		{
+			var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == id && u.UserCompany.Id == company, ct);
+			if (user == null)
+			{
+				result.Fail(id, "User", "Not found (it may already be deleted).");
+				continue;
+			}
+
+			var name = $"{user.FirstName} {user.LastName}".Trim();
+
+			if (string.Equals(user.Id, me, StringComparison.OrdinalIgnoreCase))
+			{
+				result.Fail(id, name, "You can't delete your own account.");
+				continue;
+			}
+
+			if (await _userManager.IsInRoleAsync(user, "Super User"))
+			{
+				result.Fail(id, name, "Super User accounts can't be deleted here.");
+				continue;
+			}
+
+			if (Guid.TryParse(user.Id, out var userGuid) && await _dbContext.Permits.AnyAsync(p => p.CreatedBy == userGuid, ct))
+			{
+				result.Fail(id, name, "Has permits. Deactivate the user instead.");
+				continue;
+			}
+
+			try
+			{
+				await _dbContext.SoftDeleteAsync(user, Guid.Parse(me));
+				result.Deleted++;
+			}
+			catch (Exception ex)
+			{
+				_dbContext.ChangeTracker.Clear();
+				result.Fail(id, name, ex.Message);
+			}
+		}
+
+		return Ok(result);
+	}
+
+
+	// Same rules as DeleteRole: system roles and roles that still have users (in any company) stay.
+	[Authorize(Roles = "Super User")]
+	[HttpPost("{company}/users/roles/bulk-delete")]
+	[ValidateAntiForgeryToken]
+	public async Task<IActionResult> BulkDeleteRoles(Guid company, [FromBody] AjaxBulkDeleteRequest request, CancellationToken ct)
+	{
+		var result = new AjaxBulkDeleteResult();
+		var me = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+		foreach (var id in (request?.Ids ?? new()).Where(i => !string.IsNullOrWhiteSpace(i)).Distinct(StringComparer.OrdinalIgnoreCase))
+		{
+			var role = await _dbContext.Roles.Include(r => r.UserRoles).FirstOrDefaultAsync(r => r.Id == id, ct);
+			if (role == null)
+			{
+				result.Fail(id, "Role", "Not found (it may already be deleted).");
+				continue;
+			}
+
+			if (role.IsSystemRole)
+			{
+				result.Fail(id, role.Name, "System roles can't be deleted.");
+				continue;
+			}
+
+			if (role.UserRoles?.Count > 0)
+			{
+				result.Fail(id, role.Name, "Has users assigned. Reassign them first.");
+				continue;
+			}
+
+			try
+			{
+				role.IsDeleted = true;
+				role.DeletedWhen = DateTime.UtcNow;
+				role.DeletedBy = me;
+
+				var update = await _roleManager.UpdateAsync(role);
+				if (update.Succeeded)
+					result.Deleted++;
+				else
+					result.Fail(id, role.Name, string.Join(" ", update.Errors.Select(e => e.Description)));
+			}
+			catch (Exception ex)
+			{
+				_dbContext.ChangeTracker.Clear();
+				result.Fail(id, role.Name, ex.Message);
+			}
+		}
+
+		return Ok(result);
+	}
+
+
 	#region "Private static functions"
 
 	private static string UsersGridActionIcons(Guid company, string id, bool isSecured, bool hasPermits)

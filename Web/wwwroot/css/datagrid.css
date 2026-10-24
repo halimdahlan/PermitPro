@@ -228,6 +228,11 @@
 	}
 }
 
+/* "No ... found" row: DataTables' own CSS aligns it to the top, which looks off in a fixed-height row. */
+.data-grid table.dataTable > tbody > tr > td.dt-empty {
+	vertical-align: middle;
+}
+
 /* ── Bulk delete (Super Users): DataGrid.bulkDelete adds .bulk-bar above the grid and a
    .row-select checkbox in front of each row's first cell. ─────────────────────────── */
 .data-grid .row-select {

@@ -585,6 +585,52 @@ public class WorkflowController : AppControllerBase
 	}
 
 
+	// Grid "Delete selected" (Super Users). Same delete as the row action (soft delete of the workflow), plus the rule the
+	// row icon enforces in the browser only: a workflow that permits use stays. Loaded one at a time so a failure
+	// can't detach the rest.
+	[Authorize(Roles = "Super User")]
+	[HttpPost("{company}/workflow/workflows/bulk-delete")]
+	[ValidateAntiForgeryToken]
+	public async Task<IActionResult> BulkDeleteWorkflows(Guid company, [FromBody] AjaxBulkDeleteRequest request, CancellationToken ct)
+	{
+		var result = new AjaxBulkDeleteResult();
+		var ids = (request?.Ids ?? new()).Select(i => Guid.TryParse(i, out var g) ? g : Guid.Empty).Where(g => g != Guid.Empty).Distinct().ToList();
+
+		foreach (var id in ids)
+		{
+			var workflow = await _dbContext.Workflows.FirstOrDefaultAsync(w => w.Id == id && w.WorkflowCompany.Id == company, ct);
+			if (workflow == null)
+			{
+				result.Fail(id.ToString(), "Workflow", "Not found (it may already be deleted).");
+				continue;
+			}
+
+			if (await _dbContext.Permits.AnyAsync(p => p.PermitWorkflow.Id == id, ct))
+			{
+				result.Fail(id.ToString(), workflow.Name, "Used by permits. Deactivate it instead.");
+				continue;
+			}
+
+			try
+			{
+				_dbContext.Workflows.Remove(workflow);
+				await _dbContext.SaveChangesAsync(ct);
+				result.Deleted++;
+			}
+			catch (Exception ex)
+			{
+				_dbContext.ChangeTracker.Clear();
+				result.Fail(id.ToString(), workflow.Name, ex.Message);
+			}
+		}
+
+		if (result.Deleted > 0)
+			InvalidateWorkflowCache(company);
+
+		return Ok(result);
+	}
+
+
 	[HttpDelete("{company}/workflow/workflows/{workflowId}/steps/{stepId}")]
 	public async Task<ActionResult> DeleteWorkflowStep(Guid company, Guid workflowId, Guid stepId)
 	{

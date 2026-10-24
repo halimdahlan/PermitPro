@@ -204,6 +204,47 @@ public class AdminFormControlsController : Controller
 	}
 
 
+	// Controls list "Delete selected" (Super Users): the same soft delete as Delete(), for this company's controls only.
+	[HttpPost("/admin/formcontrols/bulk-delete")]
+	[ValidateAntiForgeryToken]
+	public async Task<IActionResult> BulkDelete(Guid companyId, [FromBody] PermitPro.App.Models.Ajax.AjaxBulkDeleteRequest request, CancellationToken ct)
+	{
+		if (!IsSuperUser()) return Forbid();
+
+		var result = new PermitPro.App.Models.Ajax.AjaxBulkDeleteResult();
+		var deletedBy = GetCurrentUserId() ?? Guid.Empty;
+
+		foreach (var raw in (request?.Ids ?? new()).Distinct())
+		{
+			var control = Guid.TryParse(raw, out var id) ? await _formControls.GetByIdAsync(id, ct) : null;
+			if (control == null || control.CompanyId != companyId)
+			{
+				result.Fail(raw, "Control", "Not found (it may already be deleted).");
+				continue;
+			}
+
+			var blocked = await _formControls.GetDeleteBlockReasonAsync(control.Id, ct);
+			if (blocked != null)
+			{
+				result.Fail(raw, control.Label, blocked);
+				continue;
+			}
+
+			try
+			{
+				await _formControls.DeleteAsync(control.Id, deletedBy, ct);
+				result.Deleted++;
+			}
+			catch (Exception ex)
+			{
+				result.Fail(raw, control.Label, ex.Message);
+			}
+		}
+
+		return Ok(result);
+	}
+
+
 	// ── Helpers ───────────────────────────────────────────────────────────────
 
 	private bool IsSuperUser()
