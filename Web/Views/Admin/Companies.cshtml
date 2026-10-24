@@ -38,7 +38,7 @@
 				<tbody>
 					@foreach (var c in Model)
 					{
-						<tr>
+						<tr data-bulk-id="@c.Id" data-bulk-label="@c.Name">
 							<td style="padding-left:1.25rem;">
 								@if (!string.IsNullOrEmpty(c.LogoFileName))
 								{
@@ -128,3 +128,28 @@
 	@Model.Count(c => c.IsActive) active &bull;
 	@Model.Count(c => !c.IsActive) inactive
 </div>
+
+@section CustomCss {
+	@if (User.IsInRole("Super User") || User.IsInRole("SUPERUSER"))
+	{
+		<link rel="stylesheet" href="~/css/datagrid.css" asp-append-version="true" />
+	}
+}
+
+@section Scripts {
+	@if ((User.IsInRole("Super User") || User.IsInRole("SUPERUSER")) && Model.Any())
+	{
+		<script src="~/js/datagrid.js" asp-append-version="true"></script>
+		<script>
+			// Super Admins: tick companies, then Delete selected (same delete as the row action).
+			DataGrid.bulkDeleteTable(document.querySelector('.card table'), {
+				url: '/admin/companies/bulk-delete',
+				id: (tr) => tr.dataset.bulkId,
+				label: (tr) => tr.dataset.bulkLabel,
+				one: 'company',
+				many: 'companies',
+				note: 'The locations, workflows and permits of each company are deleted too, and the logo file is removed. Everything can be restored from the Recycle Bin except the logo.',
+			});
+		</script>
+	}
+}

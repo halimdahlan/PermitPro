@@ -77,7 +77,7 @@
 				<tbody>
 					@foreach (var c in Model.Controls)
 					{
-						<tr>
+						<tr data-bulk-id="@c.Id" data-bulk-label="@c.Label">
 							<td style="padding-left:1.25rem;">
 								<span class="fw-500">@c.Name</span>
 							</td>
@@ -322,6 +322,25 @@
 }
 
 @section Scripts {
+	@if (User.IsInRole("Super User") || User.IsInRole("SUPERUSER"))
+	{
+		<script src="~/js/datagrid.js" asp-append-version="true"></script>
+		<script>
+			// Super Users: tick rows, then Delete selected (same delete as the row action).
+			document.addEventListener('DOMContentLoaded', () => {
+				const table = document.querySelector('.table-cards-wrap table');
+				if (!table) return;
+				DataGrid.bulkDeleteTable(table, {
+					url: '@(isTenant ? $"/{Model.CompanyId}/formcontrols/bulk-delete" : $"/admin/formcontrols/bulk-delete?companyId={Model.CompanyId}")',
+					id: (tr) => tr.dataset.bulkId,
+					label: (tr) => tr.dataset.bulkLabel,
+					one: 'control',
+					many: 'controls',
+					note: 'A control that a template uses is skipped. Deleted controls cannot be restored from the Recycle Bin.',
+				});
+			});
+		</script>
+	}
 	<script>
 		// ── Constants ────────────────────────────────────────────────────────────
 		const TYPE_SELECT = @((int)FormControlTypeEnum.Select);

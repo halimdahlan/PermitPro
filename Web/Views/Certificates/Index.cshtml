@@ -57,7 +57,7 @@
 				<tbody>
 					@foreach (var c in Model)
 					{
-						<tr>
+						<tr data-bulk-id="@c.Id" data-bulk-label="@c.Name">
 							<td style="padding-left:1.25rem;" class="fw-500">@c.Name</td>
 							<td><small class="text-muted">@c.Description</small></td>
 							<td class="text-center">
@@ -132,3 +132,28 @@
 		</div>
 	</div>
 </div>
+
+@section CustomCss {
+	@if (User.IsInRole("Super User") || User.IsInRole("SUPERUSER"))
+	{
+		<link rel="stylesheet" href="~/css/datagrid.css" asp-append-version="true" />
+	}
+}
+
+@section Scripts {
+	@if ((User.IsInRole("Super User") || User.IsInRole("SUPERUSER")) && Model.Any())
+	{
+		<script src="~/js/datagrid.js" asp-append-version="true"></script>
+		<script>
+			// Super Users: tick rows, then Delete selected (same delete as the row action).
+			DataGrid.bulkDeleteTable(document.querySelector('.card table'), {
+				url: '/@companyId/permits/@permitId/certificates/bulk-delete',
+				id: (tr) => tr.dataset.bulkId,
+				label: (tr) => tr.dataset.bulkLabel,
+				one: 'certificate',
+				many: 'certificates',
+				note: 'The certificate forms and anything filled in on them are deleted too.',
+			});
+		</script>
+	}
+}

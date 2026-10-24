@@ -55,4 +55,20 @@ public class FormControlService : IFormControlService
         control.DeletedBy = deletedBy;
         await _db.SaveChangesAsync(ct);
     }
+
+    public async Task<string?> GetDeleteBlockReasonAsync(Guid id, CancellationToken ct = default)
+    {
+        // A template's layout JSON refers to its controls by id ("controlId":"<guid>").
+        var key = id.ToString();
+        var names = await _db.FormTemplates
+            .AsNoTracking()
+            .Where(t => t.LayoutJson != null && t.LayoutJson.Contains(key))
+            .Select(t => t.Name)
+            .Take(3)
+            .ToListAsync(ct);
+
+        return names.Count == 0
+            ? null
+            : $"Used in {(names.Count == 1 ? "template" : "templates")}: {string.Join(", ", names)}.";
+    }
 }

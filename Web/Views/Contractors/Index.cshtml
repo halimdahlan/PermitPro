@@ -98,6 +98,21 @@
 				],
 			});
 
+			@if (User.IsInRole("Super User"))
+			{
+				@* Super Users: tick rows, then Delete selected (same delete as the row action). *@
+				<text>
+				DataGrid.bulkDelete(tbl, {
+					url: '/@Model.CompanyId/contractors/bulk-delete',
+					id: (row) => row.Id,
+					label: (row) => row.Name,
+					one: 'contractor',
+					many: 'contractors',
+					note: 'Their permits stay.',
+				});
+				</text>
+			}
+
 			new TomSelect('#ddlFilter', {
 				allowEmptyOption: true,
 				// Search box inside the dropdown, so the control keeps its height.

@@ -184,6 +184,48 @@ public class AdminFormTemplatesController : Controller
 	}
 
 
+	// Templates list "Delete selected" (Super Users): the same soft delete as Delete() (permit and certificate templates),
+	// for this company's templates only.
+	[HttpPost("/admin/formtemplates/bulk-delete")]
+	[ValidateAntiForgeryToken]
+	public async Task<IActionResult> BulkDelete(Guid companyId, [FromBody] PermitPro.App.Models.Ajax.AjaxBulkDeleteRequest request, CancellationToken ct)
+	{
+		if (!IsSuperUser()) return Forbid();
+
+		var result = new PermitPro.App.Models.Ajax.AjaxBulkDeleteResult();
+		var deletedBy = GetCurrentUserId() ?? Guid.Empty;
+
+		foreach (var raw in (request?.Ids ?? new()).Distinct())
+		{
+			var template = Guid.TryParse(raw, out var id) ? await _templates.GetByIdAsync(id, ct) : null;
+			if (template == null || template.CompanyId != companyId)
+			{
+				result.Fail(raw, "Template", "Not found (it may already be deleted).");
+				continue;
+			}
+
+			var blocked = await _templates.GetDeleteBlockReasonAsync(template.Id, ct);
+			if (blocked != null)
+			{
+				result.Fail(raw, template.Name, blocked);
+				continue;
+			}
+
+			try
+			{
+				await _templates.DeleteAsync(template.Id, deletedBy, ct);
+				result.Deleted++;
+			}
+			catch (Exception ex)
+			{
+				result.Fail(raw, template.Name, ex.Message);
+			}
+		}
+
+		return Ok(result);
+	}
+
+
 	// ── Helpers ───────────────────────────────────────────────────────────────
 
 	private async Task<FormBuilderViewModel> BuildBuilderVmAsync(

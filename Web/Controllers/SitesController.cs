@@ -6,12 +6,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 using PermitPro.App.Controllers.Base;
+using PermitPro.App.Models.Ajax;
 using PermitPro.App.ViewModels;
 using PermitPro.Core.Data;
 using PermitPro.Core.Entities;
 using PermitPro.Core.Enums;
 using PermitPro.Core.Interfaces;
 
+using System.Security.Claims;
 using System.Text.Json;
 
 namespace PermitPro.App.Controllers;
@@ -434,6 +436,65 @@ public class SitesController : AppControllerBase
 				ErrorMessage = ex.Message,
 			});
 		}
+	}
+
+
+	// Grid "Delete selected" (Super Users). Same soft delete as the row action, which takes the location's permits
+	// with it; a location that still has sub-locations is skipped (or goes once its sub-locations in the same
+	// selection are gone: each pass clears the next level up).
+	[Authorize(Roles = "Super User")]
+	[HttpPost("{companyId}/sites/bulk-delete")]
+	[ValidateAntiForgeryToken]
+	public async Task<IActionResult> BulkDeleteSites(Guid companyId, [FromBody] AjaxBulkDeleteRequest request, CancellationToken ct)
+	{
+		var result = new AjaxBulkDeleteResult();
+		var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+		var pending = (request?.Ids ?? new()).Select(i => Guid.TryParse(i, out var g) ? g : Guid.Empty).Where(g => g != Guid.Empty).Distinct().ToList();
+		var blocked = new Dictionary<Guid, (string Name, string Reason)>();
+
+		while (pending.Count > 0)
+		{
+			var stuck = new List<Guid>();
+
+			foreach (var id in pending)
+			{
+				var site = await _dbContext.Sites.FirstOrDefaultAsync(s => s.Id == id && s.SiteCompany.Id == companyId, ct);
+				if (site == null)
+				{
+					blocked.Remove(id);
+					result.Fail(id.ToString(), "Location", "Not found (it may already be deleted).");
+					continue;
+				}
+
+				if (await _dbContext.Sites.AnyAsync(s => s.ParentId == id, ct))
+				{
+					blocked[id] = (site.Name, "Has sub-locations. Delete those first.");
+					stuck.Add(id);
+					continue;
+				}
+
+				try
+				{
+					await _dbContext.SoftDeleteAsync(site, userId);
+					blocked.Remove(id);
+					result.Deleted++;
+				}
+				catch (Exception ex)
+				{
+					_dbContext.ChangeTracker.Clear();
+					blocked.Remove(id);
+					result.Fail(id.ToString(), site.Name, ex.Message);
+				}
+			}
+
+			if (stuck.Count == pending.Count) break;   // no progress this pass
+			pending = stuck;
+		}
+
+		foreach (var (id, info) in blocked)
+			result.Fail(id.ToString(), info.Name, info.Reason);
+
+		return Ok(result);
 	}
 
 

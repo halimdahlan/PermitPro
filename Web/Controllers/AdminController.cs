@@ -331,6 +331,51 @@ public class AdminController : Controller
     }
 
 
+    // Companies list "Delete selected" (Super Admins). Same as the row's delete: soft delete with its cascade to the
+    // company's locations, workflows and permits (all restorable from the Recycle Bin), an audit log entry, and the
+    // logo file removed (not restorable). The soft delete runs first, so a failure keeps the logo.
+    [Authorize]
+    [HttpPost("/admin/companies/bulk-delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> BulkDeleteCompanies([FromBody] AjaxBulkDeleteRequest request, CancellationToken ct)
+    {
+        if (!IsSuperUser()) return Forbid();
+
+        var result = new AjaxBulkDeleteResult();
+        var currentUserId = Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var uid) ? uid : Guid.Empty;
+        var ids = (request?.Ids ?? new()).Select(i => Guid.TryParse(i, out var g) ? g : Guid.Empty).Where(g => g != Guid.Empty).Distinct().ToList();
+
+        foreach (var id in ids)
+        {
+            var company = await _db.Companies.FirstOrDefaultAsync(c => c.Id == id, ct);
+            if (company == null)
+            {
+                result.Fail(id.ToString(), "Company", "Not found (it may already be deleted).");
+                continue;
+            }
+
+            try
+            {
+                var logo = company.LogoFileName;
+                await _db.SoftDeleteAsync(company, currentUserId);
+
+                if (!string.IsNullOrEmpty(logo))
+                    DeleteLogoFile(logo);
+
+                await _logService.LogMessageAsync(Core.Enums.LogTypeEnum.Information, "ADMIN_COMPANY_DELETE", $"Company '{company.Name}' soft-deleted.", CurrentUser());
+                result.Deleted++;
+            }
+            catch (Exception ex)
+            {
+                _db.ChangeTracker.Clear();
+                result.Fail(id.ToString(), company.Name, ex.Message);
+            }
+        }
+
+        return Ok(result);
+    }
+
+
     // ── Company settings ──────────────────────────────────────────────────────
 
     [Authorize]

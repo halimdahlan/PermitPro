@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 using PermitPro.App.Controllers.Base;
+using PermitPro.App.Models.Ajax;
 using PermitPro.App.ViewModels;
 using PermitPro.Core.Data;
 using PermitPro.Core.Entities;
@@ -13,6 +14,7 @@ using PermitPro.Core.Enums;
 using PermitPro.Core.Helpers;
 using PermitPro.Core.Interfaces;
 
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 
@@ -118,6 +120,43 @@ public class ContractorsController : AppControllerBase
 		});
 	}
 
+
+
+	// Grid "Delete selected" (Super Users). Same as the row action: a contractor is a user, soft-deleted
+	// (UserService.DeleteAsync) with no "has permits" block; their permits stay. Loaded one at a time so a
+	// failure can't detach the rest.
+	[Authorize(Roles = "Super User")]
+	[HttpPost("{company}/contractors/bulk-delete")]
+	[ValidateAntiForgeryToken]
+	public async Task<IActionResult> BulkDeleteContractors(Guid company, [FromBody] AjaxBulkDeleteRequest request, CancellationToken ct)
+	{
+		var result = new AjaxBulkDeleteResult();
+		var me = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+		foreach (var id in (request?.Ids ?? new()).Where(i => !string.IsNullOrWhiteSpace(i)).Distinct(StringComparer.OrdinalIgnoreCase))
+		{
+			var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == id && u.UserCompany.Id == company
+				&& u.UserRoles.Any(ur => ur.Role.NormalizedName == "CONTRACTOR"), ct);
+			if (user == null)
+			{
+				result.Fail(id, "Contractor", "Not found (it may already be deleted).");
+				continue;
+			}
+
+			try
+			{
+				await _dbContext.SoftDeleteAsync(user, me);
+				result.Deleted++;
+			}
+			catch (Exception ex)
+			{
+				_dbContext.ChangeTracker.Clear();
+				result.Fail(id, $"{user.FirstName} {user.LastName}".Trim(), ex.Message);
+			}
+		}
+
+		return Ok(result);
+	}
 
 
 	#region "Private static functions/methods"

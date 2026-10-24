@@ -73,4 +73,21 @@ public class FormTemplateService : IFormTemplateService
         template.DeletedBy = deletedBy;
         await _db.SaveChangesAsync(ct);
     }
+
+    public async Task<string?> GetDeleteBlockReasonAsync(Guid id, CancellationToken ct = default)
+    {
+        // A new-system permit keeps its template id in PermitDataJson ("templateId":"<guid>"); a certificate links to it.
+        var key = id.ToString();
+        var permits = await _db.Permits.AsNoTracking().CountAsync(p => p.PermitDataJson != null && p.PermitDataJson.Contains(key), ct);
+        var certificates = await _db.Certificates.AsNoTracking().CountAsync(c => c.FormTemplateId == id, ct);
+
+        if (permits == 0 && certificates == 0)
+            return null;
+
+        var parts = new List<string>();
+        if (permits > 0) parts.Add($"{permits} {(permits == 1 ? "permit" : "permits")}");
+        if (certificates > 0) parts.Add($"{certificates} {(certificates == 1 ? "certificate" : "certificates")}");
+
+        return $"Used by {string.Join(" and ", parts)}.";
+    }
 }

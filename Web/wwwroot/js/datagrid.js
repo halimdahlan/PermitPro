@@ -141,48 +141,47 @@ window.DataGrid = (() => {
 		tbl.column(index).search(term, true, false).draw();
 	};
 
-	// "Delete selected" for Super Users. Adds a bar above the grid (select all on this page + a Delete selected
-	// button) and a checkbox in front of each row's first cell (the card title on phones), so the columns, their
-	// indexes and the phone cards don't change. A dialog confirms, runs the delete and lists what was skipped.
+	// "Delete selected" for Super Users. Adds a bar above the grid (select all + Delete selected + Clear selection)
+	// and a checkbox in front of each row's first cell (the card title on phones), so the columns, their indexes
+	// and the phone cards don't change. One dialog confirms, deletes and lists what was skipped.
 	//
-	// options:
+	// options (both variants):
 	//   url      POST endpoint: { ids: [...] } -> { deleted, failed: [{ id, name, reason }] } (AjaxBulkDeleteResult)
 	//   id(row)  the id sent for a row            label(row)  what the confirm list shows
 	//   one/many the noun ("permit"/"permits")    note        extra line in the confirm dialog
 	//   canSelect(row)  optional: false = no checkbox for that row
 	//   afterDelete()   optional: runs after the grid has reloaded
-	const bulkDelete = (tbl, options) => {
+	//
+	// host: how the core talks to the table (DataTable or plain HTML table):
+	//   node, placeBar(bar), eachRow(fn(firstCell, row)), onRedraw(fn), onReload(fn), reload(done, dialog), selectAllLabel
+	const bulkCore = (host, options) => {
 		const opts = Object.assign({ canSelect: () => true, note: '' }, options);
 		const selected = new Map();                 // id -> label, kept across pages until the grid reloads
-		const grid = $(tbl.table().node()).closest('.data-grid');
+		const table = $(host.node);
 		const barId = 'bulkAll-' + Math.random().toString(36).slice(2);
 		const bar = $(`
 			<div class="bulk-bar d-flex flex-wrap align-items-center gap-3 mb-3">
 				<div class="form-check mb-0"><input type="checkbox" class="form-check-input bulk-all" id="${barId}" />
-					<label class="form-check-label small" for="${barId}">Select all on this page</label></div>
+					<label class="form-check-label small" for="${barId}">${host.selectAllLabel}</label></div>
 				<button type="button" class="btn btn-sm btn-outline-danger bulk-delete" disabled>
 					<i class="fa-solid fa-trash-xmark me-1"></i>Delete selected <span class="badge text-bg-danger ms-1 bulk-count">0</span></button>
 				<button type="button" class="btn btn-sm btn-outline-secondary bulk-clear" disabled title="Clear the selection on every page">
 					<i class="fa-solid fa-xmark me-1"></i>Clear selection</button>
 			</div>`);
-		grid.find('.grid-error').after(bar);
-
-		const rowsOnPage = () => tbl.rows({ page: 'current' });
+		host.placeBar(bar);
 
 		const syncBar = () => {
 			bar.find('.bulk-count').text(selected.size);
 			bar.find('.bulk-delete, .bulk-clear').prop('disabled', selected.size === 0);
-			const boxes = $(tbl.table().node()).find('.row-select');
+			const boxes = table.find('.row-select');
 			const ticked = boxes.filter(':checked').length;
 			bar.find('.bulk-all').prop('checked', boxes.length > 0 && ticked === boxes.length)
 				.prop('indeterminate', ticked > 0 && ticked < boxes.length);
 		};
 
-		// Put the checkbox into each row on the page (DataTables reuses row nodes, so only once per node).
+		// Put the checkbox into each row (row nodes are reused on redraw, so only once per node).
 		const decorate = () => {
-			rowsOnPage().every(function () {
-				const row = this.data();
-				const cell = this.node()?.cells[0];
+			host.eachRow((cell, row) => {
 				if (!cell || !opts.canSelect(row)) return;
 				let box = cell.querySelector('.row-select');
 				if (!box) {
@@ -199,11 +198,11 @@ window.DataGrid = (() => {
 			syncBar();
 		};
 
-		tbl.on('draw', decorate);
-		tbl.on('xhr.dt', () => { selected.clear(); });   // a reload starts a fresh selection
+		host.onRedraw(decorate);
+		host.onReload(() => { selected.clear(); });   // a reload starts a fresh selection
 		decorate();
 
-		$(tbl.table().node()).on('change', '.row-select', function () {
+		table.on('change', '.row-select', function () {
 			if (this.checked) selected.set(this.dataset.id, this.dataset.label);
 			else selected.delete(this.dataset.id);
 			syncBar();
@@ -211,7 +210,7 @@ window.DataGrid = (() => {
 
 		bar.find('.bulk-all').on('change', function () {
 			const on = this.checked;
-			$(tbl.table().node()).find('.row-select').each(function () {
+			table.find('.row-select').each(function () {
 				this.checked = on;
 				if (on) selected.set(this.dataset.id, this.dataset.label);
 				else selected.delete(this.dataset.id);
@@ -222,7 +221,7 @@ window.DataGrid = (() => {
 		// Forgets every ticked row, on all pages (not just the one showing).
 		bar.find('.bulk-clear').on('click', () => {
 			selected.clear();
-			$(tbl.table().node()).find('.row-select').prop('checked', false);
+			table.find('.row-select').prop('checked', false);
 			syncBar();
 		});
 
@@ -300,7 +299,7 @@ window.DataGrid = (() => {
 						`${result.deleted} ${noun(result.deleted)} deleted. ${failed.length} could not be deleted:`,
 						failed.map(f => `${f.name}: ${f.reason}`));
 				}
-				tbl.ajax.reload(() => { selected.clear(); decorate(); opts.afterDelete?.(); }, false);
+				host.reload(() => { selected.clear(); decorate(); opts.afterDelete?.(); }, m);
 			} catch (e) {
 				showResult('Delete failed', e.message || 'The delete failed. Please try again.', []);
 			} finally {
@@ -311,9 +310,38 @@ window.DataGrid = (() => {
 		bar.find('.bulk-delete').on('click', confirm);
 	};
 
+	// For a DataTable grid (DataGrid.create). Select all = the rows on the current page.
+	const bulkDelete = (tbl, options) => {
+		const grid = $(tbl.table().node()).closest('.data-grid');
+		bulkCore({
+			node: tbl.table().node(),
+			selectAllLabel: 'Select all on this page',
+			placeBar: (bar) => grid.find('.grid-error').after(bar),
+			eachRow: (fn) => tbl.rows({ page: 'current' }).every(function () { fn(this.node()?.cells[0], this.data()); }),
+			onRedraw: (fn) => tbl.on('draw', fn),
+			onReload: (fn) => tbl.on('xhr.dt', fn),
+			reload: (done) => tbl.ajax.reload(done, false),
+		}, options);
+	};
+
+	// For a plain server-rendered <table> (no paging): each <tr> in <tbody> is a row, passed to id(row) / label(row)
+	// (typically row.dataset.bulkId / row.dataset.bulkLabel). The page reloads when the result dialog is closed.
+	const bulkDeleteTable = (table, options) => {
+		bulkCore({
+			node: table,
+			selectAllLabel: 'Select all',
+			placeBar: (bar) => bar.insertBefore($(table).closest('.card')),
+			eachRow: (fn) => $(table).find('tbody > tr').each((i, tr) => fn(tr.cells[0], tr)),
+			onRedraw: () => { },
+			onReload: () => { },
+			reload: (done, dialog) => { dialog.el.one('hidden.bs.modal', () => location.reload()); },
+		}, options);
+	};
+
 	return {
 		antiForgeryToken,
 		bulkDelete,
+		bulkDeleteTable,
 		escapeHtml,
 		renderText,
 		renderDate,
