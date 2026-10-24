@@ -141,8 +141,179 @@ window.DataGrid = (() => {
 		tbl.column(index).search(term, true, false).draw();
 	};
 
+	// "Delete selected" for Super Users. Adds a bar above the grid (select all on this page + a Delete selected
+	// button) and a checkbox in front of each row's first cell (the card title on phones), so the columns, their
+	// indexes and the phone cards don't change. A dialog confirms, runs the delete and lists what was skipped.
+	//
+	// options:
+	//   url      POST endpoint: { ids: [...] } -> { deleted, failed: [{ id, name, reason }] } (AjaxBulkDeleteResult)
+	//   id(row)  the id sent for a row            label(row)  what the confirm list shows
+	//   one/many the noun ("permit"/"permits")    note        extra line in the confirm dialog
+	//   canSelect(row)  optional: false = no checkbox for that row
+	//   afterDelete()   optional: runs after the grid has reloaded
+	const bulkDelete = (tbl, options) => {
+		const opts = Object.assign({ canSelect: () => true, note: '' }, options);
+		const selected = new Map();                 // id -> label, kept across pages until the grid reloads
+		const grid = $(tbl.table().node()).closest('.data-grid');
+		const barId = 'bulkAll-' + Math.random().toString(36).slice(2);
+		const bar = $(`
+			<div class="bulk-bar d-flex flex-wrap align-items-center gap-3 mb-3">
+				<div class="form-check mb-0"><input type="checkbox" class="form-check-input bulk-all" id="${barId}" />
+					<label class="form-check-label small" for="${barId}">Select all on this page</label></div>
+				<button type="button" class="btn btn-sm btn-outline-danger bulk-delete" disabled>
+					<i class="fa-solid fa-trash-xmark me-1"></i>Delete selected <span class="badge text-bg-danger ms-1 bulk-count">0</span></button>
+				<button type="button" class="btn btn-sm btn-outline-secondary bulk-clear" disabled title="Clear the selection on every page">
+					<i class="fa-solid fa-xmark me-1"></i>Clear selection</button>
+			</div>`);
+		grid.find('.grid-error').after(bar);
+
+		const rowsOnPage = () => tbl.rows({ page: 'current' });
+
+		const syncBar = () => {
+			bar.find('.bulk-count').text(selected.size);
+			bar.find('.bulk-delete, .bulk-clear').prop('disabled', selected.size === 0);
+			const boxes = $(tbl.table().node()).find('.row-select');
+			const ticked = boxes.filter(':checked').length;
+			bar.find('.bulk-all').prop('checked', boxes.length > 0 && ticked === boxes.length)
+				.prop('indeterminate', ticked > 0 && ticked < boxes.length);
+		};
+
+		// Put the checkbox into each row on the page (DataTables reuses row nodes, so only once per node).
+		const decorate = () => {
+			rowsOnPage().every(function () {
+				const row = this.data();
+				const cell = this.node()?.cells[0];
+				if (!cell || !opts.canSelect(row)) return;
+				let box = cell.querySelector('.row-select');
+				if (!box) {
+					box = document.createElement('input');
+					box.type = 'checkbox';
+					box.className = 'form-check-input row-select';
+					box.setAttribute('aria-label', 'Select ' + opts.label(row));
+					cell.prepend(box);
+				}
+				box.dataset.id = opts.id(row);
+				box.dataset.label = opts.label(row);
+				box.checked = selected.has(box.dataset.id);
+			});
+			syncBar();
+		};
+
+		tbl.on('draw', decorate);
+		tbl.on('xhr.dt', () => { selected.clear(); });   // a reload starts a fresh selection
+		decorate();
+
+		$(tbl.table().node()).on('change', '.row-select', function () {
+			if (this.checked) selected.set(this.dataset.id, this.dataset.label);
+			else selected.delete(this.dataset.id);
+			syncBar();
+		});
+
+		bar.find('.bulk-all').on('change', function () {
+			const on = this.checked;
+			$(tbl.table().node()).find('.row-select').each(function () {
+				this.checked = on;
+				if (on) selected.set(this.dataset.id, this.dataset.label);
+				else selected.delete(this.dataset.id);
+			});
+			syncBar();
+		});
+
+		// Forgets every ticked row, on all pages (not just the one showing).
+		bar.find('.bulk-clear').on('click', () => {
+			selected.clear();
+			$(tbl.table().node()).find('.row-select').prop('checked', false);
+			syncBar();
+		});
+
+		// ---- confirm / result dialog ----
+		let modal = null;
+		const dialog = () => {
+			if (modal) return modal;
+			const el = $(`
+				<div class="modal fade" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+					<div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+						<div class="modal-header bg-warning">
+							<h6 class="modal-title w-100 fw-semibold" data-title></h6>
+							<button type="button" class="btn btn-clear" data-bs-dismiss="modal" aria-label="Close"><i class="fa-regular fa-close"></i></button>
+						</div>
+						<div class="modal-body"><div data-msg></div><ul class="small mt-2 mb-0 ps-3" data-list></ul></div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal" data-cancel>Cancel</button>
+							<button type="button" class="btn btn-sm btn-danger" data-go><span class="spinner-border spinner-border-sm me-1 d-none"></span>Yes, delete</button>
+						</div>
+					</div></div>
+				</div>`).appendTo('body');
+			modal = { el, bs: bootstrap.Modal.getOrCreateInstance(el[0]) };
+			el.find('[data-go]').on('click', run);
+			return modal;
+		};
+
+		const noun = (n) => n === 1 ? opts.one : opts.many;
+		const setList = (items) => {
+			const max = 8;
+			const lis = items.slice(0, max).map(t => `<li>${escapeHtml(t)}</li>`);
+			if (items.length > max) lis.push(`<li class="text-secondary">…and ${items.length - max} more</li>`);
+			dialog().el.find('[data-list]').html(lis.join(''));
+		};
+
+		const confirm = () => {
+			const m = dialog();
+			const n = selected.size;
+			m.el.find('[data-title]').text(`Delete ${n} ${noun(n)}`);
+			m.el.find('[data-msg]').text(`You are about to delete ${n} ${noun(n)}.${opts.note ? ' ' + opts.note : ''} Are you sure?`);
+			setList([...selected.values()]);
+			m.el.find('[data-go]').removeClass('d-none').prop('disabled', false).find('.spinner-border').addClass('d-none');
+			m.el.find('[data-cancel]').text('No');
+			m.bs.show();
+		};
+
+		const showResult = (title, message, items) => {
+			const m = dialog();
+			m.el.find('[data-title]').text(title);
+			m.el.find('[data-msg]').text(message);
+			setList(items);
+			m.el.find('[data-go]').addClass('d-none');
+			m.el.find('[data-cancel]').text('Close');
+		};
+
+		async function run() {
+			const m = dialog();
+			const go = m.el.find('[data-go]').prop('disabled', true);
+			go.find('.spinner-border').removeClass('d-none');
+			m.el.find('[data-cancel]').prop('disabled', true);
+
+			try {
+				const res = await fetch(opts.url, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': antiForgeryToken() },
+					body: JSON.stringify({ ids: [...selected.keys()] }),
+				});
+				if (!res.ok) throw new Error(res.status === 403 ? 'You are not allowed to delete these records.' : 'The delete failed. Please try again.');
+
+				const result = await res.json();
+				const failed = result.failed ?? [];
+				if (failed.length === 0) {
+					showResult('Deleted', `${result.deleted} ${noun(result.deleted)} deleted.`, []);
+				} else {
+					showResult(result.deleted > 0 ? 'Partly deleted' : 'Nothing deleted',
+						`${result.deleted} ${noun(result.deleted)} deleted. ${failed.length} could not be deleted:`,
+						failed.map(f => `${f.name}: ${f.reason}`));
+				}
+				tbl.ajax.reload(() => { selected.clear(); decorate(); opts.afterDelete?.(); }, false);
+			} catch (e) {
+				showResult('Delete failed', e.message || 'The delete failed. Please try again.', []);
+			} finally {
+				m.el.find('[data-cancel]').prop('disabled', false);
+			}
+		}
+
+		bar.find('.bulk-delete').on('click', confirm);
+	};
+
 	return {
 		antiForgeryToken,
+		bulkDelete,
 		escapeHtml,
 		renderText,
 		renderDate,

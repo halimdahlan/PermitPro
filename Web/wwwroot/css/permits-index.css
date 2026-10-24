@@ -2,6 +2,17 @@
 
 #tblPermits .submitted-on {
 	font-size: 11px;
+	/* One line ("on 24 Oct, 2026 at 06:42 AM"), so the cell stays name + date and the row height stays fixed. */
+	white-space: nowrap;
+}
+
+/* Status + ARCHIVED badge, stacked tightly enough to fit the 54px row. */
+#tblPermits .status-stack > div {
+	line-height: 1;
+}
+
+#tblPermits .status-stack > div + div {
+	margin-top: 3px;
 }
 
 #tblPermits .certificate-icons img {
@@ -11,6 +22,21 @@
 
 #tblPermits td.col-description {
 	min-width: 150px;
+}
+
+/* Every row 54px on desktop, whether or not the description wraps (the phone card layout is separate).
+   Description and location are cut at two lines (full text in the tooltip) so a long one can't stretch its row. */
+@media (min-width: 576px) {
+	#tblPermits > tbody > tr {
+		height: 54px;
+	}
+
+	#tblPermits .clamp-2 {
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
 }
 
 /* Fit nine columns in the card on desktop without sideways scrolling: tighter side padding than
