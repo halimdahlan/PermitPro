@@ -8,7 +8,7 @@
 		<RootNamespace>PermitPro.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
 		<AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
 	  <UserSecretsId>d5985dcf-6a4c-4788-b35d-e75e087e391d</UserSecretsId>
-  <Version>1.4.0</Version>
+  <Version>1.5.0</Version>
   </PropertyGroup>
 
 	<ItemGroup>
