@@ -144,6 +144,9 @@ public class QuestPdfService : IQuestPdfService
 					{
 					  content.PaddingVertical(0.5f, Unit.Centimetre).Column(col =>
 						 {
+							// The form's built-in fields (Location, description, dates) are on the page, not in the template.
+							RenderPermitInfo(col, permit);
+
 							if (layout == null || !layout.Rows.Any())
 							{
 								col.Item().Text("No form layout defined for this permit.")
@@ -283,6 +286,45 @@ public class QuestPdfService : IQuestPdfService
 				  // Ensure column always has at least one item
 				 col.Item().Text("");
 			 });
+		});
+	}
+
+
+	// ── Permit information ────────────────────────────────────────────────────
+	// The built-in fields of the new permit form, laid out like its "Permit Information" card and drawn with the
+	// same bordered cells and row spacing as the template's fields. Dates are stored in UTC, printed in Malaysia time.
+
+	private static void RenderPermitInfo(ColumnDescriptor col, Permit permit)
+	{
+		// Date only (in Malaysia time, so a late-evening UTC value lands on the right day).
+		static string When(DateTime? utc) =>
+			utc.HasValue ? GeneralHelper.GetDateInTimeZone(utc.Value).ToString("dd MMM yyyy") : null;
+
+		col.Item().PaddingHorizontal(3).PaddingBottom(4).Column(head =>
+		{
+			head.Item().Text("Permit Information").Bold().FontSize(12);
+			head.Item().PaddingTop(2).LineHorizontal(0.5f).LineColor(Colors.Grey.Lighten1);
+		});
+
+		col.Item().PaddingBottom(6).Row(row =>
+			row.RelativeItem().PaddingHorizontal(3).Element(c => RenderInfoCell(c, "Location", permit.Site?.Name)));
+
+		col.Item().PaddingBottom(6).Row(row =>
+			row.RelativeItem().PaddingHorizontal(3).Element(c => RenderInfoCell(c, "Description of work", permit.Description ?? permit.Title)));
+
+		col.Item().PaddingBottom(12).Row(row =>
+		{
+			row.RelativeItem().PaddingHorizontal(3).Element(c => RenderInfoCell(c, "Start date", When(permit.StartDateTime)));
+			row.RelativeItem().PaddingHorizontal(3).Element(c => RenderInfoCell(c, "End date", When(permit.EndDateTime)));
+		});
+	}
+
+	private static void RenderInfoCell(IContainer cell, string label, string value)
+	{
+		cell.Border(0.5f).BorderColor(Colors.Grey.Lighten2).Padding(5).Column(col =>
+		{
+			col.Item().Text(label).Bold().FontSize(9);
+			col.Item().PaddingTop(2).Text(string.IsNullOrWhiteSpace(value) ? "—" : value).FontSize(9);
 		});
 	}
 

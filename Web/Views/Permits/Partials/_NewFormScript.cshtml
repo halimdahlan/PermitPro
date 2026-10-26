@@ -90,13 +90,17 @@ function initFlatpickr() {
         },
     };
 
+    // The fixed Start/End fields are dates only (the server stores the start at 00:00 and the end at 23:59).
+    // DateTimeInput controls in the template keep the time (baseOpts).
+    const dateOpts = { ...baseOpts, enableTime: false, dateFormat: 'Y-m-d', altFormat: 'd M Y' };
+
     // Start date — when changed, update end date's minDate to match
     const startEl = document.getElementById('fldStartDateTime');
     const endEl   = document.getElementById('fldEndDateTime');
 
     if (startEl && !startEl.hasAttribute('readonly')) {
         flatpickr(startEl, {
-            ...baseOpts,
+            ...dateOpts,
             onChange(dates) {
                 clearFieldError(startEl);
                 const fpEnd = endEl?._flatpickr;
@@ -116,7 +120,7 @@ function initFlatpickr() {
 
     if (endEl && !endEl.hasAttribute('readonly')) {
         flatpickr(endEl, {
-            ...baseOpts,
+            ...dateOpts,
             // If start is already populated when end initialises, apply minDate immediately
             onReady(_, __, fp) {
                 fp.altInput.removeAttribute('name');
@@ -433,11 +437,24 @@ function buildFileAttrs(optionsJson) {
     } catch { return ''; }
 }
 
+// ── Built-in Location (Treeselect: js/form-controls.js "tree") ─────────────
+// The same control as the old permit form's Location. Absent on read-only permits (plain text there).
+function locationValue() {
+    const c = window.jQuery ? jQuery('#fldLocation').data('control') : null;
+    return c && typeof c.value === 'function' ? c.value() : '';
+}
+
+if (window.FormControls) {
+    FormControls.handlers({
+        onLocationChange: () => document.getElementById('fldLocationError')?.classList.add('d-none'),
+    });
+}
+
 // ── Validation ────────────────────────────────────────────────────────────
 const VALIDATION_RULES = {
     fldDescription:   { label: 'Description of work', test: el => el.value.trim() !== '' },
-    fldStartDateTime: { label: 'Start date/time',     test: el => el.value.trim() !== '' },
-    fldEndDateTime:   { label: 'End date/time',        test: el => el.value.trim() !== '' },
+    fldStartDateTime: { label: 'Start date',          test: el => el.value.trim() !== '' },
+    fldEndDateTime:   { label: 'End date',            test: el => el.value.trim() !== '' },
 };
 
 function validateForm() {
@@ -463,9 +480,16 @@ function validateForm() {
     const fpEnd   = document.getElementById('fldEndDateTime')?._flatpickr;
     if (fpStart?.selectedDates[0] && fpEnd?.selectedDates[0]) {
         if (fpEnd.selectedDates[0] < fpStart.selectedDates[0]) {
-            showFieldError(document.getElementById('fldEndDateTime'), 'End date/time must be after start date/time.');
+            showFieldError(document.getElementById('fldEndDateTime'), 'End date must be on or after the start date.');
             valid = false;
         }
+    }
+
+    // Built-in Location is required
+    if (document.getElementById('fldLocation')) {
+        const missing = !locationValue();
+        document.getElementById('fldLocationError')?.classList.toggle('d-none', !missing);
+        if (missing) valid = false;
     }
 
     // Canvas required fields
@@ -493,7 +517,7 @@ function validateForm() {
 
     if (!valid) {
         // Scroll to first visible error
-        const first = document.querySelector('.pf-error.visible, .is-invalid');
+        const first = document.querySelector('.pf-error.visible, .is-invalid, #fldLocationError:not(.d-none)');
         first?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
@@ -594,6 +618,7 @@ async function submitPermit(submissionType) {
     // Set the JSON and submission type now
     formData.set('permitDataJson',   JSON.stringify(collectFields()));
     formData.set('submissionType',   submissionType);
+    formData.set('siteId',           locationValue());
 
     // Append staged files — keyed as 'permitFiles' to match the controller parameter
     pendingFiles.forEach(f => formData.append('permitFiles', f, f.name));

@@ -914,15 +914,17 @@ public class PermitsController : AppControllerBase
 
 	[HttpPost("{company}/permits/form")]
 	[ValidateAntiForgeryToken]
-	public async Task<IActionResult> SaveNewPermit(Guid company, string description, string startDateTime, string endDateTime, string permitDataJson, Guid templateId, string submissionType, IFormFileCollection permitFiles, CancellationToken ct)
+	public async Task<IActionResult> SaveNewPermit(Guid company, Guid? siteId, string description, string startDateTime, string endDateTime, string permitDataJson, Guid templateId, string submissionType, IFormFileCollection permitFiles, CancellationToken ct)
 	{
 		try
 		{
-			DateTime? start = DateTime.TryParse(startDateTime, out var s) ? s : null;
-			DateTime? end   = DateTime.TryParse(endDateTime,   out var e) ? e : null;
+			// The form sends dates only: the permit runs from the start of its first day to the end of its last,
+			// so the Overdue / end-date reminder rules don't treat it as ended at 00:00 of the end day.
+			DateTime? start = DateTime.TryParse(startDateTime, out var s) ? s.Date : null;
+			DateTime? end   = DateTime.TryParse(endDateTime,   out var e) ? e.Date.AddHours(23).AddMinutes(59) : null;
 
 			var permitId = await _permitService.CreateNewSystemAsync(
-				company, templateId, description, start, end, permitDataJson, submissionType ?? "draft", permitFiles, ct);
+				company, templateId, siteId, description, start, end, permitDataJson, submissionType ?? "draft", permitFiles, ct);
 
 			return Ok(new { permitId });
 		}
@@ -935,15 +937,17 @@ public class PermitsController : AppControllerBase
 
 	[HttpPut("{company}/permits/form/{id}")]
 	[ValidateAntiForgeryToken]
-	public async Task<IActionResult> UpdateNewPermit(Guid company, Guid id, string description, string startDateTime, string endDateTime, string permitDataJson, string submissionType, IFormFileCollection permitFiles, CancellationToken ct)
+	public async Task<IActionResult> UpdateNewPermit(Guid company, Guid id, Guid? siteId, string description, string startDateTime, string endDateTime, string permitDataJson, string submissionType, IFormFileCollection permitFiles, CancellationToken ct)
 	{
 		try
 		{
-			DateTime? start = DateTime.TryParse(startDateTime, out var s) ? s : null;
-			DateTime? end   = DateTime.TryParse(endDateTime,   out var e) ? e : null;
+			// The form sends dates only: the permit runs from the start of its first day to the end of its last,
+			// so the Overdue / end-date reminder rules don't treat it as ended at 00:00 of the end day.
+			DateTime? start = DateTime.TryParse(startDateTime, out var s) ? s.Date : null;
+			DateTime? end   = DateTime.TryParse(endDateTime,   out var e) ? e.Date.AddHours(23).AddMinutes(59) : null;
 
 			await _permitService.UpdateNewSystemAsync(
-				id, company, description, start, end, permitDataJson, submissionType ?? "draft", permitFiles, ct);
+				id, company, siteId, description, start, end, permitDataJson, submissionType ?? "draft", permitFiles, ct);
 
 			return Ok(new { permitId = id });
 		}
@@ -1024,6 +1028,7 @@ public class PermitsController : AppControllerBase
 			LayoutJson = enrichedLayout,
 			PermitDataJson = permit?.PermitDataJson,
 			PermitDescription = permit?.Description,
+			Location = permit?.Site,
 			PermitStartDateTime = permit?.StartDateTime?.ToLocalTime(),
 			PermitEndDateTime = permit?.EndDateTime?.ToLocalTime(),
 			UserRoles = _currentUserService.GetCurrentUserRoles().Result,
