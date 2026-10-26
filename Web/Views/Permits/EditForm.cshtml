@@ -56,11 +56,25 @@
 
 				@* ── Fixed header fields ──────────────────────────────────────── *@
 				<div class="card shadow-sm border border-1 mb-3">
-					<div class="card-header bg-light fw-semibold fs-6">
+					<div class="card-header bg-light fw-semibold fs-6 justify-content-start">
 						<i class="fa-solid fa-circle-info me-2"></i> Permit Information
 					</div>
 					<div class="card-body">
 						<div class="row g-3">
+							<div class="col-12">
+								<label class="form-label">Location <span class="text-danger">*</span></label>
+								@* Built-in field: it is not part of the form template, so the builder can never remove it. It is the same
+								   Treeselect as the old permit form's Location (js/form-controls.js "tree", fed by /{company}/sites/tree). *@
+								@if (isReadonly)
+								{
+									<input type="text" class="form-control" readonly value="@(Model.Location?.Name ?? "—")" />
+								}
+								else
+								{
+									<div id="fldLocation" data-control="tree" data-url="/@companyId/sites/tree" data-value="@Model.Location?.Id" data-placeholder="(select location)" data-change="onLocationChange"></div>
+									<div id="fldLocationError" class="text-danger small mt-1 d-none">Location is required.</div>
+								}
+							</div>
 							<div class="col-12">
 								<label class="form-label">Description of work <span class="text-danger">*</span></label>
 								<textarea id="fldDescription" name="description" class="form-control" rows="2"
@@ -68,17 +82,17 @@
 											 @(isReadonly ? "readonly" : "") required>@Model.PermitDescription</textarea>
 							</div>
 							<div class="col-md-6">
-								<label class="form-label">Start date/time <span class="text-danger">*</span></label>
-								<input type="datetime-local" id="fldStartDateTime" name="startDateTime"
+								<label class="form-label">Start date <span class="text-danger">*</span></label>
+								<input type="text" id="fldStartDateTime" name="startDateTime"
 									   class="form-control"
-									   value="@(Model.PermitStartDateTime?.ToString("yyyy-MM-ddTHH:mm") ?? "")"
+									   value="@(Model.PermitStartDateTime?.ToString(isReadonly ? "dd MMM yyyy" : "yyyy-MM-dd") ?? "")"
 									   @(isReadonly ? "readonly" : "") required />
 							</div>
 							<div class="col-md-6">
-								<label class="form-label">End date/time <span class="text-danger">*</span></label>
-								<input type="datetime-local" id="fldEndDateTime" name="endDateTime"
+								<label class="form-label">End date <span class="text-danger">*</span></label>
+								<input type="text" id="fldEndDateTime" name="endDateTime"
 									   class="form-control"
-									   value="@(Model.PermitEndDateTime?.ToString("yyyy-MM-ddTHH:mm") ?? "")"
+									   value="@(Model.PermitEndDateTime?.ToString(isReadonly ? "dd MMM yyyy" : "yyyy-MM-dd") ?? "")"
 									   @(isReadonly ? "readonly" : "") required />
 							</div>
 						</div>
@@ -86,7 +100,7 @@
 				</div>
 
 				<div class="card shadow-sm border border-1 mb-3">
-					<div class="card-header bg-light fw-semibold fs-6">
+					<div class="card-header bg-light fw-semibold fs-6 justify-content-start">
 						<i class="fa-solid fa-list-check me-2"></i> Permit Form
 					</div>
 					<div class="card-body">
@@ -96,7 +110,7 @@
 
 				@* ── File attachments ─────────────────────────────────────────── *@
 				<div class="card shadow-sm border-0 mb-3">
-					<div class="card-header bg-light fw-semibold fs-6">
+					<div class="card-header bg-light fw-semibold fs-6 justify-content-start">
 						<i class="fa-solid fa-paperclip me-2"></i> Attachments
 					</div>
 					<div class="card-body">
@@ -161,7 +175,7 @@
 							<button class="accordion-button collapsed fw-semibold fs-6 bg-light" type="button"
 									data-bs-toggle="collapse" data-bs-target="#collapseWfHistory"
 									aria-expanded="false" aria-controls="collapseWfHistory">
-								<i class="fa-solid fa-clock-rotate-left me-2 text-secondary"></i>
+								<i class="fa-solid fa-clock-rotate-left me-2"></i>
 								Workflow History
 								<span class="badge bg-secondary ms-2" style="font-size:.72rem;">@Model.WorkflowHistories.Count()</span>
 							</button>
@@ -310,11 +324,11 @@
 </div>
 
 @section CustomCss {
-<partial name="_FlatpickrStyles" />
+<partial name="_FormControlsStyles" />
 }
 
 @section Scripts {
-<partial name="_FlatpickrScripts" />
+<partial name="_FormControlsScripts" />
 <script>
 	const LAYOUT   = @Html.Raw(layoutJson);
 	const FIELDS   = @Html.Raw(savedFields);

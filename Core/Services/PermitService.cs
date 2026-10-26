@@ -834,7 +834,7 @@ public class PermitService : IPermitService
 
 	// ── New-system permit methods ─────────────────────────────────────────────
 
-	public async Task<Guid> CreateNewSystemAsync(Guid companyId, Guid templateId, string description, DateTime? startDateTime, DateTime? endDateTime, string permitDataJson, string submissionType, IFormFileCollection files, CancellationToken ct = default)
+	public async Task<Guid> CreateNewSystemAsync(Guid companyId, Guid templateId, Guid? siteId, string description, DateTime? startDateTime, DateTime? endDateTime, string permitDataJson, string submissionType, IFormFileCollection files, CancellationToken ct = default)
 	{
 		var isDraft = submissionType == "draft";
 		var permitId = Guid.NewGuid();
@@ -855,6 +855,7 @@ public class PermitService : IPermitService
 			throw new Exception("No active workflow found for this company.");
 
 		var userCompany = _dbContext.Companies.SingleOrDefault(f => f.Id == companyId);
+		var site = await RequireSiteAsync(siteId, companyId, ct);
 
 		var permit = new Permit
 		{
@@ -863,6 +864,7 @@ public class PermitService : IPermitService
 			RunningNumber = maxNum,
 			Title = string.IsNullOrWhiteSpace(description) ? $"PTW{maxNum:000000}" : description.Trim(),
 			Description = description?.Trim(),
+			Site = site,
 			StartDateTime = startDateTime?.ToUniversalTime(),
 			EndDateTime = endDateTime?.ToUniversalTime(),
 			PermitDataJson = BuildPermitDataJson(templateId, permitDataJson),
@@ -902,7 +904,17 @@ public class PermitService : IPermitService
 		return permitId;
 	}
 
-	public async Task UpdateNewSystemAsync(Guid permitId, Guid companyId, string description, DateTime? startDateTime, DateTime? endDateTime, string permitDataJson, string submissionType, IFormFileCollection files, CancellationToken ct = default)
+	// The built-in Location field of the new permit form: required, and it must be one of the company's locations.
+	private async Task<Site> RequireSiteAsync(Guid? siteId, Guid companyId, CancellationToken ct)
+	{
+		var site = siteId.HasValue && siteId.Value != Guid.Empty
+			? await _dbContext.Sites.FirstOrDefaultAsync(s => s.Id == siteId.Value && s.SiteCompany.Id == companyId, ct)
+			: null;
+
+		return site ?? throw new Exception("Please select a location.");
+	}
+
+	public async Task UpdateNewSystemAsync(Guid permitId, Guid companyId, Guid? siteId, string description, DateTime? startDateTime, DateTime? endDateTime, string permitDataJson, string submissionType, IFormFileCollection files, CancellationToken ct = default)
 	{
 		var isDraft = submissionType == "draft";
 
@@ -912,6 +924,7 @@ public class PermitService : IPermitService
 		// Preserve existing templateId from current PermitDataJson
 		var existingTemplateId = ExtractTemplateId(permit.PermitDataJson);
 
+		permit.Site = await RequireSiteAsync(siteId, companyId, ct);
 		permit.Description = string.IsNullOrWhiteSpace(description) ? permit.Description : description.Trim();
 		permit.Title = permit.Description ?? permit.Title;
 		if (startDateTime.HasValue) permit.StartDateTime = startDateTime.Value.ToUniversalTime();
