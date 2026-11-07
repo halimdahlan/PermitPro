@@ -29,7 +29,7 @@ A multi-tenant, enterprise web application for managing **Permit-to-Work (PTW)**
 ## Project Structure
 
 ```
-PermitPro-1.2/
+PermitPro/
 ├── Web/                        # ASP.NET Core MVC web application
 │   ├── Controllers/            # 23 active MVC controllers
 │   │   ├── Base/               # AppControllerBase (company scoping + ViewData)
